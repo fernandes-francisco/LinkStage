@@ -55,4 +55,6 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+    implementation("io.github.jan-tennert.supabase:supabase-kt:3.6.0")
+    implementation("io.ktor:ktor-client-okhttp:3.4.3")
 }
