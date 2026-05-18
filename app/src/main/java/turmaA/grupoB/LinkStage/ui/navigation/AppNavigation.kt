@@ -1,43 +1,37 @@
 package turmaA.grupoB.LinkStage.ui.navigation
 
-/**
- * Definição das rotas de navegação da aplicação.
- * Cada perfil de utilizador tem as suas próprias rotas.
- */
+import androidx.compose.runtime.Composable
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import turmaA.grupoB.LinkStage.ui.admin.AdminMainScreen
+import turmaA.grupoB.LinkStage.ui.aluno.AlunoMainScreen
+import turmaA.grupoB.LinkStage.ui.instituicao.InstituicaoMainScreen
+import turmaA.grupoB.LinkStage.ui.orientador.OrientadorMainScreen
+
 object Routes {
-    // Auth
     const val LOGIN = "auth/login"
     const val REGISTER = "auth/register"
 
-    // Admin
-    const val ADMIN_HOME = "admin/home"
-    const val ADMIN_OFFERS = "admin/offers"
-    const val ADMIN_OFFER_DETAIL = "admin/offers/{offerId}"
-    const val ADMIN_RECENT_ACTIVITY = "admin/activity"
-    const val ADMIN_CHAT = "admin/chat"
-    const val ADMIN_SETTINGS = "admin/settings"
+    const val ADMIN_MAIN = "admin"
+    const val ALUNO_MAIN = "aluno"
+    const val ORIENTADOR_MAIN = "orientador"
+    const val INSTITUICAO_MAIN = "instituicao"
+}
 
-    // Aluno
-    const val ALUNO_HOME = "aluno/home"
-    const val ALUNO_OFFERS = "aluno/offers"
-    const val ALUNO_OFFER_DETAIL = "aluno/offers/{offerId}"
-    const val ALUNO_RECENT_ACTIVITY = "aluno/activity"
-    const val ALUNO_CHAT = "aluno/chat"
-    const val ALUNO_SETTINGS = "aluno/settings"
-
-    // Orientador
-    const val ORIENTADOR_HOME = "orientador/home"
-    const val ORIENTADOR_OFFERS = "orientador/offers"
-    const val ORIENTADOR_OFFER_DETAIL = "orientador/offers/{offerId}"
-    const val ORIENTADOR_RECENT_ACTIVITY = "orientador/activity"
-    const val ORIENTADOR_CHAT = "orientador/chat"
-    const val ORIENTADOR_SETTINGS = "orientador/settings"
-
-    // Instituicao
-    const val INSTITUICAO_HOME = "instituicao/home"
-    const val INSTITUICAO_OFFERS = "instituicao/offers"
-    const val INSTITUICAO_OFFER_DETAIL = "instituicao/offers/{offerId}"
-    const val INSTITUICAO_RECENT_ACTIVITY = "instituicao/activity"
-    const val INSTITUICAO_CHAT = "instituicao/chat"
-    const val INSTITUICAO_SETTINGS = "instituicao/settings"
+@Composable
+fun AppNavigation(
+    navController: NavHostController = rememberNavController(),
+    startDestination: String = Routes.ALUNO_MAIN,
+) {
+    NavHost(
+        navController = navController,
+        startDestination = startDestination,
+    ) {
+        composable(Routes.ADMIN_MAIN) { AdminMainScreen() }
+        composable(Routes.ALUNO_MAIN) { AlunoMainScreen() }
+        composable(Routes.ORIENTADOR_MAIN) { OrientadorMainScreen() }
+        composable(Routes.INSTITUICAO_MAIN) { InstituicaoMainScreen() }
+    }
 }

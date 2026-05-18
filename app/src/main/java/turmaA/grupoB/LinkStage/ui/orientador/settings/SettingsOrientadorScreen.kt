@@ -1,18 +1,10 @@
 package turmaA.grupoB.LinkStage.ui.orientador.settings
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import turmaA.grupoB.LinkStage.ui.common.UnderDevelopmentScreen
 
 @Composable
 fun SettingsOrientadorScreen(modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(text = "Orientador - Definições")
-    }
+    UnderDevelopmentScreen("Orientador - Definições", modifier)
 }
