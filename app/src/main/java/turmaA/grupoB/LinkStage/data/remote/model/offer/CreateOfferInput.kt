@@ -1,0 +1,24 @@
+package turmaA.grupoB.LinkStage.data.remote.model.offer
+
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import turmaA.grupoB.LinkStage.data.remote.model.enums.OfferStatus
+
+@Serializable
+data class CreateOfferInput(
+    @SerialName("instituition_id")
+    val instituitionId: String,
+
+    val title: String,
+    val description: String,
+    val area: String? = null,
+    val salary: Double? = null,
+    val vacancies: Int = 1,
+    val requirements: String? = null,
+
+    @SerialName("publish_date")
+    val publishDate: String? = null,
+    
+    val deadline: String? = null,
+    val status: OfferStatus = OfferStatus.DRAFT
+)
