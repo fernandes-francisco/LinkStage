@@ -1,4 +1,4 @@
-package turmaA.grupoB.LinkStage.data.remote.model.instituition
+package turmaA.grupoB.LinkStage.data.remote.model.offer
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
