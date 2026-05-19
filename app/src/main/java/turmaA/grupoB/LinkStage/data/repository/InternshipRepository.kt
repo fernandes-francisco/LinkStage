@@ -2,7 +2,6 @@ package turmaA.grupoB.LinkStage.data.repository
 
 import io.github.jan.supabase.postgrest.from
 import turmaA.grupoB.LinkStage.data.remote.model.enums.InternshipStatus
-import turmaA.grupoB.LinkStage.data.remote.model.instituition.InstituitionModel
 import turmaA.grupoB.LinkStage.data.remote.model.internship.ActivityLogModel
 import turmaA.grupoB.LinkStage.data.remote.model.internship.AssignSupervisorInput
 import turmaA.grupoB.LinkStage.data.remote.model.internship.CreateActivityLogInput
