@@ -9,7 +9,7 @@ class SupervisorRepository {
 
     private val supabase = SupabaseClientProvider.client
 
-    suspend fun getSuperVisors(): List<SupervisorModel> {
+    suspend fun getSupervisors(): List<SupervisorModel> {
         return supabase
             .from("supervisors")
             .select()
