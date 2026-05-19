@@ -6,6 +6,8 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -18,6 +20,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
@@ -25,17 +28,25 @@ import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.FilterList
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -47,13 +58,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
-import turmaA.grupoB.LinkStage.ui.theme.BlueDark
-import turmaA.grupoB.LinkStage.ui.theme.GrayBorder
-import turmaA.grupoB.LinkStage.ui.theme.GrayDark
-import turmaA.grupoB.LinkStage.ui.theme.RedAccent
+import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
+import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
+import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
+import turmaA.grupoB.LinkStage.ui.theme.LightBlue
+import turmaA.grupoB.LinkStage.ui.theme.Red
+import turmaA.grupoB.LinkStage.viewmodel.DiscoverViewModel
 
-// region Data models — replace with backend models later
+// region Data models
 
 data class OfferItem(
     val id: String,
@@ -64,42 +78,40 @@ data class OfferItem(
     val logoColor: Color,
     val logoInitial: String,
     val isFavourite: Boolean = false,
+    val duration: String = "",
+    val area: String = "",
+    val location: String = "",
+)
+
+data class DiscoverFilters(
+    val areas: List<String> = emptyList(),
+    val location: String = "",
+    val workModel: String? = null,
+    val duration: String? = null,
 )
 
 // endregion
 
-// region Mock data — replace with ViewModel state
+private val workModelOptions = listOf("Remoto", "Tempo Inteiro", "Tempo Parcial")
+private val durationOptions = listOf("3 meses", "6 meses", "9 meses", "12 meses")
+private val topChipFilters = listOf("Todas", "Remotas", "Tempo Inteiro", "Tecnologia")
 
-private val discoverFilters = listOf("Todas", "Remotas", "Tempo Inteiro", "Tecnologia")
-
-private val sampleOffers = listOf(
-    OfferItem("1", "Designer de Produto", "Continente – Tempo Inteiro", "Tempo Inteiro", "5h atrás", Color(0xFFE53935), "C"),
-    OfferItem("2", "UI/UX Designer", "Viana S.T.Arts – Remoto", "Remoto", "2d atrás", Color(0xFF212121), "V", isFavourite = true),
-    OfferItem("3", "Aprendiz de cozinha", "McDonald's – Tempo parcial", "Tempo Parcial", "5d atrás", Color(0xFFFFCC00), "M"),
-    OfferItem("4", "Recepcionista", "B&B – Tempo Inteiro", "Tempo Inteiro", "1w atrás", Color(0xFF1565C0), "B"),
-    OfferItem("5", "Dançarino", "Zé dos Cães – Noturno", "Noturno", "2w atrás", Color(0xFF37474F), "Z"),
-)
-
-// endregion
-
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OffersAlunoScreen(
     modifier: Modifier = Modifier,
     onOfferClick: (String) -> Unit = {},
+    discoverViewModel: DiscoverViewModel = viewModel(),
 ) {
-    var searchQuery by remember { mutableStateOf("") }
-    var selectedFilter by remember { mutableStateOf("Todas") }
+    val searchQuery by discoverViewModel.searchQuery.collectAsState()
+    val filteredOffers by discoverViewModel.filteredOffers.collectAsState()
+    val currentFilters by discoverViewModel.filters.collectAsState()
+    val hasActiveFilters = currentFilters != DiscoverFilters()
 
-    val filteredOffers = remember(selectedFilter, searchQuery) {
-        sampleOffers.filter { offer ->
-            val matchesFilter = selectedFilter == "Todas" ||
-                offer.type.contains(selectedFilter, ignoreCase = true)
-            val matchesSearch = searchQuery.isEmpty() ||
-                offer.title.contains(searchQuery, ignoreCase = true) ||
-                offer.company.contains(searchQuery, ignoreCase = true)
-            matchesFilter && matchesSearch
-        }
-    }
+    var showFilterSheet by remember { mutableStateOf(false) }
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    var selectedTopFilter by remember { mutableStateOf("Todas") }
 
     LazyColumn(
         modifier = modifier
@@ -107,7 +119,6 @@ fun OffersAlunoScreen(
             .background(BackgroundLight),
         contentPadding = PaddingValues(bottom = 16.dp),
     ) {
-        // Logo
         item {
             Row(
                 modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
@@ -117,7 +128,7 @@ fun OffersAlunoScreen(
                     "LINK",
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = FontWeight.Bold,
-                        color = BlueDark,
+                        color = DarkBlue,
                     ),
                 )
                 Spacer(modifier = Modifier.width(4.dp))
@@ -125,45 +136,58 @@ fun OffersAlunoScreen(
                     "STAGE",
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = FontWeight.Light,
-                        color = BlueDark,
+                        color = DarkBlue,
                     ),
                 )
             }
         }
 
-        // Title
         item {
             Text(
                 text = "Descobre Oportunidades",
                 style = MaterialTheme.typography.headlineSmall.copy(
                     fontWeight = FontWeight.Bold,
-                    color = BlueDark,
+                    color = DarkBlue,
                 ),
                 modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp),
             )
         }
 
-        // Search bar + filter button
         item {
             Spacer(modifier = Modifier.height(12.dp))
-            SearchBar(
+            SearchBarWithFilter(
                 query = searchQuery,
-                onQueryChange = { searchQuery = it },
+                onQueryChange = { discoverViewModel.updateSearchQuery(it) },
+                hasActiveFilters = hasActiveFilters,
+                onFilterClick = { showFilterSheet = true },
             )
             Spacer(modifier = Modifier.height(12.dp))
         }
 
-        // Filter chips
         item {
             FilterChips(
-                filters = discoverFilters,
-                selectedFilter = selectedFilter,
-                onFilterSelected = { selectedFilter = it },
+                filters = topChipFilters,
+                selectedFilter = selectedTopFilter,
+                onFilterSelected = { filter ->
+                    selectedTopFilter = filter
+                    val newWorkModel = when (filter) {
+                        "Remotas" -> "Remoto"
+                        "Tempo Inteiro" -> "Tempo Inteiro"
+                        "Tecnologia" -> null
+                        else -> null
+                    }
+                    val newAreas = if (filter == "Tecnologia") listOf("Tecnologia") else currentFilters.areas
+                    discoverViewModel.applyFilters(
+                        currentFilters.copy(
+                            workModel = newWorkModel,
+                            areas = if (filter == "Todas") emptyList() else newAreas,
+                        )
+                    )
+                },
             )
             Spacer(modifier = Modifier.height(8.dp))
         }
 
-        // Offer cards
         items(filteredOffers, key = { it.id }) { offer ->
             OfferCard(
                 offer = offer,
@@ -171,14 +195,257 @@ fun OffersAlunoScreen(
             )
         }
     }
+
+    if (showFilterSheet) {
+        FilterBottomSheet(
+            sheetState = sheetState,
+            currentFilters = currentFilters,
+            availableAreas = discoverViewModel.availableAreas,
+            onDismiss = { showFilterSheet = false },
+            onApply = { filters ->
+                discoverViewModel.applyFilters(filters)
+                showFilterSheet = false
+            },
+            onClear = {
+                discoverViewModel.clearFilters()
+                selectedTopFilter = "Todas"
+                showFilterSheet = false
+            },
+        )
+    }
 }
+
+// region Filter Bottom Sheet
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@Composable
+private fun FilterBottomSheet(
+    sheetState: androidx.compose.material3.SheetState,
+    currentFilters: DiscoverFilters,
+    availableAreas: List<String>,
+    onDismiss: () -> Unit,
+    onApply: (DiscoverFilters) -> Unit,
+    onClear: () -> Unit,
+) {
+    var selectedAreas by remember { mutableStateOf(currentFilters.areas) }
+    var locationText by remember { mutableStateOf(currentFilters.location) }
+    var selectedWorkModel by remember { mutableStateOf(currentFilters.workModel) }
+    var selectedDuration by remember { mutableStateOf(currentFilters.duration) }
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        containerColor = Color.White,
+        shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp)
+                .padding(bottom = 32.dp),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    "Filtros",
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = DarkBlue,
+                    ),
+                )
+                TextButton(onClick = onClear) {
+                    Text("Limpar", color = Red)
+                }
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // Area filter (multi-select)
+            Text(
+                "Área",
+                style = MaterialTheme.typography.titleSmall.copy(
+                    fontWeight = FontWeight.SemiBold,
+                    color = DarkBlue,
+                ),
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                availableAreas.forEach { area ->
+                    val isSelected = area in selectedAreas
+                    FilterChip(
+                        selected = isSelected,
+                        onClick = {
+                            selectedAreas = if (isSelected) selectedAreas - area
+                            else selectedAreas + area
+                        },
+                        label = { Text(area) },
+                        shape = RoundedCornerShape(20.dp),
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = DarkBlue,
+                            selectedLabelColor = Color.White,
+                            containerColor = BackgroundLight,
+                            labelColor = DarkGrey,
+                        ),
+                        border = FilterChipDefaults.filterChipBorder(
+                            enabled = true,
+                            selected = isSelected,
+                            borderColor = BorderGrey,
+                            selectedBorderColor = Color.Transparent,
+                        ),
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // Location filter (text field)
+            Text(
+                "Localização",
+                style = MaterialTheme.typography.titleSmall.copy(
+                    fontWeight = FontWeight.SemiBold,
+                    color = DarkBlue,
+                ),
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            OutlinedTextField(
+                value = locationText,
+                onValueChange = { locationText = it },
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = { Text("Ex: Porto, Remoto...", color = DarkGrey) },
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedBorderColor = BorderGrey,
+                    focusedBorderColor = DarkBlue,
+                    unfocusedContainerColor = BackgroundLight,
+                    focusedContainerColor = BackgroundLight,
+                ),
+                singleLine = true,
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // Work model filter (single-select)
+            Text(
+                "Modelo de Trabalho",
+                style = MaterialTheme.typography.titleSmall.copy(
+                    fontWeight = FontWeight.SemiBold,
+                    color = DarkBlue,
+                ),
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                workModelOptions.forEach { model ->
+                    val isSelected = model == selectedWorkModel
+                    FilterChip(
+                        selected = isSelected,
+                        onClick = {
+                            selectedWorkModel = if (isSelected) null else model
+                        },
+                        label = { Text(model) },
+                        shape = RoundedCornerShape(20.dp),
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = DarkBlue,
+                            selectedLabelColor = Color.White,
+                            containerColor = BackgroundLight,
+                            labelColor = DarkGrey,
+                        ),
+                        border = FilterChipDefaults.filterChipBorder(
+                            enabled = true,
+                            selected = isSelected,
+                            borderColor = BorderGrey,
+                            selectedBorderColor = Color.Transparent,
+                        ),
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // Duration filter (single-select)
+            Text(
+                "Duração",
+                style = MaterialTheme.typography.titleSmall.copy(
+                    fontWeight = FontWeight.SemiBold,
+                    color = DarkBlue,
+                ),
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                durationOptions.forEach { duration ->
+                    val isSelected = duration == selectedDuration
+                    FilterChip(
+                        selected = isSelected,
+                        onClick = {
+                            selectedDuration = if (isSelected) null else duration
+                        },
+                        label = { Text(duration) },
+                        shape = RoundedCornerShape(20.dp),
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = DarkBlue,
+                            selectedLabelColor = Color.White,
+                            containerColor = BackgroundLight,
+                            labelColor = DarkGrey,
+                        ),
+                        border = FilterChipDefaults.filterChipBorder(
+                            enabled = true,
+                            selected = isSelected,
+                            borderColor = BorderGrey,
+                            selectedBorderColor = Color.Transparent,
+                        ),
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(28.dp))
+
+            Button(
+                onClick = {
+                    onApply(
+                        DiscoverFilters(
+                            areas = selectedAreas,
+                            location = locationText,
+                            workModel = selectedWorkModel,
+                            duration = selectedDuration,
+                        )
+                    )
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = DarkBlue),
+            ) {
+                Text(
+                    "Aplicar Filtros",
+                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold),
+                )
+            }
+        }
+    }
+}
+
+// endregion
 
 // region Components
 
 @Composable
-private fun SearchBar(
+private fun SearchBarWithFilter(
     query: String,
     onQueryChange: (String) -> Unit,
+    hasActiveFilters: Boolean,
+    onFilterClick: () -> Unit,
 ) {
     Row(
         modifier = Modifier
@@ -191,38 +458,51 @@ private fun SearchBar(
             value = query,
             onValueChange = onQueryChange,
             modifier = Modifier.weight(1f),
-            placeholder = { Text("Pesquisar...", color = GrayDark) },
+            placeholder = { Text("Pesquisar...", color = DarkGrey) },
             leadingIcon = {
                 Icon(
                     Icons.Outlined.Search,
                     contentDescription = null,
-                    tint = GrayDark,
+                    tint = DarkGrey,
                 )
             },
             shape = RoundedCornerShape(12.dp),
             colors = OutlinedTextFieldDefaults.colors(
-                unfocusedBorderColor = GrayBorder,
-                focusedBorderColor = BlueDark,
+                unfocusedBorderColor = BorderGrey,
+                focusedBorderColor = DarkBlue,
                 unfocusedContainerColor = Color.White,
                 focusedContainerColor = Color.White,
             ),
             singleLine = true,
         )
 
-        Box(
-            modifier = Modifier
-                .size(52.dp)
-                .clip(RoundedCornerShape(12.dp))
-                .background(BlueDark)
-                .clickable { },
-            contentAlignment = Alignment.Center,
+        BadgedBox(
+            badge = {
+                if (hasActiveFilters) {
+                    Box(
+                        modifier = Modifier
+                            .size(10.dp)
+                            .clip(CircleShape)
+                            .background(Red),
+                    )
+                }
+            },
         ) {
-            Icon(
-                Icons.Outlined.FilterList,
-                contentDescription = "Filtros",
-                tint = Color.White,
-                modifier = Modifier.size(22.dp),
-            )
+            Box(
+                modifier = Modifier
+                    .size(52.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(DarkBlue)
+                    .clickable { onFilterClick() },
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    Icons.Outlined.FilterList,
+                    contentDescription = "Filtros",
+                    tint = Color.White,
+                    modifier = Modifier.size(22.dp),
+                )
+            }
         }
     }
 }
@@ -254,15 +534,15 @@ private fun FilterChips(
                 },
                 shape = RoundedCornerShape(20.dp),
                 colors = FilterChipDefaults.filterChipColors(
-                    selectedContainerColor = BlueDark,
+                    selectedContainerColor = DarkBlue,
                     selectedLabelColor = Color.White,
                     containerColor = Color.White,
-                    labelColor = GrayDark,
+                    labelColor = DarkGrey,
                 ),
                 border = FilterChipDefaults.filterChipBorder(
                     enabled = true,
                     selected = isSelected,
-                    borderColor = GrayBorder,
+                    borderColor = BorderGrey,
                     selectedBorderColor = Color.Transparent,
                 ),
             )
@@ -317,7 +597,7 @@ private fun OfferCard(
                     Text(
                         text = offer.company,
                         style = MaterialTheme.typography.bodySmall,
-                        color = GrayDark,
+                        color = DarkGrey,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
@@ -330,7 +610,7 @@ private fun OfferCard(
                     Icon(
                         imageVector = if (isFav) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
                         contentDescription = if (isFav) "Remover favorito" else "Adicionar favorito",
-                        tint = if (isFav) RedAccent else GrayDark,
+                        tint = if (isFav) Red else DarkGrey,
                     )
                 }
             }
@@ -341,15 +621,32 @@ private fun OfferCard(
                 Icon(
                     Icons.Outlined.Schedule,
                     contentDescription = null,
-                    tint = GrayDark,
+                    tint = DarkGrey,
                     modifier = Modifier.size(13.dp),
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
                     text = "Publicada ${offer.publishedAgo}",
                     style = MaterialTheme.typography.labelSmall,
-                    color = GrayDark,
+                    color = DarkGrey,
                 )
+
+                if (offer.duration.isNotEmpty()) {
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(
+                        text = "• ${offer.duration}",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = DarkGrey,
+                    )
+                }
+                if (offer.location.isNotEmpty()) {
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(
+                        text = "• ${offer.location}",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = DarkGrey,
+                    )
+                }
             }
         }
     }

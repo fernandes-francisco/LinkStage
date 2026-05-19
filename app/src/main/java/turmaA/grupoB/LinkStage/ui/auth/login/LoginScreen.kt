@@ -47,6 +47,7 @@ import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.Fade2
 import turmaA.grupoB.LinkStage.ui.theme.LinkStageTheme
+import turmaA.grupoB.LinkStage.ui.theme.MediumBlue
 
 @Composable
 fun LoginScreen(
@@ -183,7 +184,7 @@ fun LoginScreenContent(
             ) {
                 Text(
                     text = "Esqueceu a Palavra-passe?",
-                    color = Color(0xFF326B9B),
+                    color = MediumBlue,
                     style = MaterialTheme.typography.bodySmall,
                     fontSize = 14.sp
                 )
@@ -227,7 +228,7 @@ fun LoginScreenContent(
                 ) {
                     Text(
                         text = "Regista-te aqui",
-                        color = Color(0xFF326B9B),
+                        color = MediumBlue,
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Bold
                     )

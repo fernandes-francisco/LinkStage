@@ -14,8 +14,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import turmaA.grupoB.LinkStage.ui.theme.BlueDark
-import turmaA.grupoB.LinkStage.ui.theme.GrayDark
+import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
+import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 
 @Composable
 fun LoadingScreen(modifier: Modifier = Modifier) {
@@ -54,14 +54,14 @@ fun UnderDevelopmentScreen(
             text = screenName,
             style = MaterialTheme.typography.titleLarge.copy(
                 fontWeight = FontWeight.Bold,
-                color = BlueDark,
+                color = DarkBlue,
             ),
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = "Em desenvolvimento",
             style = MaterialTheme.typography.bodyMedium,
-            color = GrayDark,
+            color = DarkGrey,
         )
     }
 }

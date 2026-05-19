@@ -1,5 +1,7 @@
 package turmaA.grupoB.LinkStage.ui.aluno.home
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,43 +15,48 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
-import androidx.compose.material.icons.outlined.Work
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import turmaA.grupoB.LinkStage.ui.aluno.AlunoRoutes
+import turmaA.grupoB.LinkStage.ui.aluno.activity.ApplicationCard
+import turmaA.grupoB.LinkStage.ui.aluno.activity.InternshipHeader
+import turmaA.grupoB.LinkStage.ui.aluno.activity.calculateInternshipProgress
+import turmaA.grupoB.LinkStage.ui.aluno.chat.ConversationItem
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
-import turmaA.grupoB.LinkStage.ui.theme.BlueDark
-import turmaA.grupoB.LinkStage.ui.theme.BlueLight
+import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
+import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.Fade3
-import turmaA.grupoB.LinkStage.ui.theme.RedAccent
+import turmaA.grupoB.LinkStage.ui.theme.LightBlue
+import turmaA.grupoB.LinkStage.viewmodel.HomeViewModel
 
-// region Data models — replace with backend models later
-data class Candidatura(
-    val title: String,
-    val company: String,
-    val timeAgo: String,
-    val status: CandidaturaStatus,
-)
+// region Data models
 
-enum class CandidaturaStatus(val label: String) {
-    ACEITE("Aceite"),
-    RECUSADO("Recusado"),
-    PENDENTE("Pendente"),
+enum class ApplicationStatus(val label: String) {
+    ACCEPTED("Aceite"),
+    REJECTED("Recusado"),
+    PENDING("Pendente"),
 }
 
 data class Entrega(
@@ -58,40 +65,30 @@ data class Entrega(
     val company: String,
 )
 
-data class MensagemPreview(
-    val initials: String,
-    val name: String,
-    val preview: String,
-    val avatarColor: Color,
-)
 // endregion
 
-// region Mock data — replace with ViewModel state
-private val mockCandidaturas = listOf(
-    Candidatura("Call Center Indiano", "Rasheed", "3d atrás", CandidaturaStatus.ACEITE),
-    Candidatura("Intermaché dos Arcos", "Intermarché", "2w atrás", CandidaturaStatus.RECUSADO),
-)
+// region Mock data
 
 private val mockEntregas = listOf(
     Entrega("Amanhã", "Apresentação de Cyber Segurança", "IPVC.Inc"),
     Entrega("Em 2 dias", "Ponto de controlo 25 projeto 4", "IPVC.Inc"),
 )
 
-private val mockMensagens = listOf(
-    MensagemPreview("FF", "Francisco Fernandes", "Boa pergunta.", Color(0xFF30C9CD)),
-    MensagemPreview("TA", "Tiago Alexandre", "Como assim?", Color(0xFF0E1572)),
-    MensagemPreview("MA", "Miguel Azevedo", "Note-se.", Color(0xFF326B9B)),
-    MensagemPreview("VS", "Viana S.T.Arts", "Altera a dashboard.", Color(0xFF30C9CD)),
-)
 // endregion
 
 @Composable
-fun HomeAlunoScreen(modifier: Modifier = Modifier) {
+fun HomeAlunoScreen(
+    navController: NavController,
+    homeViewModel: HomeViewModel = viewModel(),
+) {
     val userName = "Tomás"
-    val isEmEstagio = false
+    val hasActiveInternship by homeViewModel.hasActiveInternship.collectAsState()
+    val activeInternship by homeViewModel.activeInternship.collectAsState()
+    val recentApplications by homeViewModel.recentApplications.collectAsState()
+    val recentConversations by homeViewModel.recentConversations.collectAsState()
 
     Column(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxSize()
             .background(BackgroundLight)
             .verticalScroll(rememberScrollState())
@@ -107,29 +104,119 @@ fun HomeAlunoScreen(modifier: Modifier = Modifier) {
             "Olá, $userName",
             style = MaterialTheme.typography.headlineLarge.copy(
                 fontWeight = FontWeight.Bold,
-                color = BlueDark,
+                color = DarkBlue,
             ),
         )
 
-        Spacer(modifier = Modifier.height(24.dp))
-
-        if (isEmEstagio) {
-            EstagioAtivoSection()
-        } else {
-            CandidaturasSection(mockCandidaturas)
+        // DEBUG: toggle para testar os dois estados
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(DarkGrey.copy(alpha = 0.1f), RoundedCornerShape(8.dp))
+                .padding(horizontal = 12.dp, vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                "DEBUG — Em estágio",
+                style = MaterialTheme.typography.labelMedium,
+                color = DarkGrey,
+                modifier = Modifier.weight(1f),
+            )
+            Switch(
+                checked = hasActiveInternship,
+                onCheckedChange = { homeViewModel.toggleInternship() },
+                colors = SwitchDefaults.colors(
+                    checkedThumbColor = Color.White,
+                    checkedTrackColor = LightBlue,
+                    uncheckedThumbColor = Color.White,
+                    uncheckedTrackColor = DarkGrey.copy(alpha = 0.3f),
+                ),
+            )
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        EntregasCard(mockEntregas)
+        if (hasActiveInternship && activeInternship != null) {
+            // State B: Active internship
+            val internship = activeInternship!!
+            val progress = calculateInternshipProgress(internship.startDate, internship.endDate)
+
+            var animationStarted by remember { mutableStateOf(false) }
+            val animatedProgress by animateFloatAsState(
+                targetValue = if (animationStarted) progress else 0f,
+                animationSpec = tween(durationMillis = 1000),
+                label = "home_progress",
+            )
+            LaunchedEffect(Unit) { animationStarted = true }
+
+            SectionHeader(
+                title = "Estágio Ativo",
+                actionText = "Ver detalhes",
+                onAction = {
+                    navController.navigate(AlunoRoutes.ACTIVITY)
+                },
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            InternshipHeader(
+                internship = internship,
+                animatedProgress = animatedProgress,
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            EntregasCard(mockEntregas)
+        } else {
+            // State A: No internship — show recent applications
+            SectionHeader(
+                title = "Estado das candidaturas",
+                actionText = "Ver todas",
+                onAction = {
+                    navController.navigate(AlunoRoutes.ACTIVITY)
+                },
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+
+            recentApplications.forEach { application ->
+                ApplicationCard(application = application)
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            SectionHeader(
+                title = "Descobre Oportunidades",
+                actionText = "Explorar",
+                onAction = {
+                    navController.navigate(AlunoRoutes.DISCOVER)
+                },
+            )
+        }
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        MensagensSection(mockMensagens)
+        // Recent messages — both states
+        SectionHeader(
+            title = "Mensagens Recentes",
+            actionText = "Ver todas",
+            onAction = {
+                navController.navigate(AlunoRoutes.MESSAGES)
+            },
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+
+        recentConversations.forEach { conversation ->
+            ConversationItem(
+                conversation = conversation,
+                onClick = {
+                    navController.navigate(AlunoRoutes.chatRoute(conversation.id))
+                },
+            )
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
     }
 }
+
+// region Components
 
 @Composable
 private fun LinkStageLogo() {
@@ -138,7 +225,7 @@ private fun LinkStageLogo() {
             "LINK",
             style = MaterialTheme.typography.titleMedium.copy(
                 fontWeight = FontWeight.Bold,
-                color = BlueDark,
+                color = DarkBlue,
             ),
         )
         Spacer(modifier = Modifier.width(4.dp))
@@ -146,129 +233,11 @@ private fun LinkStageLogo() {
             "STAGE",
             style = MaterialTheme.typography.titleMedium.copy(
                 fontWeight = FontWeight.Light,
-                color = BlueDark,
+                color = DarkBlue,
             ),
         )
     }
 }
-
-// region Candidaturas
-
-@Composable
-private fun CandidaturasSection(candidaturas: List<Candidatura>) {
-    SectionHeader("Estado das candidaturas", "Ver todas")
-    Spacer(modifier = Modifier.height(12.dp))
-    candidaturas.forEach { candidatura ->
-        CandidaturaCard(candidatura)
-        Spacer(modifier = Modifier.height(8.dp))
-    }
-}
-
-@Composable
-private fun CandidaturaCard(candidatura: Candidatura) {
-    val statusColor = when (candidatura.status) {
-        CandidaturaStatus.ACEITE -> BlueLight
-        CandidaturaStatus.RECUSADO -> RedAccent
-        CandidaturaStatus.PENDENTE -> Color.Gray
-    }
-
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(
-                    modifier = Modifier
-                        .size(36.dp)
-                        .background(BlueLight.copy(alpha = 0.1f), CircleShape),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(
-                        Icons.Outlined.Work,
-                        contentDescription = null,
-                        tint = BlueLight,
-                        modifier = Modifier.size(18.dp),
-                    )
-                }
-                Spacer(modifier = Modifier.width(12.dp))
-                Text(
-                    candidatura.title,
-                    style = MaterialTheme.typography.titleSmall.copy(
-                        fontWeight = FontWeight.SemiBold,
-                    ),
-                )
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Box(
-                modifier = Modifier
-                    .align(Alignment.End)
-                    .background(statusColor, RoundedCornerShape(16.dp))
-                    .padding(horizontal = 12.dp, vertical = 4.dp),
-            ) {
-                Text(
-                    candidatura.status.label,
-                    color = Color.White,
-                    style = MaterialTheme.typography.labelSmall.copy(
-                        fontWeight = FontWeight.SemiBold,
-                    ),
-                )
-            }
-
-            Spacer(modifier = Modifier.height(4.dp))
-
-            Text(
-                candidatura.company,
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color.Gray,
-            )
-            Text(
-                "• Candidatou-se ${candidatura.timeAgo}",
-                style = MaterialTheme.typography.bodySmall,
-                color = Color.Gray,
-            )
-        }
-    }
-}
-
-// endregion
-
-// region Estágio ativo (placeholder for when student is in an internship)
-
-@Composable
-private fun EstagioAtivoSection() {
-    SectionHeader("Estado do estágio", "Ver detalhes")
-    Spacer(modifier = Modifier.height(12.dp))
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                "Estágio em curso",
-                style = MaterialTheme.typography.titleSmall.copy(
-                    fontWeight = FontWeight.SemiBold,
-                ),
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                "Nenhum estágio ativo de momento.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color.Gray,
-            )
-        }
-    }
-}
-
-// endregion
-
-// region Entregas
 
 @Composable
 private fun EntregasCard(entregas: List<Entrega>) {
@@ -292,7 +261,7 @@ private fun EntregasCard(entregas: List<Entrega>) {
             entregas.forEachIndexed { index, entrega ->
                 Text(
                     entrega.deadline,
-                    style = MaterialTheme.typography.labelMedium.copy(color = BlueLight),
+                    style = MaterialTheme.typography.labelMedium.copy(color = LightBlue),
                 )
                 Text(
                     entrega.title,
@@ -315,72 +284,6 @@ private fun EntregasCard(entregas: List<Entrega>) {
     }
 }
 
-// endregion
-
-// region Mensagens
-
-@Composable
-private fun MensagensSection(mensagens: List<MensagemPreview>) {
-    SectionHeader("Mensagens Recentes", "Ver todas")
-    Spacer(modifier = Modifier.height(12.dp))
-    mensagens.forEach { mensagem ->
-        MensagemItem(mensagem)
-    }
-}
-
-@Composable
-private fun MensagemItem(mensagem: MensagemPreview) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 6.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Box(
-            modifier = Modifier
-                .size(44.dp)
-                .background(mensagem.avatarColor, CircleShape),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(
-                mensagem.initials,
-                color = Color.White,
-                style = MaterialTheme.typography.labelMedium.copy(
-                    fontWeight = FontWeight.Bold,
-                ),
-            )
-        }
-
-        Spacer(modifier = Modifier.width(12.dp))
-
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                "${mensagem.initials} | ${mensagem.name}",
-                style = MaterialTheme.typography.bodyMedium.copy(
-                    fontWeight = FontWeight.SemiBold,
-                ),
-            )
-            Text(
-                mensagem.preview,
-                style = MaterialTheme.typography.bodySmall,
-                color = Color.Gray,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
-
-        Icon(
-            Icons.AutoMirrored.Outlined.KeyboardArrowRight,
-            contentDescription = null,
-            tint = Color.Gray,
-        )
-    }
-}
-
-// endregion
-
-// region Shared
-
 @Composable
 private fun SectionHeader(
     title: String,
@@ -396,20 +299,20 @@ private fun SectionHeader(
             title,
             style = MaterialTheme.typography.titleMedium.copy(
                 fontWeight = FontWeight.SemiBold,
-                color = BlueDark,
+                color = DarkBlue,
             ),
         )
         TextButton(onClick = onAction) {
             Text(
                 actionText,
-                color = BlueLight,
+                color = LightBlue,
                 style = MaterialTheme.typography.labelMedium,
             )
             Spacer(modifier = Modifier.width(2.dp))
             Icon(
                 Icons.AutoMirrored.Outlined.KeyboardArrowRight,
                 contentDescription = null,
-                tint = BlueLight,
+                tint = LightBlue,
                 modifier = Modifier.size(16.dp),
             )
         }

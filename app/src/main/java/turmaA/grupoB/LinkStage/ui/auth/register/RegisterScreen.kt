@@ -5,6 +5,9 @@ import androidx.compose.ui.Modifier
 import turmaA.grupoB.LinkStage.ui.common.UnderDevelopmentScreen
 
 @Composable
-fun RegisterScreen(modifier: Modifier = Modifier) {
+fun RegisterScreen(
+    onBackToLogin: () -> Unit = {},
+    modifier: Modifier = Modifier,
+) {
     UnderDevelopmentScreen("Registar", modifier)
 }
