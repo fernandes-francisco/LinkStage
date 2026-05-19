@@ -19,6 +19,8 @@ class RepositoryIntegrationTest {
     private val evaluationRepository = EvaluationRepository()
     private val communicationRepository = CommunicationRepository()
     private val reportRepository = ReportRepository()
+    private val studentRepository = StudentRepository()
+    private val supervisorRepository = SupervisorRepository()
     private val invalidTableRepository = InvalidTableRepository()
 
     @Test
@@ -113,6 +115,36 @@ class RepositoryIntegrationTest {
         assertNotNull(
             "ReportRepository deveria devolver uma lista, mesmo que vazia.",
             reports
+        )
+    }
+
+    @Test
+    fun studentRepository_canFetchStudents() = runBlocking {
+        val students = studentRepository.getStudents()
+
+        assertNotNull(
+            "StudentRepository deveria devolver uma lista, mesmo que vazia.",
+            students
+        )
+    }
+
+    @Test
+    fun supervisorRepository_canFetchSupervisors() = runBlocking {
+        val supervisors = supervisorRepository.getSupervisors()
+
+        assertNotNull(
+            "SupervisorRepository deveria devolver uma lista, mesmo que vazia.",
+            supervisors
+        )
+    }
+
+    @Test
+    fun supervisorRepository_canFetchAvailableSupervisors() = runBlocking {
+        val supervisors = supervisorRepository.getAvailableSupervisors()
+
+        assertNotNull(
+            "SupervisorRepository deveria devolver uma lista de orientadores disponíveis, mesmo que vazia.",
+            supervisors
         )
     }
 }
