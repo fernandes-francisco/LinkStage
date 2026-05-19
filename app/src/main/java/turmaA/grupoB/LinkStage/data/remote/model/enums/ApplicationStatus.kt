@@ -9,8 +9,8 @@ enum class ApplicationStatus {
     PENDING,
 
     @SerialName("ACCEPTED")
-    ACCCEPTED,
+    ACCEPTED,
 
     @SerialName("REJECTED")
-    Rejected
+    REJECTED
 }

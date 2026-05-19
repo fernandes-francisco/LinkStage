@@ -10,6 +10,7 @@ data class UpdateOfferInput(
     val area: String? = null,
     val location: String? = null,
     val salary: Double? = null,
+    val modality: String? = null,
     val vacancies: Int? = null,
     val requirements: String? = null,
 

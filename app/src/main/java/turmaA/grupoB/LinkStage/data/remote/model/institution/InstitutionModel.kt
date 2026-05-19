@@ -1,10 +1,10 @@
-package turmaA.grupoB.LinkStage.data.remote.model.instituition
+package turmaA.grupoB.LinkStage.data.remote.model.institution
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class InstituitionModel(
+data class InstitutionModel(
     val id: String,
 
     @SerialName("user_id")

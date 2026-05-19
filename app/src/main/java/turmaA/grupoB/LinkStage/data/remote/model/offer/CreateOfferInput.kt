@@ -6,13 +6,14 @@ import turmaA.grupoB.LinkStage.data.remote.model.enums.OfferStatus
 
 @Serializable
 data class CreateOfferInput(
-    @SerialName("instituition_id")
+    @SerialName("institution_id")
     val instituitionId: String,
 
     val title: String,
     val description: String,
     val area: String? = null,
     val salary: Double? = null,
+    val modality: String? = null,
     val vacancies: Int = 1,
     val requirements: String? = null,
 
