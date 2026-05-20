@@ -42,6 +42,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -51,12 +52,13 @@ import turmaA.grupoB.LinkStage.ui.theme.CompanyGreen
 import turmaA.grupoB.LinkStage.ui.theme.Fade2
 import turmaA.grupoB.LinkStage.ui.theme.LinkStageTheme
 import turmaA.grupoB.LinkStage.ui.theme.MediumBlue
+import turmaA.grupoB.LinkStage.ui.theme.Red
 
 @Composable
-fun RegisterSelectionScreen(
+fun RegisterScreen(
     modifier: Modifier = Modifier,
     onContinueClick: (String) -> Unit = {},
-    onBackClick: () -> Unit = {}
+    onBackToLogin: () -> Unit = {}
 ) {
     var selectedProfile by remember { mutableStateOf("") }
 
@@ -67,8 +69,7 @@ fun RegisterSelectionScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(start = 32.dp, end = 32.dp, top = 8.dp, bottom = 8.dp)
-                .verticalScroll(rememberScrollState()),
+                .padding(start = 32.dp, end = 32.dp, top = 8.dp, bottom = 8.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(modifier = Modifier.height(32.dp))
@@ -91,7 +92,7 @@ fun RegisterSelectionScreen(
             )
 
             Text(
-                text = "Passo 1 de 2 - Seleciona o teu perfil",
+                text = "Seleciona o teu perfil",
                 style = MaterialTheme.typography.bodyMedium,
                 color = Color.Gray
             )
@@ -112,7 +113,7 @@ fun RegisterSelectionScreen(
                 onClick = { selectedProfile = "Estudante" }
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             ProfileCard(
                 title = "Orientador",
@@ -123,7 +124,7 @@ fun RegisterSelectionScreen(
                 onClick = { selectedProfile = "Orientador" }
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             ProfileCard(
                 title = "Empresa",
@@ -143,7 +144,7 @@ fun RegisterSelectionScreen(
             Spacer(modifier = Modifier.height(32.dp))
 
             Column(modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)) {
-                val isContinueEnabled = selectedProfile.isNotEmpty()
+                val isContinueEnabled = selectedProfile.isNotEmpty() && selectedProfile != "Orientador"
                 
                 Box(
                     modifier = Modifier
@@ -178,7 +179,7 @@ fun RegisterSelectionScreen(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 OutlinedButton(
-                    onClick = onBackClick,
+                    onClick = onBackToLogin,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(48.dp),
@@ -186,7 +187,8 @@ fun RegisterSelectionScreen(
                     border = BorderStroke(1.dp, Fade2),
                     colors = ButtonDefaults.outlinedButtonColors(
                         contentColor = MediumBlue
-                    )
+                    ),
+                    contentPadding = PaddingValues()
                 ) {
                     Text(
                         text = "Voltar",
@@ -213,7 +215,7 @@ fun ProfileCard(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(165.dp)
+            .height(155.dp)
             .clip(RoundedCornerShape(12.dp))
             .background(backgroundColor)
             .border(
@@ -223,24 +225,24 @@ fun ProfileCard(
             )
             .clickable { onClick() }
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 12.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
                     tint = color,
-                    modifier = Modifier.size(28.dp)
+                    modifier = Modifier.size(24.dp)
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(
                     text = title,
                     style = MaterialTheme.typography.titleMedium,
                     color = color,
-                    fontSize = 20.sp,
+                    fontSize = 18.sp,
                     fontWeight = FontWeight.Medium
                 )
             }
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(8.dp))
             description.forEach { item ->
                 Text(
                     text = "-$item",
@@ -248,7 +250,7 @@ fun ProfileCard(
                     color = Color.DarkGray,
                     fontWeight = FontWeight.Bold,
                     fontSize = 12.sp,
-                    modifier = Modifier.padding(start = 4.dp, bottom = 4.dp)
+                    modifier = Modifier.padding(start = 4.dp, bottom = 2.dp)
                 )
             }
         }
@@ -257,8 +259,8 @@ fun ProfileCard(
 
 @Preview(showBackground = true)
 @Composable
-fun RegisterSelectionScreenPreview() {
+fun RegisterScreenPreview() {
     LinkStageTheme {
-        RegisterSelectionScreen()
+        RegisterScreen()
     }
 }

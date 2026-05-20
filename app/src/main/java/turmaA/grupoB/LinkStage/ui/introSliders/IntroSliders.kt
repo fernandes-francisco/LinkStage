@@ -1,39 +1,39 @@
 package turmaA.grupoB.LinkStage.ui.introSliders
 
+import androidx.annotation.DrawableRes
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AutoStories
-import androidx.compose.material.icons.filled.BusinessCenter
-import androidx.compose.material.icons.filled.EmojiEvents
-import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlinx.coroutines.launch
-import turmaA.grupoB.LinkStage.ui.theme.Fade2
-import turmaA.grupoB.LinkStage.ui.theme.LinkStageTheme
-import turmaA.grupoB.LinkStage.ui.theme.MediumBlue
-import turmaA.grupoB.LinkStage.ui.theme.CompanyGreen
+import turmaA.grupoB.LinkStage.R
+import turmaA.grupoB.LinkStage.ui.theme.*
 
 data class SliderData(
-    val title: String,
+    val titlePart1: String,
+    val titleHighlight: String,
     val description: String,
-    val icon: ImageVector,
-    val iconBgColor: Color
+    @param:DrawableRes val imageRes: Int
 )
 
 @Composable
@@ -43,115 +43,119 @@ fun IntroSlidersScreen(
     val sliders = remember {
         listOf(
             SliderData(
-                "Bem-vindo ao LinkStage",
+                "Bem-vindo ao ",
+                "LinkStage",
                 "A plataforma que liga estudantes, orientadores e empresas para o sucesso profissional.",
-                Icons.Default.AutoStories,
-                MediumBlue
+                R.drawable.logo_link_stage1
             ),
             SliderData(
-                "Gira o teu percurso",
+                "Gere o teu ",
+                "Progresso",
                 "Acompanha candidaturas, regista atividades e mantém o foco nos teus objetivos.",
-                Icons.Default.BusinessCenter,
-                CompanyGreen
+                R.drawable.sliders1
             ),
             SliderData(
-                "Trabalho em equipa",
+                "Trabalho em ",
+                "Equipa",
                 "Comunicação facilitada entre todos os intervenientes do processo de estágio.",
-                Icons.Default.Groups,
-                MediumBlue
+                R.drawable.sliders2
             ),
             SliderData(
-                "Alcança o sucesso",
+                "Alcança o ",
+                "Sucesso",
                 "Conclui etapas, obtém reconhecimento e entra no mercado de trabalho com o pé direito.",
-                Icons.Default.EmojiEvents,
-                MediumBlue.copy(alpha = 0.8f)
+                R.drawable.sliders3
             )
         )
     }
 
     val pagerState = rememberPagerState(pageCount = { sliders.size })
-    val scope = rememberCoroutineScope()
 
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = Color.White
     ) {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            HorizontalPager(
-                state = pagerState,
+        Box(modifier = Modifier.fillMaxSize()) {
+            TextButton(
+                onClick = onFinish,
                 modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-            ) { page ->
-                SliderContent(sliders[page])
+                    .align(Alignment.TopEnd)
+                    .padding(top = 16.dp, end = 16.dp)
+            ) {
+                Text(
+                    text = "Saltar",
+                    color = Color.Gray,
+                    style = MaterialTheme.typography.bodyMedium
+                )
             }
 
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 32.dp, vertical = 24.dp),
+                modifier = Modifier.fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Row(
-                    Modifier
-                        .height(20.dp)
-                        .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    repeat(sliders.size) { iteration ->
-                        val color = if (pagerState.currentPage == iteration) MediumBlue else Color.LightGray.copy(alpha = 0.5f)
-                        val width = if (pagerState.currentPage == iteration) 24.dp else 8.dp
-                        Box(
-                            modifier = Modifier
-                                .padding(4.dp)
-                                .clip(CircleShape)
-                                .background(color)
-                                .width(width)
-                                .height(8.dp)
-                        )
-                    }
+                Spacer(modifier = Modifier.height(60.dp))
+                HorizontalPager(
+                    state = pagerState,
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                ) { page ->
+                    SliderContent(sliders[page])
                 }
 
-                Spacer(modifier = Modifier.height(32.dp))
-
-                Button(
-                    onClick = {
-                        if (pagerState.currentPage < sliders.size - 1) {
-                            scope.launch {
-                                pagerState.animateScrollToPage(pagerState.currentPage + 1)
-                            }
-                        } else {
-                            onFinish()
-                        }
-                    },
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(48.dp)
-                        .background(Fade2, shape = RoundedCornerShape(10.dp)),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-                    shape = RoundedCornerShape(10.dp),
-                    contentPadding = PaddingValues()
+                        .padding(start = 32.dp, end = 32.dp, bottom = 48.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text(
-                        text = if (pagerState.currentPage == sliders.size - 1) "Começar" else "Seguinte",
-                        color = Color.White,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
+                    Row(
+                        Modifier
+                            .height(20.dp)
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        repeat(sliders.size) { iteration ->
+                            val isSelected = pagerState.currentPage == iteration
+                            val width = if (isSelected) 24.dp else 8.dp
+                            val color = if (isSelected) DarkBlue else Color.LightGray.copy(alpha = 0.5f)
+                            
+                            Box(
+                                modifier = Modifier
+                                    .padding(4.dp)
+                                    .clip(CircleShape)
+                                    .background(color)
+                                    .width(width)
+                                    .height(8.dp)
+                            )
+                        }
+                    }
 
-                Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(32.dp))
 
-                TextButton(onClick = onFinish) {
-                    Text(
-                        text = "Saltar",
-                        color = Color.Gray,
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Bold
-                    )
+                    Box(
+                        modifier = Modifier.fillMaxWidth().height(56.dp)
+                    ) {
+                        if (pagerState.currentPage == sliders.size - 1) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(56.dp)
+                                    .clip(RoundedCornerShape(16.dp))
+                                    .background(Fade2)
+                                    .clickable { onFinish() },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "Começar agora",
+                                    color = Color.White,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -163,43 +167,50 @@ fun SliderContent(data: SliderData) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(32.dp),
+            .padding(horizontal = 40.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
         Box(
             modifier = Modifier
-                .size(100.dp)
-                .clip(CircleShape)
-                .background(data.iconBgColor),
+                .size(300.dp)
+                .background(DarkBlue.copy(alpha = 0.03f), CircleShape)
+                .border(2.dp, DarkBlue.copy(alpha = 0.1f), CircleShape),
             contentAlignment = Alignment.Center
         ) {
-            Icon(
-                imageVector = data.icon,
+            Image(
+                painter = painterResource(id = data.imageRes),
                 contentDescription = null,
-                tint = Color.White,
-                modifier = Modifier.size(50.dp)
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(CircleShape),
+                contentScale = ContentScale.Crop
             )
         }
 
-        Spacer(modifier = Modifier.height(48.dp))
+        Spacer(modifier = Modifier.height(50.dp))
 
         Text(
-            text = data.title,
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center,
-            color = Color.Black
+            text = buildAnnotatedString {
+                withStyle(style = SpanStyle(color = DarkBlue, fontWeight = FontWeight.Bold)) {
+                    append(data.titlePart1)
+                }
+                withStyle(style = SpanStyle(color = LightBlue, fontWeight = FontWeight.Bold)) {
+                    append(data.titleHighlight)
+                }
+            },
+            style = MaterialTheme.typography.headlineMedium,
+            textAlign = TextAlign.Center
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
         Text(
             text = data.description,
-            style = MaterialTheme.typography.bodyMedium,
+            style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center,
             color = Color.Gray,
-            lineHeight = 22.sp
+            lineHeight = 24.sp
         )
     }
 }

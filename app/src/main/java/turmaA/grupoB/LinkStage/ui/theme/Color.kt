@@ -18,11 +18,19 @@ val BlueLight = LightBlue
 val RedAccent = Red
 val GrayBorder = BorderGrey
 val GrayDark = DarkGrey
-val BackgroundLight = Color(0xFFF7F7F7)
 
 // New Colors for Registration
 val AdvisorPurple = Color(0xFF8E44AD)
 val CompanyGreen = Color(0xFF27AE60)
+
+// Intro Sliders Colors
+val IntroBackground = Color(0xFF111E29)
+val SliderGreen = Color(0xFF96E6A1)
+val SliderBlue = Color(0xFF4481EB)
+
+val ButtonGradient = Brush.horizontalGradient(
+    colors = listOf(SliderGreen, SliderBlue)
+)
 
 val Fade1 = Brush.horizontalGradient(
     colors = listOf(LightBlue, DarkBlue)
