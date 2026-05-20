@@ -3,13 +3,11 @@ name: Android CI
 on:
   pull_request:
     branches:
-      - develop
-      - main
+      - ci/teste
 
   push:
     branches:
-      - develop
-      - main
+      - ci/teste
 
 jobs:
   build:
