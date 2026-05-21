@@ -53,7 +53,7 @@ class ProfileViewModel(
         }
     }
 
-    fun LoadProfilesByRole(role: String) {
+    fun loadProfilesByRole(role: String) {
         viewModelScope.launch {
             _uiState.value = ProfileUiState.Loading
 
