@@ -112,7 +112,7 @@ class AuthViewModelTest {
     fun signOut_setsUnauthenticatedState() = runTest {
         fakeRepository.currentProfile = testProfile
 
-        viewModel.singOut()
+        viewModel.signOut()
 
         advanceUntilIdle()
 

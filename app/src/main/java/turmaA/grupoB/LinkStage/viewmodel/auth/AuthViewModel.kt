@@ -75,7 +75,7 @@ class AuthViewModel(
         }
     }
 
-    fun singOut() {
+    fun signOut() {
         viewModelScope.launch {
             _uiState.value = AuthUiState.Loading
 
