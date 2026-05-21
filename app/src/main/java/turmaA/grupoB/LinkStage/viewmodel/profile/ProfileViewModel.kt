@@ -48,6 +48,9 @@ class ProfileViewModel(
                     ProfileUiState.Empty
                 }
             } catch (e: Exception) {
+                _uiState.value = ProfileUiState.Error(
+                    e.message ?: "Erro ao carregar perfil"
+                )
 
             }
         }
@@ -66,7 +69,9 @@ class ProfileViewModel(
                     ProfileUiState.SuccessList(profiles)
                 }
             } catch (e: Exception) {
-                e.message ?: "Erro ao carregar perfis por role"
+                _uiState.value = ProfileUiState.Error(
+                    e.message ?: "Erro ao carregar perfis por role"
+                )
             }
         }
     }
