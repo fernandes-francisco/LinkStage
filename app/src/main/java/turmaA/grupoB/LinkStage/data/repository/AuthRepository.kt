@@ -16,13 +16,13 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 
-class AuthRepository {
+class AuthRepository : AuthRepositoryInterface {
 
     private val supabase = SupabaseClientProvider.client
 
     val sessionStatus: Flow<SessionStatus> = supabase.auth.sessionStatus
 
-    suspend fun signUp(input: SignUpInput): ProfileModel {
+    override suspend fun signUp(input: SignUpInput): ProfileModel {
         require(input.rgpdConsent) {
             "É necessário consentir o tratamento de dados pessoais."
         }
@@ -47,26 +47,26 @@ class AuthRepository {
         return createProfile(profileInput)
     }
 
-    suspend fun signIn(input: SignInInput) {
+    override suspend fun signIn(input: SignInInput) {
         supabase.auth.signInWith(Email) {
             email = input.email
             password = input.password
         }
     }
 
-    suspend fun signOut() {
+    override suspend fun signOut() {
         supabase.auth.signOut()
     }
 
-    fun getCurrentUserId(): String? {
+    override fun getCurrentUserId(): String? {
         return supabase.auth.currentSessionOrNull()?.user?.id
     }
 
-    fun isUserLoggedIn(): Boolean {
+    override fun isUserLoggedIn(): Boolean {
         return supabase.auth.currentSessionOrNull() != null
     }
 
-    suspend fun getCurrentUserProfile(): ProfileModel? {
+    override suspend fun getCurrentUserProfile(): ProfileModel? {
         val userId = getCurrentUserId() ?: return null
 
         return supabase
@@ -80,7 +80,7 @@ class AuthRepository {
             .firstOrNull()
     }
 
-    suspend fun createProfile(input: CreateProfileInput): ProfileModel {
+    private suspend fun createProfile(input: CreateProfileInput): ProfileModel {
         return supabase
             .from("profiles")
             .insert(input) {
@@ -89,7 +89,7 @@ class AuthRepository {
             .decodeSingle<ProfileModel>()
     }
 
-    suspend fun updateProfile(
+    override suspend fun updateProfile(
         userId: String,
         input: UpdateProfileInput
     ): ProfileModel {
