@@ -44,6 +44,7 @@ import turmaA.grupoB.LinkStage.ui.aluno.activity.ApplicationCard
 import turmaA.grupoB.LinkStage.ui.aluno.activity.InternshipHeader
 import turmaA.grupoB.LinkStage.ui.aluno.activity.calculateInternshipProgress
 import turmaA.grupoB.LinkStage.ui.aluno.chat.ConversationItem
+import turmaA.grupoB.LinkStage.ui.common.LinkStageLogo
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
@@ -96,7 +97,9 @@ fun HomeAlunoScreen(
     ) {
         Spacer(modifier = Modifier.height(16.dp))
 
-        LinkStageLogo()
+        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+            LinkStageLogo()
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -217,27 +220,6 @@ fun HomeAlunoScreen(
 }
 
 // region Components
-
-@Composable
-private fun LinkStageLogo() {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Text(
-            "LINK",
-            style = MaterialTheme.typography.titleMedium.copy(
-                fontWeight = FontWeight.Bold,
-                color = DarkBlue,
-            ),
-        )
-        Spacer(modifier = Modifier.width(4.dp))
-        Text(
-            "STAGE",
-            style = MaterialTheme.typography.titleMedium.copy(
-                fontWeight = FontWeight.Light,
-                color = DarkBlue,
-            ),
-        )
-    }
-}
 
 @Composable
 private fun EntregasCard(entregas: List<Entrega>) {

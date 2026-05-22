@@ -27,13 +27,24 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,17 +53,24 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import turmaA.grupoB.LinkStage.ui.common.LinkStageLogo
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.Fade1
+import turmaA.grupoB.LinkStage.ui.theme.Fade2
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.ui.theme.Red
 import turmaA.grupoB.LinkStage.viewmodel.SettingsViewModel
@@ -70,11 +88,15 @@ data class LoggedUser(
 @Composable
 fun SettingsAlunoScreen(
     onLogout: () -> Unit = {},
+    onNotificationsClick: () -> Unit = {},
     settingsViewModel: SettingsViewModel = viewModel(),
 ) {
     val user by settingsViewModel.user.collectAsState()
     val currentLanguage by settingsViewModel.currentLanguage.collectAsState()
+
     var showLogoutDialog by remember { mutableStateOf(false) }
+    var showPasswordDialog by remember { mutableStateOf(false) }
+    val uriHandler = LocalUriHandler.current
 
     if (showLogoutDialog) {
         LogoutConfirmDialog(
@@ -84,6 +106,16 @@ fun SettingsAlunoScreen(
                 onLogout()
             },
             onDismiss = { showLogoutDialog = false },
+        )
+    }
+
+    if (showPasswordDialog) {
+        ChangePasswordDialog(
+            onDismiss = { showPasswordDialog = false },
+            onConfirm = { newPassword ->
+                // Lógica de update
+                showPasswordDialog = false
+            }
         )
     }
 
@@ -149,7 +181,9 @@ fun SettingsAlunoScreen(
 
             SettingsRowItem(
                 label = "Políticas de Privacidade",
-                onClick = { },
+                onClick = {
+                    uriHandler.openUri("https://www.google.com") // Substituir pelo link real
+                },
             )
         }
 
@@ -162,7 +196,7 @@ fun SettingsAlunoScreen(
             SettingsRowItem(
                 icon = Icons.Outlined.Settings,
                 label = "Alterar Palavra-Passe",
-                onClick = { },
+                onClick = { showPasswordDialog = true },
             )
 
             HorizontalDivider(
@@ -173,7 +207,7 @@ fun SettingsAlunoScreen(
             SettingsRowItem(
                 icon = Icons.Outlined.Settings,
                 label = "Notificações",
-                onClick = { },
+                onClick = onNotificationsClick,
             )
 
             HorizontalDivider(
@@ -295,23 +329,7 @@ private fun SettingsTopBar() {
             .padding(vertical = 12.dp),
         contentAlignment = Alignment.Center,
     ) {
-        Row {
-            Text(
-                text = "LINK",
-                style = MaterialTheme.typography.titleMedium.copy(
-                    fontWeight = FontWeight.Bold,
-                    color = DarkBlue,
-                ),
-            )
-            Spacer(modifier = Modifier.width(4.dp))
-            Text(
-                text = "STAGE",
-                style = MaterialTheme.typography.titleMedium.copy(
-                    fontWeight = FontWeight.Light,
-                    color = DarkBlue,
-                ),
-            )
-        }
+        LinkStageLogo()
     }
 }
 
@@ -437,30 +455,161 @@ private fun LogoutConfirmDialog(
             )
         },
         text = {
-            Text(
-                text = "Tens a certeza que queres terminar sessão?",
-                color = DarkGrey,
-            )
-        },
-        confirmButton = {
-            Button(
-                onClick = onConfirm,
-                colors = ButtonDefaults.buttonColors(containerColor = Red),
-            ) {
-                Text("Terminar", color = Color.White)
+            Column {
+                Text(
+                    text = "Tens a certeza que queres terminar sessão?",
+                    color = DarkGrey,
+                )
+                Spacer(modifier = Modifier.height(24.dp))
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(Red)
+                        .clickable { onConfirm() },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("Terminar Sessão", color = Color.White, fontWeight = FontWeight.Bold)
+                }
             }
         },
+        confirmButton = {},
         dismissButton = {
-            OutlinedButton(
-                onClick = onDismiss,
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = DarkBlue),
-            ) {
-                Text("Cancelar")
+            TextButton(onClick = onDismiss) {
+                Text("Cancelar", color = DarkGrey)
             }
         },
-        containerColor = Color.White,
+        containerColor = Color(0xFFF5F5F5),
         shape = RoundedCornerShape(16.dp),
     )
+}
+
+@Composable
+fun ChangePasswordDialog(
+    onDismiss: () -> Unit,
+    onConfirm: (String) -> Unit,
+) {
+    var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
+    var passwordVisible by remember { mutableStateOf(false) }
+    var confirmPasswordVisible by remember { mutableStateOf(false) }
+
+    val hasNumber by remember { derivedStateOf { password.any { it.isDigit() } } }
+    val hasUpperAndLower by remember {
+        derivedStateOf {
+            password.any { it.isUpperCase() } && password.any { it.isLowerCase() }
+        }
+    }
+    val hasMinLength by remember { derivedStateOf { password.length >= 8 } }
+    val isPasswordValid by remember { derivedStateOf { hasNumber && hasUpperAndLower && hasMinLength } }
+    val isConfirmValid by remember { derivedStateOf { confirmPassword == password && confirmPassword.isNotEmpty() } }
+
+    val isEnabled = isPasswordValid && isConfirmValid
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text("Alterar Palavra-passe", fontWeight = FontWeight.Bold, color = DarkBlue)
+        },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Column {
+                    Text("Nova Palavra-passe", style = MaterialTheme.typography.labelMedium, color = DarkGrey)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    OutlinedTextField(
+                        value = password,
+                        onValueChange = { password = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(10.dp),
+                        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                        trailingIcon = {
+                            IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                                Icon(if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff, null)
+                            }
+                        },
+                        singleLine = true
+                    )
+                }
+
+                Column {
+                    Text("Confirmar Palavra-passe", style = MaterialTheme.typography.labelMedium, color = DarkGrey)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    OutlinedTextField(
+                        value = confirmPassword,
+                        onValueChange = { confirmPassword = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(10.dp),
+                        visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                        trailingIcon = {
+                            IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
+                                Icon(if (confirmPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff, null)
+                            }
+                        },
+                        singleLine = true,
+                        isError = confirmPassword.isNotEmpty() && !isConfirmValid
+                    )
+                }
+
+                if (password.isNotEmpty()) {
+                    Column {
+                        ValidationItem(text = "Incluir um número", isValid = hasNumber)
+                        ValidationItem(text = "Incluir maiúsculas e minúsculas", isValid = hasUpperAndLower)
+                        ValidationItem(text = "Mínimo 8 caracteres", isValid = hasMinLength)
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(
+                            brush = if (isEnabled) Fade2 else SolidColor(Color.LightGray.copy(alpha = 0.5f))
+                        )
+                        .clickable(enabled = isEnabled) { onConfirm(password) },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Atualizar",
+                        color = if (isEnabled) Color.White else Color.Gray.copy(alpha = 0.8f),
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancelar", color = DarkGrey)
+            }
+        },
+        containerColor = Color(0xFFF5F5F5),
+        shape = RoundedCornerShape(16.dp)
+    )
+}
+
+@Composable
+private fun ValidationItem(text: String, isValid: Boolean) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.padding(vertical = 2.dp)
+    ) {
+        Icon(
+            imageVector = if (isValid) Icons.Default.Check else Icons.Default.Close,
+            contentDescription = null,
+            tint = if (isValid) Color(0xFF27AE60) else Red,
+            modifier = Modifier.size(16.dp)
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(
+            text = text,
+            color = if (isValid) Color(0xFF27AE60) else Red,
+            fontSize = 12.sp
+        )
+    }
 }
 
 // endregion

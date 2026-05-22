@@ -26,11 +26,13 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import turmaA.grupoB.LinkStage.ui.auth.updatepassword.UpdatePasswordScreen
 import turmaA.grupoB.LinkStage.ui.aluno.activity.RecentActivityAlunoScreen
 import turmaA.grupoB.LinkStage.ui.aluno.chat.ChatAlunoScreen
 import turmaA.grupoB.LinkStage.ui.aluno.chat.ChatScreen
 import turmaA.grupoB.LinkStage.ui.aluno.chat.sampleConversations
 import turmaA.grupoB.LinkStage.ui.aluno.home.HomeAlunoScreen
+import turmaA.grupoB.LinkStage.ui.aluno.notifications.NotificationsAlunoScreen
 import turmaA.grupoB.LinkStage.ui.aluno.offers.OffersAlunoScreen
 import turmaA.grupoB.LinkStage.ui.aluno.settings.SettingsAlunoScreen
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
@@ -44,7 +46,9 @@ object AlunoRoutes {
     const val ACTIVITY = "activity"
     const val MESSAGES = "messages"
     const val SETTINGS = "settings"
+    const val NOTIFICATIONS = "notifications"
     const val CHAT = "chat/{conversationId}"
+    const val UPDATE_PASSWORD = "update_password"
 
     fun chatRoute(conversationId: String) = "chat/$conversationId"
 }
@@ -133,7 +137,23 @@ fun AlunoMainScreen(onLogout: () -> Unit = {}) {
                 )
             }
             composable(AlunoRoutes.SETTINGS) {
-                SettingsAlunoScreen(onLogout = onLogout)
+                SettingsAlunoScreen(
+                    onLogout = onLogout,
+                    onNotificationsClick = {
+                        navController.navigate(AlunoRoutes.NOTIFICATIONS)
+                    }
+                )
+            }
+            composable(AlunoRoutes.NOTIFICATIONS) {
+                NotificationsAlunoScreen(
+                    onBack = { navController.popBackStack() }
+                )
+            }
+            composable(AlunoRoutes.UPDATE_PASSWORD) {
+                UpdatePasswordScreen(
+                    onUpdatePasswordClick = { /* Lógica de update */ },
+                    onBackToLogin = { navController.popBackStack() }
+                )
             }
             composable(
                 route = AlunoRoutes.CHAT,

@@ -61,6 +61,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import turmaA.grupoB.LinkStage.ui.common.LinkStageLogo
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
@@ -585,27 +586,13 @@ private fun ReportSubmissionCard(
 
 @Composable
 private fun ActivityTopBar() {
-    Row(
+    Box(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
+        contentAlignment = Alignment.Center
     ) {
-        Text(
-            "LINK",
-            style = MaterialTheme.typography.titleMedium.copy(
-                fontWeight = FontWeight.Bold,
-                color = DarkBlue,
-            ),
-        )
-        Spacer(modifier = Modifier.width(4.dp))
-        Text(
-            "STAGE",
-            style = MaterialTheme.typography.titleMedium.copy(
-                fontWeight = FontWeight.Light,
-                color = DarkBlue,
-            ),
-        )
+        LinkStageLogo()
     }
 }
 
