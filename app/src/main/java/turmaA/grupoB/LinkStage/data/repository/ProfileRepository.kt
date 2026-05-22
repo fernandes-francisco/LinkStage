@@ -4,18 +4,18 @@ import io.github.jan.supabase.postgrest.from
 import turmaA.grupoB.LinkStage.data.remote.model.user.ProfileModel
 import turmaA.grupoB.LinkStage.data.remote.supabase.SupabaseClientProvider
 
-class ProfileRepository {
+class ProfileRepository : ProfileRepositoryInterface {
 
     private val supabase = SupabaseClientProvider.client
 
-    suspend fun getProfiles(): List<ProfileModel> {
+    override suspend fun getProfiles(): List<ProfileModel> {
         return supabase
             .from("profiles")
             .select()
             .decodeList<ProfileModel>()
     }
 
-    suspend fun getProfileById(userId: String): ProfileModel? {
+    override suspend fun getProfileById(userId: String): ProfileModel? {
         return supabase
             .from("profiles")
             .select {
@@ -27,7 +27,7 @@ class ProfileRepository {
             .firstOrNull()
     }
 
-    suspend fun getProfilesByRole(role: String): List<ProfileModel> {
+    override suspend fun getProfilesByRole(role: String): List<ProfileModel> {
         return supabase
             .from("profiles")
             .select {
