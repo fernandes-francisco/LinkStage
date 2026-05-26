@@ -10,10 +10,10 @@ import turmaA.grupoB.LinkStage.data.remote.model.offer.InternshipOfferModel
 import turmaA.grupoB.LinkStage.data.remote.model.offer.UpdateOfferInput
 import turmaA.grupoB.LinkStage.data.remote.supabase.SupabaseClientProvider
 
-class OfferRepository {
+class OfferRepository : OfferRepositoryInterface {
     private val supabase = SupabaseClientProvider.client
 
-    suspend fun getPublishedOffers(): List<InternshipOfferModel> {
+    override suspend fun getPublishedOffers(): List<InternshipOfferModel> {
         return supabase
             .from("internship_offers")
             .select {
@@ -24,7 +24,7 @@ class OfferRepository {
             .decodeList<InternshipOfferModel>()
     }
 
-    suspend fun getOffersByInstitution(institutionId: String): List<InternshipOfferModel> {
+    override suspend fun getOffersByInstitution(institutionId: String): List<InternshipOfferModel> {
         return supabase
             .from("internship_offers")
             .select {
@@ -35,7 +35,7 @@ class OfferRepository {
             .decodeList<InternshipOfferModel>()
     }
 
-    suspend fun getOfferById(offerId: String): InternshipOfferModel? {
+    override suspend fun getOfferById(offerId: String): InternshipOfferModel? {
         return supabase
             .from("internship_offers")
             .select {
@@ -47,7 +47,7 @@ class OfferRepository {
             .firstOrNull()
     }
 
-    suspend fun createOffer(input: CreateOfferInput): InternshipOfferModel {
+    override suspend fun createOffer(input: CreateOfferInput): InternshipOfferModel {
         return supabase
             .from("internship_offers")
             .insert(input) {
@@ -56,7 +56,7 @@ class OfferRepository {
             .decodeSingle<InternshipOfferModel>()
     }
 
-    suspend fun updateOffer(
+    override suspend fun updateOffer(
         offerId: String,
         input: UpdateOfferInput
     ): InternshipOfferModel {
@@ -77,7 +77,7 @@ class OfferRepository {
             .decodeSingle<InternshipOfferModel>()
     }
 
-    suspend fun closeOffer(offerId: String): InternshipOfferModel {
+    override suspend fun closeOffer(offerId: String): InternshipOfferModel {
         return updateOffer(
             offerId = offerId,
             input = UpdateOfferInput(
@@ -86,7 +86,7 @@ class OfferRepository {
         )
     }
 
-    suspend fun markOfferAsRemoved(offerId: String): InternshipOfferModel {
+    override suspend fun markOfferAsRemoved(offerId: String): InternshipOfferModel {
         return updateOffer(
             offerId = offerId,
             input = UpdateOfferInput(
