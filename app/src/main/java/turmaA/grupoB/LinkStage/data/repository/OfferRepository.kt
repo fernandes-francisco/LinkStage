@@ -1,6 +1,5 @@
 package turmaA.grupoB.LinkStage.data.repository
 
-import android.R.attr.description
 import io.github.jan.supabase.postgrest.from
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
