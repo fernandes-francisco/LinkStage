@@ -9,11 +9,11 @@ import turmaA.grupoB.LinkStage.data.remote.model.application.UpdateApplicationDe
 import turmaA.grupoB.LinkStage.data.remote.model.enums.ApplicationStatus
 import turmaA.grupoB.LinkStage.data.remote.supabase.SupabaseClientProvider
 
-class ApplicationRepository {
+class ApplicationRepository : ApplicationRepositoryInterface {
 
     private val supabase = SupabaseClientProvider.client
 
-    suspend fun getApplicationById(applicationId: String): ApplicationModel? {
+    override suspend fun getApplicationById(applicationId: String): ApplicationModel? {
         return supabase
             .from("applications")
             .select {
@@ -25,7 +25,7 @@ class ApplicationRepository {
             .firstOrNull()
     }
 
-    suspend fun getApplicationsByOffer(offerId: String): List<ApplicationModel> {
+    override suspend fun getApplicationsByOffer(offerId: String): List<ApplicationModel> {
         return supabase
             .from("applications")
             .select {
@@ -36,7 +36,7 @@ class ApplicationRepository {
             .decodeList<ApplicationModel>()
     }
 
-    suspend fun getApplicationsByStudent(studentId: String): List<ApplicationModel> {
+    override suspend fun getApplicationsByStudent(studentId: String): List<ApplicationModel> {
         return supabase
             .from("applications")
             .select {
@@ -47,7 +47,7 @@ class ApplicationRepository {
             .decodeList<ApplicationModel>()
     }
 
-    suspend fun getApplicationsByStatus(status: ApplicationStatus): List<ApplicationModel> {
+    override suspend fun getApplicationsByStatus(status: ApplicationStatus): List<ApplicationModel> {
         return supabase
             .from("applications")
             .select {
@@ -58,7 +58,7 @@ class ApplicationRepository {
             .decodeList<ApplicationModel>()
     }
 
-    suspend fun createApplication(input: CreateApplicationInput): ApplicationModel {
+    override suspend fun createApplication(input: CreateApplicationInput): ApplicationModel {
         return supabase
             .from("applications")
             .insert(input) {
@@ -67,7 +67,7 @@ class ApplicationRepository {
             .decodeSingle<ApplicationModel>()
     }
 
-    suspend fun updateApplicationDecision(
+    override suspend fun updateApplicationDecision(
         applicationId: String,
         input: UpdateApplicationDecisionInput
     ): ApplicationModel {
@@ -82,7 +82,7 @@ class ApplicationRepository {
             .decodeSingle<ApplicationModel>()
     }
 
-    suspend fun acceptApplication(
+    override suspend fun acceptApplication(
         applicationId: String,
         decisionAt: String
     ): ApplicationModel {
@@ -96,7 +96,7 @@ class ApplicationRepository {
         )
     }
 
-    suspend fun rejectApplication(
+    override suspend fun rejectApplication(
         applicationId: String,
         rejectionReason: String,
         decisionAt: String
