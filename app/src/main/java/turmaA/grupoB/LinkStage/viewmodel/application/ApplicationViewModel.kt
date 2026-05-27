@@ -2,7 +2,6 @@ package turmaA.grupoB.LinkStage.viewmodel.application
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.room.util.appendPlaceholders
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -10,7 +9,6 @@ import kotlinx.coroutines.launch
 import turmaA.grupoB.LinkStage.data.remote.model.application.CreateApplicationInput
 import turmaA.grupoB.LinkStage.data.remote.model.application.UpdateApplicationDecisionInput
 import turmaA.grupoB.LinkStage.data.remote.model.enums.ApplicationStatus
-import turmaA.grupoB.LinkStage.data.repository.ApplicationRepository
 import turmaA.grupoB.LinkStage.data.repository.ApplicationRepositoryInterface
 
 class ApplicationViewModel(
@@ -71,7 +69,7 @@ class ApplicationViewModel(
                 } else {
                     ApplicationUiState.SuccessList(applications)
                 }
-            } catch (e: Error) {
+            } catch (e: Exception) {
                 _uiState.value = ApplicationUiState.Error(
                     e.message ?: "Erro ao carregar candidaturas do estudante."
                 )
@@ -127,7 +125,9 @@ class ApplicationViewModel(
                     applicationId,
                     input
                 )
-            } catch (e: Error) {
+
+                _uiState.value = ApplicationUiState.Success(application)
+            } catch (e: Exception) {
                 _uiState.value = ApplicationUiState.Error(
                     e.message ?: "Erro ao atualizar decisão da candidatura."
                 )
@@ -173,9 +173,10 @@ class ApplicationViewModel(
                 )
             }
 
-            fun resetState() {
-                _uiState.value = ApplicationUiState.Idle
-            }
         }
+    }
+
+    fun resetState() {
+        _uiState.value = ApplicationUiState.Idle
     }
 }
