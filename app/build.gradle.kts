@@ -84,13 +84,23 @@ dependencies {
     implementation("io.github.jan-tennert.supabase:postgrest-kt")
     implementation("io.github.jan-tennert.supabase:storage-kt")
     implementation("io.github.jan-tennert.supabase:realtime-kt")
-
     implementation("io.ktor:ktor-client-okhttp:3.4.3")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
     val room_version = "2.7.1"
-
+    testImplementation("com.squareup.okhttp3:mockwebserver:5.3.2")
+    androidTestImplementation("com.squareup.okhttp3:mockwebserver:5.3.2")
+    androidTestImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.0")
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.mockito:mockito-inline:5.2.0")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:5.2.1")
+    testImplementation("androidx.arch.core:core-testing:2.2.0")
     implementation("androidx.room:room-runtime:$room_version")
     ksp("androidx.room:room-compiler:$room_version")
     implementation("androidx.room:room-ktx:$room_version")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
+    implementation(libs.okhttp)
+    implementation(libs.coil.compose)
 }
