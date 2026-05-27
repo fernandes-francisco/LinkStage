@@ -8,6 +8,7 @@ import turmaA.grupoB.LinkStage.data.remote.model.application.CreateApplicationIn
 import turmaA.grupoB.LinkStage.data.remote.model.application.UpdateApplicationDecisionInput
 import turmaA.grupoB.LinkStage.data.remote.model.enums.ApplicationStatus
 import turmaA.grupoB.LinkStage.data.remote.supabase.SupabaseClientProvider
+import java.time.Instant
 
 class ApplicationRepository : ApplicationRepositoryInterface {
 
@@ -83,15 +84,14 @@ class ApplicationRepository : ApplicationRepositoryInterface {
     }
 
     override suspend fun acceptApplication(
-        applicationId: String,
-        decisionAt: String
+        applicationId: String
     ): ApplicationModel {
         return updateApplicationDecision(
             applicationId=applicationId,
             input=UpdateApplicationDecisionInput(
                 status=ApplicationStatus.ACCEPTED,
                 rejectionReason=null,
-                decisionAt=decisionAt
+                decisionAt=Instant.now().toString()
             )
         )
     }
@@ -99,14 +99,13 @@ class ApplicationRepository : ApplicationRepositoryInterface {
     override suspend fun rejectApplication(
         applicationId: String,
         rejectionReason: String,
-        decisionAt: String
     ): ApplicationModel {
         return updateApplicationDecision(
             applicationId=applicationId,
             input=UpdateApplicationDecisionInput(
                 status=ApplicationStatus.REJECTED,
                 rejectionReason=rejectionReason,
-                decisionAt=decisionAt
+                decisionAt=Instant.now().toString()
             )
         )
     }

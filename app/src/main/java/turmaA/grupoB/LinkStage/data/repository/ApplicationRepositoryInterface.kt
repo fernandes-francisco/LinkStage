@@ -19,12 +19,10 @@ interface ApplicationRepositoryInterface {
 
     suspend fun acceptApplication(
         applicationId: String,
-        decisionAt: String
     ): ApplicationModel
 
     suspend fun rejectApplication(
         applicationId: String,
         rejectionReason: String,
-        decisionAt: String
     ): ApplicationModel
 }
