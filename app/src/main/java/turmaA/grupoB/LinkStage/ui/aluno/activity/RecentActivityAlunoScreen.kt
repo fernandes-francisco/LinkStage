@@ -111,13 +111,23 @@ data class ActivityLog(
     val companyLogoColor: Color = Color(0xFF0E1572),
     val requirements: List<String> = emptyList(),
     val hasSubmitted: Boolean = false,
+    val submittedFiles: List<CheckpointFile> = emptyList(),
+    val submittedAt: LocalDate? = null,
+)
+
+data class CheckpointFile(
+    val id: String,
+    val name: String,
+    val fileUri: String = "",
 )
 
 data class ActiveInternship(
+    val id: String = "",
     val title: String,
     val startDate: LocalDate,
     val endDate: LocalDate,
     val activityLogs: List<ActivityLog>,
+    val isCompleted: Boolean = false,
 )
 
 // endregion
@@ -152,6 +162,7 @@ fun RecentActivityAlunoScreen(
     homeViewModel: HomeViewModel = viewModel(),
     onSubmitReport: () -> Unit = {},
     onActivityClick: (String) -> Unit = {},
+    onViewResult: (String) -> Unit = {},
 ) {
     val hasActiveInternship by homeViewModel.hasActiveInternship.collectAsState()
     val activeInternship by homeViewModel.activeInternship.collectAsState()
@@ -188,6 +199,7 @@ fun RecentActivityAlunoScreen(
                 internship = activeInternship!!,
                 onSubmitReport = onSubmitReport,
                 onActivityClick = onActivityClick,
+                onViewResult = onViewResult,
                 modifier = Modifier.padding(innerPadding),
             )
         }
@@ -367,6 +379,7 @@ private fun ActiveInternshipContent(
     internship: ActiveInternship,
     onSubmitReport: () -> Unit,
     onActivityClick: (String) -> Unit = {},
+    onViewResult: (String) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val progress = calculateInternshipProgress(internship.startDate, internship.endDate)
@@ -421,6 +434,27 @@ private fun ActiveInternshipContent(
                 daysRemaining = daysRemaining,
                 onSubmit = onSubmitReport,
             )
+        }
+
+        if (internship.isCompleted) {
+            item {
+                Spacer(modifier = Modifier.height(16.dp))
+                Button(
+                    onClick = { onViewResult(internship.id) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .height(50.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = LightBlue),
+                ) {
+                    Text(
+                        "Ver Resultado do Estágio",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+            }
         }
     }
 }

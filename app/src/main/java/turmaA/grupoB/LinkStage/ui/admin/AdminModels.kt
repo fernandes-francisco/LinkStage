@@ -20,6 +20,7 @@ data class AdminStudent(
     val applicationCount: Int = 0,
     val avatarInitials: String,
     val avatarColorIndex: Int = 0,
+    val skills: List<String> = emptyList(),
 )
 
 data class AdminMentor(

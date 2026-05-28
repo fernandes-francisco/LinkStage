@@ -320,7 +320,7 @@ private fun OfferMetaChips(offer: OfferDetail) {
 }
 
 @Composable
-private fun MetaChip(
+fun MetaChip(
     icon: ImageVector,
     label: String,
     value: String,
@@ -363,7 +363,7 @@ private fun MetaChip(
 }
 
 @Composable
-private fun ResponsibilityItem(text: String) {
+fun ResponsibilityItem(text: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -398,7 +398,7 @@ private fun ResponsibilityItem(text: String) {
 }
 
 @Composable
-private fun BenefitChip(text: String) {
+fun BenefitChip(text: String) {
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(20.dp))

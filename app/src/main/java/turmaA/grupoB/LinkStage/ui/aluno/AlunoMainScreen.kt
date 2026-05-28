@@ -28,6 +28,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import turmaA.grupoB.LinkStage.ui.auth.updatepassword.UpdatePasswordScreen
+import turmaA.grupoB.LinkStage.ui.aluno.activity.InternshipResultScreen
 import turmaA.grupoB.LinkStage.ui.aluno.activity.RecentActivityAlunoScreen
 import turmaA.grupoB.LinkStage.ui.aluno.chat.ChatAlunoScreen
 import turmaA.grupoB.LinkStage.ui.aluno.chat.ChatScreen
@@ -61,8 +62,10 @@ object AlunoRoutes {
     const val APPLY_SUCCESS = "apply_success/{offerId}"
     const val ACTIVITY_DETAIL = "activity_detail/{checkpointId}"
     const val UPDATE_PASSWORD = "update_password"
+    const val INTERNSHIP_RESULT = "internship_result/{internshipId}"
 
     fun chatRoute(conversationId: String) = "chat/$conversationId"
+    fun internshipResultRoute(internshipId: String) = "internship_result/$internshipId"
     fun offerDetailRoute(offerId: String) = "offer_detail/$offerId"
     fun applyRoute(offerId: String) = "apply/$offerId"
     fun applySuccessRoute(offerId: String) = "apply_success/$offerId"
@@ -203,6 +206,9 @@ fun AlunoMainScreen(onLogout: () -> Unit = {}) {
                     onActivityClick = { checkpointId ->
                         navController.navigate(AlunoRoutes.activityDetailRoute(checkpointId))
                     },
+                    onViewResult = { internshipId ->
+                        navController.navigate(AlunoRoutes.internshipResultRoute(internshipId))
+                    },
                 )
             }
             composable(
@@ -233,6 +239,16 @@ fun AlunoMainScreen(onLogout: () -> Unit = {}) {
             composable(AlunoRoutes.NOTIFICATIONS) {
                 NotificationsAlunoScreen(
                     onBack = { navController.popBackStack() }
+                )
+            }
+            composable(
+                route = AlunoRoutes.INTERNSHIP_RESULT,
+                arguments = listOf(navArgument("internshipId") { type = NavType.StringType }),
+            ) { backStackEntry ->
+                val internshipId = backStackEntry.arguments?.getString("internshipId") ?: return@composable
+                InternshipResultScreen(
+                    internshipId = internshipId,
+                    navController = navController,
                 )
             }
             composable(AlunoRoutes.UPDATE_PASSWORD) {

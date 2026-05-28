@@ -92,7 +92,7 @@ fun AppNavigation(
         composable(Routes.LOGIN) {
             LoginScreen(
                 onLoginClick = { _, _ ->
-                    navController.navigate(Routes.ALUNO_MAIN) {
+                    navController.navigate(Routes.ORIENTADOR_MAIN) {
                         popUpTo(Routes.LOGIN) { inclusive = true }
                     }
                 },
@@ -197,7 +197,15 @@ fun AppNavigation(
                 },
             )
         }
-        composable(Routes.ORIENTADOR_MAIN) { OrientadorMainScreen() }
+        composable(Routes.ORIENTADOR_MAIN) {
+            OrientadorMainScreen(
+                onLogout = {
+                    navController.navigate(Routes.LOGIN) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                },
+            )
+        }
         composable(Routes.INSTITUICAO_MAIN) { InstituicaoMainScreen() }
     }
 }
