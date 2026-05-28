@@ -62,6 +62,9 @@ import androidx.navigation.compose.rememberNavController
 import turmaA.grupoB.LinkStage.ui.admin.AdminInstitution
 import turmaA.grupoB.LinkStage.ui.admin.AdminRoutes
 import turmaA.grupoB.LinkStage.ui.admin.sampleInstitutions
+import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
+import turmaA.grupoB.LinkStage.ui.common.LinkStageButton
+import turmaA.grupoB.LinkStage.ui.common.LinkStageDialog
 import turmaA.grupoB.LinkStage.ui.common.LinkStageLogo
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
@@ -110,61 +113,55 @@ fun InstitutionsAdminScreen(
             }
         },
     ) { innerPadding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding),
-        ) {
-            item {
-                Column(modifier = Modifier.background(Color.White)) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 20.dp, vertical = 12.dp),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        LinkStageLogo()
+        Column(modifier = Modifier.fillMaxSize()) {
+            CommonTopBar()
+            LazyColumn(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(bottom = innerPadding.calculateBottomPadding()),
+            ) {
+                item {
+                    Column(modifier = Modifier.background(Color.White)) {
+                        Text(
+                            text = "Instituições",
+                            style = MaterialTheme.typography.headlineSmall.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = DarkBlue,
+                            ),
+                            modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp),
+                        )
                     }
+                }
 
-                    Text(
-                        text = "Instituições",
-                        style = MaterialTheme.typography.headlineSmall.copy(
-                            fontWeight = FontWeight.Bold,
-                            color = DarkBlue,
-                        ),
-                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp),
+                item {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    SearchBarWithFilter(
+                        query = searchQuery,
+                        onQueryChange = { searchQuery = it },
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+
+                item {
+                    QuickFilterChips(
+                        filters = institutionChipFilters,
+                        selectedFilter = selectedChip,
+                        onFilterSelected = { selectedChip = it },
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+
+                items(filtered, key = { it.id }) { institution ->
+                    InstitutionListItem(
+                        institution = institution,
+                        onClick = {
+                            navController.navigate(AdminRoutes.institutionDetail(institution.id))
+                        },
                     )
                 }
-            }
 
-            item {
-                Spacer(modifier = Modifier.height(12.dp))
-                SearchBarWithFilter(
-                    query = searchQuery,
-                    onQueryChange = { searchQuery = it },
-                )
-                Spacer(modifier = Modifier.height(8.dp))
+                item { Spacer(modifier = Modifier.height(80.dp)) }
             }
-
-            item {
-                QuickFilterChips(
-                    filters = institutionChipFilters,
-                    selectedFilter = selectedChip,
-                    onFilterSelected = { selectedChip = it },
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-            }
-
-            items(filtered, key = { it.id }) { institution ->
-                InstitutionListItem(
-                    institution = institution,
-                    onClick = {
-                        navController.navigate(AdminRoutes.institutionDetail(institution.id))
-                    },
-                )
-            }
-
-            item { Spacer(modifier = Modifier.height(80.dp)) }
         }
     }
 }
@@ -348,12 +345,13 @@ private fun AddInstitutionDialog(onDismiss: () -> Unit) {
 
     val types = listOf("Instituição", "Empresa")
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Text("Adicionar Instituição", fontWeight = FontWeight.Bold, color = DarkBlue)
-        },
-        text = {
+    LinkStageDialog(
+        onDismiss = onDismiss,
+        title = "Adicionar Instituição",
+        onConfirm = onDismiss,
+        confirmText = "Adicionar",
+        dismissText = "Cancelar",
+        content = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 OutlinedTextField(
                     value = name,
@@ -418,25 +416,7 @@ private fun AddInstitutionDialog(onDismiss: () -> Unit) {
                     singleLine = true,
                 )
             }
-        },
-        confirmButton = {
-            Button(
-                onClick = onDismiss,
-                colors = ButtonDefaults.buttonColors(containerColor = DarkBlue),
-            ) {
-                Text("Adicionar", color = Color.White)
-            }
-        },
-        dismissButton = {
-            OutlinedButton(
-                onClick = onDismiss,
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = DarkBlue),
-            ) {
-                Text("Cancelar")
-            }
-        },
-        containerColor = Color.White,
-        shape = RoundedCornerShape(16.dp),
+        }
     )
 }
 

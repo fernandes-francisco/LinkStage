@@ -45,6 +45,7 @@ import turmaA.grupoB.LinkStage.ui.admin.avatarColors
 import turmaA.grupoB.LinkStage.ui.admin.sampleInstitutions
 import turmaA.grupoB.LinkStage.ui.admin.sampleMentors
 import turmaA.grupoB.LinkStage.ui.admin.sampleStudents
+import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
 import turmaA.grupoB.LinkStage.ui.common.LinkStageLogo
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
@@ -60,100 +61,95 @@ fun HomeAdminScreen(
         modifier = modifier
             .fillMaxSize()
             .background(BackgroundLight)
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 20.dp),
+            .verticalScroll(rememberScrollState()),
     ) {
-        Spacer(modifier = Modifier.height(16.dp))
+        CommonTopBar()
 
-        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-            LinkStageLogo()
-        }
+        Column(modifier = Modifier.padding(horizontal = 20.dp)) {
+            Text(
+                "Olá, Admin",
+                fontSize = 28.sp,
+                fontWeight = FontWeight.Bold,
+                color = DarkBlue,
+            )
 
-        Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
-        Text(
-            "Olá, Admin",
-            fontSize = 28.sp,
-            fontWeight = FontWeight.Bold,
-            color = DarkBlue,
-        )
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        // Novos utilizadores
-        SectionHeader(
-            title = "Novos utilizadores",
-            onViewAll = {
-                navController.navigate(AdminRoutes.STUDENTS) {
-                    popUpTo(navController.graph.findStartDestination().id) {
-                        saveState = true
+            // Novos utilizadores
+            SectionHeader(
+                title = "Novos utilizadores",
+                onViewAll = {
+                    navController.navigate(AdminRoutes.STUDENTS) {
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            saveState = true
+                        }
+                        launchSingleTop = true
+                        restoreState = true
                     }
-                    launchSingleTop = true
-                    restoreState = true
-                }
-            },
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-
-        sampleStudents.take(2).forEach { student ->
-            AdminUserRow(
-                student = student,
-                onClick = { navController.navigate(AdminRoutes.studentDetail(student.id)) },
+                },
             )
             Spacer(modifier = Modifier.height(8.dp))
-        }
 
-        Spacer(modifier = Modifier.height(16.dp))
+            sampleStudents.take(2).forEach { student ->
+                AdminUserRow(
+                    student = student,
+                    onClick = { navController.navigate(AdminRoutes.studentDetail(student.id)) },
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+            }
 
-        // Novos orientadores
-        SectionHeader(
-            title = "Novos orientadores",
-            onViewAll = {
-                navController.navigate(AdminRoutes.STUDENTS) {
-                    popUpTo(navController.graph.findStartDestination().id) {
-                        saveState = true
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Novos orientadores
+            SectionHeader(
+                title = "Novos orientadores",
+                onViewAll = {
+                    navController.navigate(AdminRoutes.STUDENTS) {
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            saveState = true
+                        }
+                        launchSingleTop = true
+                        restoreState = true
                     }
-                    launchSingleTop = true
-                    restoreState = true
-                }
-            },
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-
-        sampleMentors.take(2).forEach { mentor ->
-            AdminMentorRow(
-                mentor = mentor,
-                onClick = { navController.navigate(AdminRoutes.mentorDetail(mentor.id)) },
+                },
             )
             Spacer(modifier = Modifier.height(8.dp))
-        }
 
-        Spacer(modifier = Modifier.height(16.dp))
+            sampleMentors.take(2).forEach { mentor ->
+                AdminMentorRow(
+                    mentor = mentor,
+                    onClick = { navController.navigate(AdminRoutes.mentorDetail(mentor.id)) },
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+            }
 
-        // Novas instituições
-        SectionHeader(
-            title = "Novas instituições",
-            onViewAll = {
-                navController.navigate(AdminRoutes.INSTITUTIONS) {
-                    popUpTo(navController.graph.findStartDestination().id) {
-                        saveState = true
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Novas instituições
+            SectionHeader(
+                title = "Novas instituições",
+                onViewAll = {
+                    navController.navigate(AdminRoutes.INSTITUTIONS) {
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            saveState = true
+                        }
+                        launchSingleTop = true
+                        restoreState = true
                     }
-                    launchSingleTop = true
-                    restoreState = true
-                }
-            },
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-
-        sampleInstitutions.take(2).forEach { institution ->
-            AdminInstitutionRow(
-                institution = institution,
-                onClick = { navController.navigate(AdminRoutes.institutionDetail(institution.id)) },
+                },
             )
             Spacer(modifier = Modifier.height(8.dp))
-        }
 
-        Spacer(modifier = Modifier.height(16.dp))
+            sampleInstitutions.take(2).forEach { institution ->
+                AdminInstitutionRow(
+                    institution = institution,
+                    onClick = { navController.navigate(AdminRoutes.institutionDetail(institution.id)) },
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+        }
     }
 }
 

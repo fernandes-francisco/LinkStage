@@ -53,8 +53,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -75,7 +78,11 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
+import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
+import turmaA.grupoB.LinkStage.ui.common.LinkStageButton
+import turmaA.grupoB.LinkStage.ui.common.LinkStageDialog
 import turmaA.grupoB.LinkStage.ui.common.LinkStageLogo
+import turmaA.grupoB.LinkStage.ui.common.LinkStageOutlinedButton
 import turmaA.grupoB.LinkStage.ui.common.SectionLabel
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
@@ -111,23 +118,13 @@ data class ActivityLog(
     val companyLogoColor: Color = Color(0xFF0E1572),
     val requirements: List<String> = emptyList(),
     val hasSubmitted: Boolean = false,
-    val submittedFiles: List<CheckpointFile> = emptyList(),
-    val submittedAt: LocalDate? = null,
-)
-
-data class CheckpointFile(
-    val id: String,
-    val name: String,
-    val fileUri: String = "",
 )
 
 data class ActiveInternship(
-    val id: String = "",
     val title: String,
     val startDate: LocalDate,
     val endDate: LocalDate,
     val activityLogs: List<ActivityLog>,
-    val isCompleted: Boolean = false,
 )
 
 // endregion
@@ -162,7 +159,6 @@ fun RecentActivityAlunoScreen(
     homeViewModel: HomeViewModel = viewModel(),
     onSubmitReport: () -> Unit = {},
     onActivityClick: (String) -> Unit = {},
-    onViewResult: (String) -> Unit = {},
 ) {
     val hasActiveInternship by homeViewModel.hasActiveInternship.collectAsState()
     val activeInternship by homeViewModel.activeInternship.collectAsState()
@@ -170,6 +166,20 @@ fun RecentActivityAlunoScreen(
     val pastApplications by homeViewModel.pastApplications.collectAsState()
 
     var showAddActivityModal by remember { mutableStateOf(false) }
+    var showFilterModal by remember { mutableStateOf(false) }
+    var currentFilter by remember { mutableStateOf("Todas") }
+    var searchQuery by remember { mutableStateOf("") }
+
+    if (showFilterModal) {
+        ActivityFilterModal(
+            currentFilter = currentFilter,
+            onDismiss = { showFilterModal = false },
+            onApply = {
+                currentFilter = it
+                showFilterModal = false
+            }
+        )
+    }
 
     if (showAddActivityModal) {
         AddActivityModal(
@@ -195,19 +205,44 @@ fun RecentActivityAlunoScreen(
             },
             containerColor = BackgroundLight,
         ) { innerPadding ->
-            ActiveInternshipContent(
-                internship = activeInternship!!,
-                onSubmitReport = onSubmitReport,
-                onActivityClick = onActivityClick,
-                onViewResult = onViewResult,
-                modifier = Modifier.padding(innerPadding),
-            )
+            Column(modifier = Modifier.fillMaxSize()) {
+                CommonTopBar()
+                ActiveInternshipContent(
+                    internship = activeInternship!!,
+                    onSubmitReport = onSubmitReport,
+                    onActivityClick = onActivityClick,
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(bottom = innerPadding.calculateBottomPadding()),
+                )
+            }
         }
     } else {
+        // Filtro e Pesquisa para Candidaturas
+        val filterStatus = when (currentFilter) {
+            "Pendente" -> ApplicationStatus.PENDING
+            "Aceite" -> ApplicationStatus.ACCEPTED
+            "Recusado" -> ApplicationStatus.REJECTED
+            else -> null
+        }
+
+        val filteredActive = activeApplications.filter {
+            (filterStatus == null || it.status == filterStatus) &&
+                    (searchQuery.isBlank() || it.offerTitle.contains(searchQuery, ignoreCase = true) || it.company.contains(searchQuery, ignoreCase = true))
+        }
+
+        val filteredPast = pastApplications.filter {
+            (filterStatus == null || it.status == filterStatus) &&
+                    (searchQuery.isBlank() || it.offerTitle.contains(searchQuery, ignoreCase = true) || it.company.contains(searchQuery, ignoreCase = true))
+        }
+
         ApplicationsContent(
-            activeApplications = activeApplications,
-            pastApplications = pastApplications,
+            activeApplications = filteredActive,
+            pastApplications = filteredPast,
+            searchQuery = searchQuery,
+            onSearchQueryChange = { searchQuery = it },
             modifier = modifier,
+            onFilterClick = { showFilterModal = true }
         )
     }
 }
@@ -220,7 +255,10 @@ fun RecentActivityAlunoScreen(
 private fun ApplicationsContent(
     activeApplications: List<ApplicationItem>,
     pastApplications: List<ApplicationItem>,
+    searchQuery: String,
+    onSearchQueryChange: (String) -> Unit,
     modifier: Modifier = Modifier,
+    onFilterClick: () -> Unit = {},
 ) {
     LazyColumn(
         modifier = modifier
@@ -228,7 +266,7 @@ private fun ApplicationsContent(
             .background(BackgroundLight),
         contentPadding = PaddingValues(bottom = 16.dp),
     ) {
-        item { ActivityTopBar() }
+        item { CommonTopBar() }
 
         item {
             Text(
@@ -242,23 +280,44 @@ private fun ApplicationsContent(
         }
 
         item {
-            ApplicationSearchBar()
+            ApplicationSearchBar(
+                query = searchQuery,
+                onQueryChange = onSearchQueryChange,
+                onFilterClick = onFilterClick
+            )
             Spacer(modifier = Modifier.height(12.dp))
         }
 
         item {
-            ApplicationSection(title = "Candidaturas ativas") {
-                activeApplications.forEach { app ->
-                    ApplicationCard(application = app)
+            if (activeApplications.isEmpty() && pastApplications.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(32.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("Nenhuma candidatura encontrada.", color = DarkGrey)
                 }
             }
-            Spacer(modifier = Modifier.height(12.dp))
         }
 
-        item {
-            ApplicationSection(title = "Candidaturas passadas") {
-                pastApplications.forEach { app ->
-                    ApplicationCard(application = app)
+        if (activeApplications.isNotEmpty()) {
+            item {
+                ApplicationSection(title = "Candidaturas ativas") {
+                    activeApplications.forEach { app ->
+                        ApplicationCard(application = app)
+                    }
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+            }
+        }
+
+        if (pastApplications.isNotEmpty()) {
+            item {
+                ApplicationSection(title = "Candidaturas passadas") {
+                    pastApplications.forEach { app ->
+                        ApplicationCard(application = app)
+                    }
                 }
             }
         }
@@ -379,7 +438,6 @@ private fun ActiveInternshipContent(
     internship: ActiveInternship,
     onSubmitReport: () -> Unit,
     onActivityClick: (String) -> Unit = {},
-    onViewResult: (String) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val progress = calculateInternshipProgress(internship.startDate, internship.endDate)
@@ -400,8 +458,6 @@ private fun ActiveInternshipContent(
             .background(BackgroundLight),
         contentPadding = PaddingValues(bottom = 80.dp),
     ) {
-        item { ActivityTopBar() }
-
         item {
             InternshipHeader(
                 internship = internship,
@@ -434,27 +490,6 @@ private fun ActiveInternshipContent(
                 daysRemaining = daysRemaining,
                 onSubmit = onSubmitReport,
             )
-        }
-
-        if (internship.isCompleted) {
-            item {
-                Spacer(modifier = Modifier.height(16.dp))
-                Button(
-                    onClick = { onViewResult(internship.id) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                        .height(50.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = LightBlue),
-                ) {
-                    Text(
-                        "Ver Resultado do Estágio",
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold,
-                    )
-                }
-            }
         }
     }
 }
@@ -861,19 +896,107 @@ fun AddActivityModal(
 // region Shared components
 
 @Composable
-private fun ActivityTopBar() {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        contentAlignment = Alignment.Center
+private fun ActivityFilterModal(
+    currentFilter: String,
+    onDismiss: () -> Unit,
+    onApply: (String) -> Unit
+) {
+    var selectedOption by remember { mutableStateOf(currentFilter) }
+    val options = listOf("Todas", "Pendente", "Aceite", "Recusado")
+
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false),
     ) {
-        LinkStageLogo()
+        Card(
+            modifier = Modifier
+                .fillMaxWidth(0.9f)
+                .wrapContentHeight(),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White),
+            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                // Header
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = "Filtrar Candidaturas",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = DarkBlue,
+                    )
+                    IconButton(onClick = onDismiss) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = "Fechar",
+                            tint = DarkBlue,
+                        )
+                    }
+                }
+
+                // Opções de Filtro
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    SectionLabel("Estado")
+                    options.forEach { option ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(8.dp))
+                                .clickable { selectedOption = option }
+                                .padding(vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            RadioButton(
+                                selected = (option == selectedOption),
+                                onClick = { selectedOption = option },
+                                colors = RadioButtonDefaults.colors(selectedColor = DarkBlue)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(text = option, color = DarkGrey)
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Botões
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    LinkStageOutlinedButton(
+                        text = "Cancelar",
+                        onClick = onDismiss,
+                        modifier = Modifier.weight(1f),
+                        height = 48.dp
+                    )
+
+                    LinkStageButton(
+                        text = "Filtrar",
+                        onClick = { onApply(selectedOption) },
+                        modifier = Modifier.weight(1f),
+                        height = 48.dp
+                    )
+                }
+            }
+        }
     }
 }
 
 @Composable
-private fun ApplicationSearchBar() {
+private fun ApplicationSearchBar(
+    query: String,
+    onQueryChange: (String) -> Unit,
+    onFilterClick: () -> Unit
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -882,8 +1005,8 @@ private fun ApplicationSearchBar() {
         verticalAlignment = Alignment.CenterVertically,
     ) {
         OutlinedTextField(
-            value = "",
-            onValueChange = {},
+            value = query,
+            onValueChange = onQueryChange,
             modifier = Modifier.weight(1f),
             placeholder = { Text("Pesquisar...", color = DarkGrey) },
             leadingIcon = {
@@ -902,7 +1025,8 @@ private fun ApplicationSearchBar() {
             modifier = Modifier
                 .size(52.dp)
                 .clip(RoundedCornerShape(12.dp))
-                .background(DarkBlue),
+                .background(DarkBlue)
+                .clickable { onFilterClick() },
             contentAlignment = Alignment.Center,
         ) {
             Icon(Icons.Outlined.FilterList, contentDescription = "Filtros", tint = Color.White)

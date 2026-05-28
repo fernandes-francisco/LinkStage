@@ -68,6 +68,9 @@ import turmaA.grupoB.LinkStage.ui.admin.AdminStudent
 import turmaA.grupoB.LinkStage.ui.admin.avatarColors
 import turmaA.grupoB.LinkStage.ui.admin.sampleMentors
 import turmaA.grupoB.LinkStage.ui.admin.sampleStudents
+import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
+import turmaA.grupoB.LinkStage.ui.common.LinkStageButton
+import turmaA.grupoB.LinkStage.ui.common.LinkStageDialog
 import turmaA.grupoB.LinkStage.ui.common.LinkStageLogo
 import turmaA.grupoB.LinkStage.ui.common.LinkStageTabRow
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
@@ -92,14 +95,7 @@ fun StudentsAdminScreen(
         containerColor = BackgroundLight,
         topBar = {
             Column(modifier = Modifier.background(Color.White)) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 20.dp, vertical = 12.dp),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    LinkStageLogo()
-                }
+                CommonTopBar()
 
                 Text(
                     text = if (selectedTab == 0) "Alunos" else "Orientadores",
@@ -648,12 +644,13 @@ private fun AddStudentDialog(onDismiss: () -> Unit) {
 
     val institutions = listOf("ESTG-IPVC", "ESE-IPVC", "ESDL-IPVC")
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Text("Adicionar Aluno", fontWeight = FontWeight.Bold, color = DarkBlue)
-        },
-        text = {
+    LinkStageDialog(
+        onDismiss = onDismiss,
+        title = "Adicionar Aluno",
+        onConfirm = onDismiss,
+        confirmText = "Adicionar",
+        dismissText = "Cancelar",
+        content = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 OutlinedTextField(
                     value = name,
@@ -710,25 +707,7 @@ private fun AddStudentDialog(onDismiss: () -> Unit) {
                     singleLine = true,
                 )
             }
-        },
-        confirmButton = {
-            Button(
-                onClick = onDismiss,
-                colors = ButtonDefaults.buttonColors(containerColor = DarkBlue),
-            ) {
-                Text("Adicionar", color = Color.White)
-            }
-        },
-        dismissButton = {
-            OutlinedButton(
-                onClick = onDismiss,
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = DarkBlue),
-            ) {
-                Text("Cancelar")
-            }
-        },
-        containerColor = Color.White,
-        shape = RoundedCornerShape(16.dp),
+        }
     )
 }
 
@@ -743,12 +722,13 @@ private fun AddMentorDialog(onDismiss: () -> Unit) {
 
     val institutions = listOf("ESTG-IPVC", "ESE-IPVC", "ESDL-IPVC")
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Text("Adicionar Orientador", fontWeight = FontWeight.Bold, color = DarkBlue)
-        },
-        text = {
+    LinkStageDialog(
+        onDismiss = onDismiss,
+        title = "Adicionar Orientador",
+        onConfirm = onDismiss,
+        confirmText = "Adicionar",
+        dismissText = "Cancelar",
+        content = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 OutlinedTextField(
                     value = name,
@@ -805,25 +785,7 @@ private fun AddMentorDialog(onDismiss: () -> Unit) {
                     singleLine = true,
                 )
             }
-        },
-        confirmButton = {
-            Button(
-                onClick = onDismiss,
-                colors = ButtonDefaults.buttonColors(containerColor = DarkBlue),
-            ) {
-                Text("Adicionar", color = Color.White)
-            }
-        },
-        dismissButton = {
-            OutlinedButton(
-                onClick = onDismiss,
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = DarkBlue),
-            ) {
-                Text("Cancelar")
-            }
-        },
-        containerColor = Color.White,
-        shape = RoundedCornerShape(16.dp),
+        }
     )
 }
 

@@ -11,6 +11,7 @@ val BorderGrey = Color(0xFFD9D9D9)
 val DarkGrey = Color(0xFF737373)
 val MediumBlue = Color(0xFF326B9B)
 val BackgroundLight = Color(0xFFF5F5F5)
+val Green = Color(0xFF4CAF50)
 
 // Aliases for compatibility with other screens
 val BlueDark = DarkBlue

@@ -44,6 +44,7 @@ import turmaA.grupoB.LinkStage.ui.aluno.activity.ApplicationCard
 import turmaA.grupoB.LinkStage.ui.aluno.activity.InternshipHeader
 import turmaA.grupoB.LinkStage.ui.aluno.activity.calculateInternshipProgress
 import turmaA.grupoB.LinkStage.ui.aluno.chat.ConversationItem
+import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
 import turmaA.grupoB.LinkStage.ui.common.LinkStageLogo
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
@@ -92,130 +93,125 @@ fun HomeAlunoScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(BackgroundLight)
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 20.dp),
+            .verticalScroll(rememberScrollState()),
     ) {
-        Spacer(modifier = Modifier.height(16.dp))
+        CommonTopBar()
 
-        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-            LinkStageLogo()
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text(
-            "Olá, $userName",
-            style = MaterialTheme.typography.headlineLarge.copy(
-                fontWeight = FontWeight.Bold,
-                color = DarkBlue,
-            ),
-        )
-
-        // DEBUG: toggle para testar os dois estados
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(DarkGrey.copy(alpha = 0.1f), RoundedCornerShape(8.dp))
-                .padding(horizontal = 12.dp, vertical = 4.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
+        Column(modifier = Modifier.padding(horizontal = 20.dp)) {
             Text(
-                "DEBUG — Em estágio",
-                style = MaterialTheme.typography.labelMedium,
-                color = DarkGrey,
-                modifier = Modifier.weight(1f),
-            )
-            Switch(
-                checked = hasActiveInternship,
-                onCheckedChange = { homeViewModel.toggleInternship() },
-                colors = SwitchDefaults.colors(
-                    checkedThumbColor = Color.White,
-                    checkedTrackColor = LightBlue,
-                    uncheckedThumbColor = Color.White,
-                    uncheckedTrackColor = DarkGrey.copy(alpha = 0.3f),
+                "Olá, $userName",
+                style = MaterialTheme.typography.headlineLarge.copy(
+                    fontWeight = FontWeight.Bold,
+                    color = DarkBlue,
                 ),
             )
-        }
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        if (hasActiveInternship && activeInternship != null) {
-            // State B: Active internship
-            val internship = activeInternship!!
-            val progress = calculateInternshipProgress(internship.startDate, internship.endDate)
-
-            var animationStarted by remember { mutableStateOf(false) }
-            val animatedProgress by animateFloatAsState(
-                targetValue = if (animationStarted) progress else 0f,
-                animationSpec = tween(durationMillis = 1000),
-                label = "home_progress",
-            )
-            LaunchedEffect(Unit) { animationStarted = true }
-
-            SectionHeader(
-                title = "Estágio Ativo",
-                actionText = "Ver detalhes",
-                onAction = {
-                    navController.navigate(AlunoRoutes.ACTIVITY)
-                },
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            InternshipHeader(
-                internship = internship,
-                animatedProgress = animatedProgress,
-            )
+            // DEBUG: toggle para testar os dois estados
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(DarkGrey.copy(alpha = 0.1f), RoundedCornerShape(8.dp))
+                    .padding(horizontal = 12.dp, vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    "DEBUG — Em estágio",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = DarkGrey,
+                    modifier = Modifier.weight(1f),
+                )
+                Switch(
+                    checked = hasActiveInternship,
+                    onCheckedChange = { homeViewModel.toggleInternship() },
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = Color.White,
+                        checkedTrackColor = LightBlue,
+                        uncheckedThumbColor = Color.White,
+                        uncheckedTrackColor = DarkGrey.copy(alpha = 0.3f),
+                    ),
+                )
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            EntregasCard(mockEntregas)
-        } else {
-            // State A: No internship — show recent applications
-            SectionHeader(
-                title = "Estado das candidaturas",
-                actionText = "Ver todas",
-                onAction = {
-                    navController.navigate(AlunoRoutes.ACTIVITY)
-                },
-            )
-            Spacer(modifier = Modifier.height(8.dp))
+            if (hasActiveInternship && activeInternship != null) {
+                // State B: Active internship
+                val internship = activeInternship!!
+                val progress = calculateInternshipProgress(internship.startDate, internship.endDate)
 
-            recentApplications.forEach { application ->
-                ApplicationCard(application = application)
+                var animationStarted by remember { mutableStateOf(false) }
+                val animatedProgress by animateFloatAsState(
+                    targetValue = if (animationStarted) progress else 0f,
+                    animationSpec = tween(durationMillis = 1000),
+                    label = "home_progress",
+                )
+                LaunchedEffect(Unit) { animationStarted = true }
+
+                SectionHeader(
+                    title = "Estágio Ativo",
+                    actionText = "Ver detalhes",
+                    onAction = {
+                        navController.navigate(AlunoRoutes.ACTIVITY)
+                    },
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                InternshipHeader(
+                    internship = internship,
+                    animatedProgress = animatedProgress,
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                EntregasCard(mockEntregas)
+            } else {
+                // State A: No internship — show recent applications
+                SectionHeader(
+                    title = "Estado das candidaturas",
+                    actionText = "Ver todas",
+                    onAction = {
+                        navController.navigate(AlunoRoutes.ACTIVITY)
+                    },
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+
+                recentApplications.forEach { application ->
+                    ApplicationCard(application = application)
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                SectionHeader(
+                    title = "Descobre Oportunidades",
+                    actionText = "Explorar",
+                    onAction = {
+                        navController.navigate(AlunoRoutes.DISCOVER)
+                    },
+                )
             }
 
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Recent messages — both states
+            SectionHeader(
+                title = "Mensagens Recentes",
+                actionText = "Ver todas",
+                onAction = {
+                    navController.navigate(AlunoRoutes.MESSAGES)
+                },
+            )
             Spacer(modifier = Modifier.height(8.dp))
 
-            SectionHeader(
-                title = "Descobre Oportunidades",
-                actionText = "Explorar",
-                onAction = {
-                    navController.navigate(AlunoRoutes.DISCOVER)
-                },
-            )
+            recentConversations.forEach { conversation ->
+                ConversationItem(
+                    conversation = conversation,
+                    onClick = {
+                        navController.navigate(AlunoRoutes.chatRoute(conversation.id))
+                    },
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
         }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // Recent messages — both states
-        SectionHeader(
-            title = "Mensagens Recentes",
-            actionText = "Ver todas",
-            onAction = {
-                navController.navigate(AlunoRoutes.MESSAGES)
-            },
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-
-        recentConversations.forEach { conversation ->
-            ConversationItem(
-                conversation = conversation,
-                onClick = {
-                    navController.navigate(AlunoRoutes.chatRoute(conversation.id))
-                },
-            )
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
     }
 }
 

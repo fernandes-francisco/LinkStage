@@ -18,17 +18,14 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -42,6 +39,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import turmaA.grupoB.LinkStage.ui.common.LinkStageButton
+import turmaA.grupoB.LinkStage.ui.common.SecondaryTopBar
+import turmaA.grupoB.LinkStage.ui.common.LinkStageDialog
+import turmaA.grupoB.LinkStage.ui.common.LinkStageOutlinedButton
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
@@ -71,12 +72,20 @@ fun EditCvScreen(
     var newSkillText by remember { mutableStateOf("") }
 
     if (showAddSkillDialog) {
-        AlertDialog(
-            onDismissRequest = { showAddSkillDialog = false },
-            title = {
-                Text("Adicionar Skill", fontWeight = FontWeight.Bold, color = DarkBlue)
+        LinkStageDialog(
+            onDismiss = {
+                newSkillText = ""
+                showAddSkillDialog = false
             },
-            text = {
+            title = "Adicionar Skill",
+            onConfirm = {
+                viewModel.addSkill(newSkillText.trim())
+                newSkillText = ""
+                showAddSkillDialog = false
+            },
+            confirmText = "Guardar",
+            dismissText = "Cancelar",
+            content = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
                         "Adiciona uma nova habilidade técnica ou interpessoal para o teu perfil.",
@@ -99,58 +108,47 @@ fun EditCvScreen(
                         singleLine = true,
                     )
                 }
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        viewModel.addSkill(newSkillText.trim())
-                        newSkillText = ""
-                        showAddSkillDialog = false
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = DarkBlue),
-                ) {
-                    Text("Guardar", color = Color.White)
-                }
-            },
-            dismissButton = {
-                OutlinedButton(
-                    onClick = {
-                        newSkillText = ""
-                        showAddSkillDialog = false
-                    },
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = DarkBlue),
-                ) {
-                    Text("Cancelar")
-                }
-            },
-            containerColor = Color.White,
-            shape = RoundedCornerShape(16.dp),
+            }
         )
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(BackgroundLight),
-    ) {
-        // Header
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Color.White)
-                .padding(horizontal = 8.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar", tint = DarkBlue)
-            }
-            Spacer(modifier = Modifier.width(4.dp))
-            Text("Editar CV", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = DarkBlue)
-        }
+    Scaffold(
+        topBar = {
+            SecondaryTopBar(
+                title = "Editar CV",
+                onBack = onBack
+            )
+        },
+        bottomBar = {
+            // Bottom Actions (Fixas em baixo)
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.White)
+                    .padding(horizontal = 20.dp, vertical = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                // Add custom skill button
+                LinkStageOutlinedButton(
+                    text = "Adicionar skill",
+                    onClick = { showAddSkillDialog = true }
+                )
 
+                // Save button
+                LinkStageButton(
+                    onClick = onBack,
+                    text = "Guardar",
+                    height = 50.dp
+                )
+            }
+        }
+    ) { innerPadding ->
+        // Conteúdo Scrollable
         Column(
             modifier = Modifier
-                .weight(1f)
+                .padding(innerPadding)
+                .fillMaxSize()
+                .background(BackgroundLight)
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -272,32 +270,7 @@ fun EditCvScreen(
                     }
                 }
             }
-
-            // Add custom skill button
-            OutlinedButton(
-                onClick = { showAddSkillDialog = true },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(10.dp),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = DarkBlue),
-                border = androidx.compose.foundation.BorderStroke(1.dp, DarkBlue),
-            ) {
-                Text("Adicionar skill", fontWeight = FontWeight.SemiBold)
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-        }
-
-        // Save button
-        Button(
-            onClick = onBack,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 12.dp)
-                .height(50.dp),
-            shape = RoundedCornerShape(12.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = DarkBlue),
-        ) {
-            Text("Guardar", color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }

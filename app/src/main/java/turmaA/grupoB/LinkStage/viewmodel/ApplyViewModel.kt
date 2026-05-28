@@ -8,6 +8,8 @@ import androidx.lifecycle.ViewModel
 
 class ApplyViewModel : ViewModel() {
 
+    var currentStep by mutableStateOf(0)
+
     // Step 0
     var fullName by mutableStateOf("Tomás Silva")
     var email by mutableStateOf("tomas.silva@ipvc.pt")

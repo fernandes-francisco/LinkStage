@@ -67,7 +67,11 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
+import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
+import turmaA.grupoB.LinkStage.ui.common.LinkStageButton
+import turmaA.grupoB.LinkStage.ui.common.LinkStageDialog
 import turmaA.grupoB.LinkStage.ui.common.LinkStageLogo
+import turmaA.grupoB.LinkStage.ui.common.LinkStageOutlinedButton
 import turmaA.grupoB.LinkStage.ui.common.SectionLabel
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
@@ -127,16 +131,7 @@ fun OffersAlunoScreen(
             .background(BackgroundLight),
         contentPadding = PaddingValues(bottom = 16.dp),
     ) {
-        item {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 12.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                LinkStageLogo()
-            }
-        }
+        item { CommonTopBar() }
 
         item {
             Text(
@@ -388,19 +383,15 @@ fun FilterModal(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    OutlinedButton(
+                    LinkStageOutlinedButton(
+                        text = "Cancelar",
                         onClick = onDismiss,
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(48.dp),
-                        shape = RoundedCornerShape(10.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = DarkBlue),
-                        border = BorderStroke(1.dp, DarkBlue),
-                    ) {
-                        Text("Cancelar", fontWeight = FontWeight.SemiBold)
-                    }
+                        modifier = Modifier.weight(1f),
+                        height = 48.dp
+                    )
 
-                    Button(
+                    LinkStageButton(
+                        text = "Filtrar",
                         onClick = {
                             onApply(
                                 DiscoverFilters(
@@ -412,14 +403,9 @@ fun FilterModal(
                                 )
                             )
                         },
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(48.dp),
-                        shape = RoundedCornerShape(10.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = DarkBlue),
-                    ) {
-                        Text("Filtrar", color = Color.White, fontWeight = FontWeight.SemiBold)
-                    }
+                        modifier = Modifier.weight(1f),
+                        height = 48.dp
+                    )
                 }
             }
         }

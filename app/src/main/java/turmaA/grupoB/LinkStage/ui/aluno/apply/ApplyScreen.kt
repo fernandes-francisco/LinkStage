@@ -58,6 +58,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -70,6 +71,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import turmaA.grupoB.LinkStage.ui.common.LinkStageButton
+import turmaA.grupoB.LinkStage.ui.common.SecondaryTopBar
+import turmaA.grupoB.LinkStage.ui.common.LinkStageDialog
 import turmaA.grupoB.LinkStage.ui.common.SectionLabel
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
@@ -93,40 +97,30 @@ fun ApplyScreen(
     onNavigateToEditCv: () -> Unit,
     onSubmitSuccess: () -> Unit,
 ) {
-    var currentStep by remember { mutableIntStateOf(0) }
+    val currentStep = viewModel.currentStep
     var showCvIncompleteDialog by remember { mutableStateOf(false) }
 
     // Step 0 validation
-    var nameError by remember { mutableStateOf(false) }
-    var emailError by remember { mutableStateOf(false) }
-    var phoneError by remember { mutableStateOf(false) }
-    var courseError by remember { mutableStateOf(false) }
-    var institutionError by remember { mutableStateOf(false) }
-    var gpaError by remember { mutableStateOf(false) }
+    var nameError by rememberSaveable { mutableStateOf(false) }
+    var emailError by rememberSaveable { mutableStateOf(false) }
+    var phoneError by rememberSaveable { mutableStateOf(false) }
+    var courseError by rememberSaveable { mutableStateOf(false) }
+    var institutionError by rememberSaveable { mutableStateOf(false) }
+    var gpaError by rememberSaveable { mutableStateOf(false) }
 
     if (showCvIncompleteDialog) {
-        AlertDialog(
-            onDismissRequest = { showCvIncompleteDialog = false },
-            title = {
-                Text("CV incompleto.", fontWeight = FontWeight.Bold, color = Red)
-            },
-            text = {
+        LinkStageDialog(
+            title = "CV incompleto.",
+            onConfirm = { showCvIncompleteDialog = false },
+            onDismiss = { showCvIncompleteDialog = false },
+            confirmText = "Voltar",
+            content = {
                 Text(
                     "Adiciona pelo menos uma skill ao teu cv para que possas continuar a candidatura.",
                     color = DarkGrey,
                     lineHeight = 22.sp,
                 )
-            },
-            confirmButton = {
-                Button(
-                    onClick = { showCvIncompleteDialog = false },
-                    colors = ButtonDefaults.buttonColors(containerColor = DarkBlue),
-                ) {
-                    Text("Voltar", color = Color.White)
-                }
-            },
-            containerColor = Color.White,
-            shape = RoundedCornerShape(16.dp),
+            }
         )
     }
 
@@ -198,7 +192,8 @@ fun ApplyScreen(
                 .padding(horizontal = 20.dp, vertical = 12.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Button(
+            LinkStageButton(
+                text = if (currentStep == 2) "Submeter" else "Continuar",
                 onClick = {
                     when (currentStep) {
                         0 -> {
@@ -210,13 +205,13 @@ fun ApplyScreen(
                             gpaError = viewModel.gpa.isBlank()
                             val valid = !nameError && !emailError && !phoneError &&
                                 !courseError && !institutionError && !gpaError
-                            if (valid) currentStep = 1
+                            if (valid) viewModel.currentStep = 1
                         }
                         1 -> {
                             if (!viewModel.isCvComplete) {
                                 showCvIncompleteDialog = true
                             } else {
-                                currentStep = 2
+                                viewModel.currentStep = 2
                             }
                         }
                         2 -> {
@@ -224,20 +219,8 @@ fun ApplyScreen(
                             onSubmitSuccess()
                         }
                     }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = DarkBlue),
-            ) {
-                Text(
-                    text = if (currentStep == 2) "Submeter" else "Continuar",
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = Color.White,
-                )
-            }
+                }
+            )
 
             TextButton(
                 onClick = {
@@ -267,30 +250,19 @@ private fun ApplyHeader(
         modifier = Modifier
             .fillMaxWidth()
             .background(Color.White)
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+            .padding(bottom = 12.dp),
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = onBack) {
-                Icon(
-                    Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Voltar",
-                    tint = DarkBlue,
-                )
-            }
-            Spacer(modifier = Modifier.width(4.dp))
-            Text(
-                text = "Finalizar Candidatura",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = DarkBlue,
-            )
-        }
+        SecondaryTopBar(
+            title = "Finalizar Candidatura",
+            onBack = onBack
+        )
 
         Spacer(modifier = Modifier.height(8.dp))
 
         Row(
             modifier = Modifier
                 .fillMaxWidth()
+                .padding(horizontal = 16.dp)
                 .clip(RoundedCornerShape(12.dp))
                 .background(BackgroundLight)
                 .padding(12.dp),

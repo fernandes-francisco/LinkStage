@@ -39,6 +39,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
 import turmaA.grupoB.LinkStage.ui.common.LinkStageLogo
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
@@ -120,39 +121,41 @@ private fun MessagesListScreen(
         },
         containerColor = BackgroundLight,
     ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues),
-        ) {
-            MessagesTopBar()
+        Column(modifier = Modifier.fillMaxSize()) {
+            CommonTopBar()
+            
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(bottom = paddingValues.calculateBottomPadding()),
+            ) {
+                Text(
+                    text = "Mensagens",
+                    style = MaterialTheme.typography.headlineSmall.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = DarkBlue,
+                    ),
+                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
+                )
 
-            Text(
-                text = "Mensagens",
-                style = MaterialTheme.typography.headlineSmall.copy(
-                    fontWeight = FontWeight.Bold,
-                    color = DarkBlue,
-                ),
-                modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
-            )
+                MessagesSearchBar(
+                    query = searchQuery,
+                    onQueryChange = { searchQuery = it },
+                )
 
-            MessagesSearchBar(
-                query = searchQuery,
-                onQueryChange = { searchQuery = it },
-            )
+                Spacer(modifier = Modifier.height(8.dp))
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-            LazyColumn(modifier = Modifier.fillMaxSize()) {
-                items(filtered, key = { it.id }) { conversation ->
-                    ConversationItem(
-                        conversation = conversation,
-                        onClick = { onOpenChat(conversation.id) },
-                    )
-                    HorizontalDivider(
-                        modifier = Modifier.padding(horizontal = 20.dp),
-                        color = BorderGrey,
-                    )
+                LazyColumn(modifier = Modifier.fillMaxSize()) {
+                    items(filtered, key = { it.id }) { conversation ->
+                        ConversationItem(
+                            conversation = conversation,
+                            onClick = { onOpenChat(conversation.id) },
+                        )
+                        HorizontalDivider(
+                            modifier = Modifier.padding(horizontal = 20.dp),
+                            color = BorderGrey,
+                        )
+                    }
                 }
             }
         }
@@ -237,18 +240,6 @@ fun ConversationItem(
 // endregion
 
 // region Shared components
-
-@Composable
-private fun MessagesTopBar() {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 12.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        LinkStageLogo()
-    }
-}
 
 @Composable
 private fun MessagesSearchBar(

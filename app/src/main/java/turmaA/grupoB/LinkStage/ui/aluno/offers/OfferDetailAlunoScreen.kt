@@ -7,8 +7,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -60,6 +62,9 @@ import androidx.compose.ui.unit.sp
 import turmaA.grupoB.LinkStage.ui.common.CheckItem
 import turmaA.grupoB.LinkStage.ui.common.ContentSection
 import turmaA.grupoB.LinkStage.ui.common.ContentSectionColored
+import turmaA.grupoB.LinkStage.ui.common.LinkStageButton
+import turmaA.grupoB.LinkStage.ui.common.SecondaryTopBar
+import turmaA.grupoB.LinkStage.ui.common.LinkStageDialog
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
@@ -146,7 +151,7 @@ fun OfferDetailAlunoScreen(
     }
 
     Scaffold(
-        topBar = { OfferDetailTopBar(onBack = onBack) },
+        topBar = { SecondaryTopBar(title = "Detalhes da Oferta", onBack = onBack) },
         bottomBar = {
             OfferDetailBottomBar(
                 hasApplied = hasApplied,
@@ -223,31 +228,6 @@ fun OfferDetailAlunoScreen(
 
 // region Components
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun OfferDetailTopBar(onBack: () -> Unit) {
-    TopAppBar(
-        title = {
-            Text(
-                text = "Detalhes da Oferta",
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 16.sp,
-                color = DarkBlue,
-            )
-        },
-        navigationIcon = {
-            IconButton(onClick = onBack) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Voltar",
-                    tint = DarkBlue,
-                )
-            }
-        },
-        colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White),
-    )
-}
-
 @Composable
 private fun OfferDetailHeader(offer: OfferDetail) {
     Row(
@@ -295,26 +275,27 @@ private fun OfferMetaChips(offer: OfferDetail) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp),
+            .padding(horizontal = 16.dp)
+            .height(IntrinsicSize.Min),
         horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         MetaChip(
             icon = Icons.Outlined.LocationOn,
             label = "Localização",
             value = offer.location,
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.weight(1f).fillMaxHeight(),
         )
         MetaChip(
             icon = Icons.Outlined.Schedule,
             label = "Duração",
             value = offer.duration,
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.weight(1f).fillMaxHeight(),
         )
         MetaChip(
             icon = Icons.Outlined.Work,
             label = "Tipo",
             value = offer.type,
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.weight(1f).fillMaxHeight(),
         )
     }
 }
@@ -438,26 +419,14 @@ private fun OfferDetailBottomBar(
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Button(
+                LinkStageButton(
+                    text = if (hasApplied) "Candidatura Enviada ✓" else "Candidatar",
                     onClick = { if (!hasApplied) onApply() },
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(50.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = if (hasApplied) MediumBlue else DarkBlue,
-                        contentColor = Color.White,
-                        disabledContainerColor = MediumBlue,
-                        disabledContentColor = Color.White,
-                    ),
                     enabled = !hasApplied,
-                ) {
-                    Text(
-                        text = if (hasApplied) "Candidatura Enviada ✓" else "Candidatar",
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.SemiBold,
-                    )
-                }
+                    modifier = Modifier.weight(1f),
+                    height = 50.dp,
+                    brush = if (hasApplied) turmaA.grupoB.LinkStage.ui.theme.Fade3 else turmaA.grupoB.LinkStage.ui.theme.Fade2
+                )
 
                 Box(
                     modifier = Modifier
@@ -502,40 +471,19 @@ private fun ApplyConfirmDialog(
     onConfirm: () -> Unit,
     onDismiss: () -> Unit,
 ) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Text(
-                text = "Confirmar Candidatura",
-                fontWeight = FontWeight.Bold,
-                color = DarkBlue,
-            )
-        },
-        text = {
+    LinkStageDialog(
+        title = "Confirmar Candidatura",
+        onConfirm = onConfirm,
+        onDismiss = onDismiss,
+        confirmText = "Candidatar",
+        dismissText = "Cancelar",
+        content = {
             Text(
                 text = "Tens a certeza que te queres candidatar a \"$offerTitle\"?",
                 color = DarkGrey,
                 lineHeight = 22.sp,
             )
-        },
-        confirmButton = {
-            Button(
-                onClick = onConfirm,
-                colors = ButtonDefaults.buttonColors(containerColor = DarkBlue),
-            ) {
-                Text("Candidatar", color = Color.White)
-            }
-        },
-        dismissButton = {
-            OutlinedButton(
-                onClick = onDismiss,
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = DarkBlue),
-            ) {
-                Text("Cancelar")
-            }
-        },
-        containerColor = Color.White,
-        shape = RoundedCornerShape(16.dp),
+        }
     )
 }
 

@@ -6,19 +6,14 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
@@ -52,6 +47,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import turmaA.grupoB.LinkStage.R
+import turmaA.grupoB.LinkStage.ui.common.LinkStageButton
+import turmaA.grupoB.LinkStage.ui.common.LinkStageOutlinedButton
+import turmaA.grupoB.LinkStage.ui.common.SuccessDialog
+import turmaA.grupoB.LinkStage.ui.common.ValidationItem
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.Fade2
 import turmaA.grupoB.LinkStage.ui.theme.LinkStageTheme
@@ -67,6 +66,16 @@ fun UpdatePasswordScreen(
     var confirmPassword by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
     var confirmPasswordVisible by remember { mutableStateOf(false) }
+    var showSuccessDialog by remember { mutableStateOf(false) }
+
+    SuccessDialog(
+        message = "A sua palavra-passe foi alterada com sucesso. Pode agora iniciar sessão.",
+        show = showSuccessDialog,
+        onConfirm = {
+            onUpdatePasswordClick(password)
+            onBackToLogin()
+        }
+    )
 
     // Validation logic
     val hasNumber by remember { derivedStateOf { password.any { it.isDigit() } } }
@@ -215,77 +224,20 @@ fun UpdatePasswordScreen(
             Spacer(modifier = Modifier.weight(1f))
 
             Column(modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(48.dp)
-                        .clip(RoundedCornerShape(10.dp))
-                        .background(
-                            brush = if (isEnabled) Fade2 else SolidColor(Color.LightGray.copy(alpha = 0.5f)),
-                        )
-                ) {
-                    Button(
-                        onClick = { if (isEnabled) onUpdatePasswordClick(password) },
-                        enabled = isEnabled,
-                        modifier = Modifier.fillMaxSize(),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color.Transparent,
-                            disabledContainerColor = Color.Transparent
-                        ),
-                        shape = RoundedCornerShape(10.dp),
-                        contentPadding = PaddingValues()
-                    ) {
-                        Text(
-                            text = "Atualizar Palavra-passe",
-                            color = if (isEnabled) Color.White else Color.Gray.copy(alpha = 0.8f),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                }
+                LinkStageButton(
+                    text = "Atualizar Palavra-passe",
+                    onClick = { if (isEnabled) showSuccessDialog = true },
+                    enabled = isEnabled
+                )
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                OutlinedButton(
-                    onClick = onBackToLogin,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(48.dp),
-                    shape = RoundedCornerShape(10.dp),
-                    border = BorderStroke(1.dp, Fade2),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = MediumBlue
-                    )
-                ) {
-                    Text(
-                        text = "Voltar",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
+                LinkStageOutlinedButton(
+                    text = "Voltar",
+                    onClick = onBackToLogin
+                )
             }
         }
-    }
-}
-
-@Composable
-private fun ValidationItem(text: String, isValid: Boolean) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.padding(vertical = 2.dp)
-    ) {
-        Icon(
-            imageVector = if (isValid) Icons.Default.Check else Icons.Default.Close,
-            contentDescription = null,
-            tint = if (isValid) Color(0xFF27AE60) else Red,
-            modifier = Modifier.size(16.dp)
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(
-            text = text,
-            color = if (isValid) Color(0xFF27AE60) else Red,
-            fontSize = 12.sp
-        )
     }
 }
 

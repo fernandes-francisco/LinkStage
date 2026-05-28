@@ -50,6 +50,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import turmaA.grupoB.LinkStage.R
+import turmaA.grupoB.LinkStage.ui.common.LinkStageButton
+import turmaA.grupoB.LinkStage.ui.common.ValidationItem
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.Fade2
 import turmaA.grupoB.LinkStage.ui.theme.LinkStageTheme
@@ -235,30 +237,11 @@ fun LoginScreenContent(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            Button(
+            LinkStageButton(
+                text = "Entrar",
                 onClick = onLoginClick,
-                enabled = isLoginEnabled,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp)
-                    .background(
-                        brush = if (isLoginEnabled) Fade2 else SolidColor(Color.LightGray.copy(alpha = 0.5f)),
-                        shape = RoundedCornerShape(10.dp)
-                    ),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.Transparent,
-                    disabledContainerColor = Color.Transparent
-                ),
-                shape = RoundedCornerShape(10.dp),
-                contentPadding = PaddingValues()
-            ) {
-                Text(
-                    text = "Entrar",
-                    color = if (isLoginEnabled) Color.White else Color.Gray.copy(alpha = 0.8f),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
-            }
+                enabled = isLoginEnabled
+            )
 
             Spacer(modifier = Modifier.weight(1f))
 
@@ -285,27 +268,6 @@ fun LoginScreenContent(
                 }
             }
         }
-    }
-}
-
-@Composable
-fun ValidationItem(text: String, isValid: Boolean) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.padding(vertical = 2.dp)
-    ) {
-        Icon(
-            imageVector = if (isValid) Icons.Default.Check else Icons.Default.Close,
-            contentDescription = null,
-            tint = if (isValid) Color(0xFF27AE60) else Red,
-            modifier = Modifier.size(16.dp)
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(
-            text = text,
-            color = if (isValid) Color(0xFF27AE60) else Red,
-            fontSize = 12.sp
-        )
     }
 }
 

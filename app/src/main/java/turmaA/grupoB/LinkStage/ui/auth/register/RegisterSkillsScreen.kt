@@ -9,7 +9,6 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
@@ -20,11 +19,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import turmaA.grupoB.LinkStage.R
+import turmaA.grupoB.LinkStage.ui.common.LinkStageButton
+import turmaA.grupoB.LinkStage.ui.common.LinkStageOutlinedButton
+import turmaA.grupoB.LinkStage.ui.common.SuccessDialog
 import turmaA.grupoB.LinkStage.ui.theme.*
 
 @Composable
@@ -46,6 +47,12 @@ fun RegisterSkillsScreen(
     var newSkillName by remember { mutableStateOf("") }
     
     var showSuccessDialog by remember { mutableStateOf(false) }
+
+    SuccessDialog(
+        message = "A sua conta foi criada com sucesso. Pode agora iniciar sessão.",
+        show = showSuccessDialog,
+        onConfirm = { onRegisterClick(mySkills.toList()) }
+    )
 
     if (showAddSkillDialog) {
         AlertDialog(
@@ -102,72 +109,18 @@ fun RegisterSkillsScreen(
                             Text("Cancelar", color = DarkBlue, fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
                         }
                         Spacer(modifier = Modifier.width(16.dp))
-                        Box(
-                            modifier = Modifier
-                                .height(40.dp)
-                                .width(120.dp)
-                                .clip(RoundedCornerShape(10.dp))
-                                .background(Fade2)
-                        ) {
-                            Button(
-                                onClick = {
-                                    if (newSkillName.isNotBlank()) {
-                                        mySkills.add(newSkillName.trim())
-                                        newSkillName = ""
-                                        showAddSkillDialog = false
-                                    }
-                                },
-                                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-                                shape = RoundedCornerShape(10.dp),
-                                modifier = Modifier.fillMaxSize(),
-                                contentPadding = PaddingValues(horizontal = 16.dp)
-                            ) {
-                                Text("Guardar", color = Color.White, fontWeight = FontWeight.SemiBold)
-                            }
-                        }
-                    }
-                }
-            },
-            containerColor = Color(0xFFF5F5F5),
-            shape = RoundedCornerShape(16.dp)
-        )
-    }
-
-    if (showSuccessDialog) {
-        AlertDialog(
-            onDismissRequest = { },
-            confirmButton = {},
-            title = {
-                Text(
-                    text = "Sucesso!",
-                    color = DarkBlue,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp
-                )
-            },
-            text = {
-                Column {
-                    Text(
-                        text = "A sua conta foi criada com sucesso. Pode agora iniciar sessão.",
-                        color = Color.Gray,
-                        fontSize = 14.sp
-                    )
-                    Spacer(modifier = Modifier.height(24.dp))
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(48.dp)
-                            .clip(RoundedCornerShape(10.dp))
-                            .background(Fade2)
-                    ) {
-                        Button(
-                            onClick = { onRegisterClick(mySkills.toList()) },
-                            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-                            shape = RoundedCornerShape(10.dp),
-                            modifier = Modifier.fillMaxSize()
-                        ) {
-                            Text("OK", color = Color.White, fontWeight = FontWeight.Bold)
-                        }
+                        LinkStageButton(
+                            text = "Guardar",
+                            onClick = {
+                                if (newSkillName.isNotBlank()) {
+                                    mySkills.add(newSkillName.trim())
+                                    newSkillName = ""
+                                    showAddSkillDialog = false
+                                }
+                            },
+                            modifier = Modifier.width(120.dp),
+                            height = 40.dp
+                        )
                     }
                 }
             },
@@ -320,46 +273,17 @@ fun RegisterSkillsScreen(
 
             // Bottom Buttons
             Column(modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(48.dp)
-                        .clip(RoundedCornerShape(10.dp))
-                        .background(Fade2)
-                ) {
-                    Button(
-                        onClick = { showSuccessDialog = true },
-                        modifier = Modifier.fillMaxSize(),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-                        shape = RoundedCornerShape(10.dp),
-                        contentPadding = PaddingValues()
-                    ) {
-                        Text(
-                            text = "Registar",
-                            color = Color.White,
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                }
+                LinkStageButton(
+                    text = "Registar",
+                    onClick = { showSuccessDialog = true }
+                )
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                OutlinedButton(
-                    onClick = onBackClick,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(48.dp),
-                    shape = RoundedCornerShape(10.dp),
-                    border = BorderStroke(1.dp, Fade2),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = MediumBlue)
-                ) {
-                    Text(
-                        text = "Voltar",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
+                LinkStageOutlinedButton(
+                    text = "Voltar",
+                    onClick = onBackClick
+                )
             }
         }
     }

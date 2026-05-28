@@ -62,9 +62,14 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
+import turmaA.grupoB.LinkStage.ui.common.LinkStageButton
+import turmaA.grupoB.LinkStage.ui.common.LinkStageDialog
 import turmaA.grupoB.LinkStage.ui.common.LinkStageLogo
+import turmaA.grupoB.LinkStage.ui.common.ValidationItem
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
@@ -125,13 +130,13 @@ fun SettingsAlunoScreen(
             .background(BackgroundLight)
             .verticalScroll(rememberScrollState()),
     ) {
-        SettingsTopBar()
+        CommonTopBar()
 
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 24.dp, vertical = 8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
+                .padding(horizontal = 20.dp, vertical = 8.dp),
+            horizontalAlignment = Alignment.Start,
         ) {
             Text(
                 text = "Configurações",
@@ -139,12 +144,6 @@ fun SettingsAlunoScreen(
                     fontWeight = FontWeight.Bold,
                     color = DarkBlue,
                 ),
-            )
-            Text(
-                text = "Gerir as suas preferências e definições",
-                style = MaterialTheme.typography.bodySmall,
-                color = DarkGrey,
-                textAlign = TextAlign.Center,
             )
         }
 
@@ -272,31 +271,17 @@ fun SettingsAlunoScreen(
         Spacer(modifier = Modifier.height(32.dp))
 
         // Logout button
-        Button(
+        LinkStageButton(
+            text = "Terminar Sessão",
             onClick = { showLogoutDialog = true },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp)
-                .height(52.dp),
-            shape = RoundedCornerShape(12.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Red,
-                contentColor = Color.White,
-            ),
-        ) {
-            Text(
-                text = "Terminar Sessão",
-                style = MaterialTheme.typography.titleSmall.copy(
-                    fontWeight = FontWeight.SemiBold,
-                ),
-            )
-        }
+            modifier = Modifier.padding(horizontal = 20.dp),
+            height = 52.dp,
+            brush = SolidColor(Red)
+        )
 
         Spacer(modifier = Modifier.height(24.dp))
     }
 }
-
-// region Components
 
 @Composable
 private fun UserAvatar(user: LoggedUser, size: Int = 48) {
@@ -318,18 +303,6 @@ private fun UserAvatar(user: LoggedUser, size: Int = 48) {
             fontWeight = FontWeight.Bold,
             fontSize = (size / 3).sp,
         )
-    }
-}
-
-@Composable
-private fun SettingsTopBar() {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 12.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        LinkStageLogo()
     }
 }
 
@@ -445,43 +418,18 @@ private fun LogoutConfirmDialog(
     onConfirm: () -> Unit,
     onDismiss: () -> Unit,
 ) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
+    LinkStageDialog(
+        title = "Terminar Sessão",
+        onConfirm = onConfirm,
+        onDismiss = onDismiss,
+        confirmText = "Terminar",
+        dismissText = "Cancelar",
+        content = {
             Text(
-                text = "Terminar Sessão",
-                fontWeight = FontWeight.Bold,
-                color = DarkBlue,
+                text = "Tens a certeza que queres terminar sessão?",
+                color = DarkGrey,
             )
-        },
-        text = {
-            Column {
-                Text(
-                    text = "Tens a certeza que queres terminar sessão?",
-                    color = DarkGrey,
-                )
-                Spacer(modifier = Modifier.height(24.dp))
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(48.dp)
-                        .clip(RoundedCornerShape(10.dp))
-                        .background(Red)
-                        .clickable { onConfirm() },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("Terminar Sessão", color = Color.White, fontWeight = FontWeight.Bold)
-                }
-            }
-        },
-        confirmButton = {},
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancelar", color = DarkGrey)
-            }
-        },
-        containerColor = Color(0xFFF5F5F5),
-        shape = RoundedCornerShape(16.dp),
+        }
     )
 }
 
@@ -507,12 +455,14 @@ fun ChangePasswordDialog(
 
     val isEnabled = isPasswordValid && isConfirmValid
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Text("Alterar Palavra-passe", fontWeight = FontWeight.Bold, color = DarkBlue)
-        },
-        text = {
+    LinkStageDialog(
+        onDismiss = onDismiss,
+        title = "Alterar Palavra-passe",
+        onConfirm = { onConfirm(password) },
+        confirmText = "Atualizar",
+        dismissText = "Cancelar",
+        confirmEnabled = isEnabled,
+        content = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Column {
                     Text("Nova Palavra-passe", style = MaterialTheme.typography.labelMedium, color = DarkGrey)
@@ -558,58 +508,17 @@ fun ChangePasswordDialog(
                         ValidationItem(text = "Mínimo 8 caracteres", isValid = hasMinLength)
                     }
                 }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(48.dp)
-                        .clip(RoundedCornerShape(10.dp))
-                        .background(
-                            brush = if (isEnabled) Fade2 else SolidColor(Color.LightGray.copy(alpha = 0.5f))
-                        )
-                        .clickable(enabled = isEnabled) { onConfirm(password) },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "Atualizar",
-                        color = if (isEnabled) Color.White else Color.Gray.copy(alpha = 0.8f),
-                        fontWeight = FontWeight.Bold
-                    )
-                }
             }
-        },
-        confirmButton = {},
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancelar", color = DarkGrey)
-            }
-        },
-        containerColor = Color(0xFFF5F5F5),
-        shape = RoundedCornerShape(16.dp)
+        }
     )
 }
 
+// endregion
+
+@Preview(showSystemUi = true)
 @Composable
-private fun ValidationItem(text: String, isValid: Boolean) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.padding(vertical = 2.dp)
-    ) {
-        Icon(
-            imageVector = if (isValid) Icons.Default.Check else Icons.Default.Close,
-            contentDescription = null,
-            tint = if (isValid) Color(0xFF27AE60) else Red,
-            modifier = Modifier.size(16.dp)
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(
-            text = text,
-            color = if (isValid) Color(0xFF27AE60) else Red,
-            fontSize = 12.sp
-        )
+fun SettingsAlunoScreenPreview() {
+    MaterialTheme {
+        SettingsAlunoScreen()
     }
 }
-
-// endregion

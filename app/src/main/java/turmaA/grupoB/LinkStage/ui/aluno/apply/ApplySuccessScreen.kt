@@ -31,6 +31,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import turmaA.grupoB.LinkStage.ui.common.LinkStageButton
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
@@ -98,16 +99,10 @@ fun ApplySuccessScreen(
 
         Spacer(modifier = Modifier.height(48.dp))
 
-        Button(
-            onClick = onNavigateBack,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(50.dp),
-            shape = RoundedCornerShape(12.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = DarkBlue),
-        ) {
-            Text("Voltar", color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
-        }
+        LinkStageButton(
+            text = "Voltar",
+            onClick = onNavigateBack
+        )
     }
 }
 
