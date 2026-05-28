@@ -1,13 +1,12 @@
 package turmaA.grupoB.LinkStage.ui.aluno.offers
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -17,13 +16,17 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.FilterList
 import androidx.compose.material.icons.outlined.Schedule
@@ -33,18 +36,19 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MenuAnchorType
+import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -57,13 +61,19 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
 import turmaA.grupoB.LinkStage.ui.common.LinkStageLogo
+import turmaA.grupoB.LinkStage.ui.common.SectionLabel
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
+import turmaA.grupoB.LinkStage.ui.theme.Fade1
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.ui.theme.Red
 import turmaA.grupoB.LinkStage.viewmodel.DiscoverViewModel
@@ -82,22 +92,21 @@ data class OfferItem(
     val duration: String = "",
     val area: String = "",
     val location: String = "",
+    val deadline: String = "",
 )
 
 data class DiscoverFilters(
-    val areas: List<String> = emptyList(),
+    val area: String = "",
     val location: String = "",
-    val workModel: String? = null,
-    val duration: String? = null,
+    val workModel: String = "",
+    val duration: String = "",
+    val deadline: String = "",
 )
 
 // endregion
 
-private val workModelOptions = listOf("Remoto", "Tempo Inteiro", "Tempo Parcial")
-private val durationOptions = listOf("3 meses", "6 meses", "9 meses", "12 meses")
 private val topChipFilters = listOf("Todas", "Remotas", "Tempo Inteiro", "Tecnologia")
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OffersAlunoScreen(
     modifier: Modifier = Modifier,
@@ -109,9 +118,7 @@ fun OffersAlunoScreen(
     val currentFilters by discoverViewModel.filters.collectAsState()
     val hasActiveFilters = currentFilters != DiscoverFilters()
 
-    var showFilterSheet by remember { mutableStateOf(false) }
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-
+    var showFilterModal by remember { mutableStateOf(false) }
     var selectedTopFilter by remember { mutableStateOf("Todas") }
 
     LazyColumn(
@@ -148,7 +155,7 @@ fun OffersAlunoScreen(
                 query = searchQuery,
                 onQueryChange = { discoverViewModel.updateSearchQuery(it) },
                 hasActiveFilters = hasActiveFilters,
-                onFilterClick = { showFilterSheet = true },
+                onFilterClick = { showFilterModal = true },
             )
             Spacer(modifier = Modifier.height(12.dp))
         }
@@ -162,15 +169,12 @@ fun OffersAlunoScreen(
                     val newWorkModel = when (filter) {
                         "Remotas" -> "Remoto"
                         "Tempo Inteiro" -> "Tempo Inteiro"
-                        "Tecnologia" -> null
-                        else -> null
+                        else -> ""
                     }
-                    val newAreas = if (filter == "Tecnologia") listOf("Tecnologia") else currentFilters.areas
+                    val newArea = if (filter == "Tecnologia") "Tecnologia" else ""
                     discoverViewModel.applyFilters(
-                        currentFilters.copy(
-                            workModel = newWorkModel,
-                            areas = if (filter == "Todas") emptyList() else newAreas,
-                        )
+                        if (filter == "Todas") DiscoverFilters()
+                        else currentFilters.copy(workModel = newWorkModel, area = newArea)
                     )
                 },
             )
@@ -185,243 +189,252 @@ fun OffersAlunoScreen(
         }
     }
 
-    if (showFilterSheet) {
-        FilterBottomSheet(
-            sheetState = sheetState,
+    if (showFilterModal) {
+        FilterModal(
             currentFilters = currentFilters,
-            availableAreas = discoverViewModel.availableAreas,
-            onDismiss = { showFilterSheet = false },
             onApply = { filters ->
                 discoverViewModel.applyFilters(filters)
-                showFilterSheet = false
+                showFilterModal = false
             },
-            onClear = {
-                discoverViewModel.clearFilters()
-                selectedTopFilter = "Todas"
-                showFilterSheet = false
-            },
+            onDismiss = { showFilterModal = false },
         )
     }
 }
 
-// region Filter Bottom Sheet
+// region Filter Modal
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun FilterBottomSheet(
-    sheetState: androidx.compose.material3.SheetState,
-    currentFilters: DiscoverFilters,
-    availableAreas: List<String>,
-    onDismiss: () -> Unit,
-    onApply: (DiscoverFilters) -> Unit,
-    onClear: () -> Unit,
+private fun FilterDropdown(
+    value: String,
+    placeholder: String,
+    options: List<String>,
+    onOptionSelected: (String) -> Unit,
 ) {
-    var selectedAreas by remember { mutableStateOf(currentFilters.areas) }
-    var locationText by remember { mutableStateOf(currentFilters.location) }
-    var selectedWorkModel by remember { mutableStateOf(currentFilters.workModel) }
-    var selectedDuration by remember { mutableStateOf(currentFilters.duration) }
+    var expanded by remember { mutableStateOf(false) }
 
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = sheetState,
-        containerColor = Color.White,
-        shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = it },
     ) {
-        Column(
+        OutlinedTextField(
+            value = value,
+            onValueChange = {},
+            readOnly = true,
+            placeholder = { Text(placeholder, color = DarkGrey, fontSize = 14.sp) },
+            trailingIcon = {
+                Icon(Icons.Default.KeyboardArrowDown, contentDescription = null, tint = DarkGrey)
+            },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp)
-                .padding(bottom = 32.dp),
+                .menuAnchor(MenuAnchorType.PrimaryNotEditable),
+            shape = RoundedCornerShape(10.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = LightBlue,
+                unfocusedBorderColor = BorderGrey,
+                focusedContainerColor = Color.White,
+                unfocusedContainerColor = Color.White,
+                focusedTextColor = DarkBlue,
+                unfocusedTextColor = DarkBlue,
+            ),
+            singleLine = true,
+        )
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    "Filtros",
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = DarkBlue,
-                    ),
-                )
-                TextButton(onClick = onClear) {
-                    Text("Limpar", color = Red)
-                }
-            }
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            // Area filter (multi-select)
-            Text(
-                "Área",
-                style = MaterialTheme.typography.titleSmall.copy(
-                    fontWeight = FontWeight.SemiBold,
-                    color = DarkBlue,
-                ),
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                availableAreas.forEach { area ->
-                    val isSelected = area in selectedAreas
-                    FilterChip(
-                        selected = isSelected,
-                        onClick = {
-                            selectedAreas = if (isSelected) selectedAreas - area
-                            else selectedAreas + area
-                        },
-                        label = { Text(area) },
-                        shape = RoundedCornerShape(20.dp),
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = DarkBlue,
-                            selectedLabelColor = Color.White,
-                            containerColor = BackgroundLight,
-                            labelColor = DarkGrey,
-                        ),
-                        border = FilterChipDefaults.filterChipBorder(
-                            enabled = true,
-                            selected = isSelected,
-                            borderColor = BorderGrey,
-                            selectedBorderColor = Color.Transparent,
-                        ),
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            // Location filter (text field)
-            Text(
-                "Localização",
-                style = MaterialTheme.typography.titleSmall.copy(
-                    fontWeight = FontWeight.SemiBold,
-                    color = DarkBlue,
-                ),
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            OutlinedTextField(
-                value = locationText,
-                onValueChange = { locationText = it },
-                modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("Ex: Porto, Remoto...", color = DarkGrey) },
-                shape = RoundedCornerShape(12.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    unfocusedBorderColor = BorderGrey,
-                    focusedBorderColor = DarkBlue,
-                    unfocusedContainerColor = BackgroundLight,
-                    focusedContainerColor = BackgroundLight,
-                ),
-                singleLine = true,
-            )
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            // Work model filter (single-select)
-            Text(
-                "Modelo de Trabalho",
-                style = MaterialTheme.typography.titleSmall.copy(
-                    fontWeight = FontWeight.SemiBold,
-                    color = DarkBlue,
-                ),
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                workModelOptions.forEach { model ->
-                    val isSelected = model == selectedWorkModel
-                    FilterChip(
-                        selected = isSelected,
-                        onClick = {
-                            selectedWorkModel = if (isSelected) null else model
-                        },
-                        label = { Text(model) },
-                        shape = RoundedCornerShape(20.dp),
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = DarkBlue,
-                            selectedLabelColor = Color.White,
-                            containerColor = BackgroundLight,
-                            labelColor = DarkGrey,
-                        ),
-                        border = FilterChipDefaults.filterChipBorder(
-                            enabled = true,
-                            selected = isSelected,
-                            borderColor = BorderGrey,
-                            selectedBorderColor = Color.Transparent,
-                        ),
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            // Duration filter (single-select)
-            Text(
-                "Duração",
-                style = MaterialTheme.typography.titleSmall.copy(
-                    fontWeight = FontWeight.SemiBold,
-                    color = DarkBlue,
-                ),
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                durationOptions.forEach { duration ->
-                    val isSelected = duration == selectedDuration
-                    FilterChip(
-                        selected = isSelected,
-                        onClick = {
-                            selectedDuration = if (isSelected) null else duration
-                        },
-                        label = { Text(duration) },
-                        shape = RoundedCornerShape(20.dp),
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = DarkBlue,
-                            selectedLabelColor = Color.White,
-                            containerColor = BackgroundLight,
-                            labelColor = DarkGrey,
-                        ),
-                        border = FilterChipDefaults.filterChipBorder(
-                            enabled = true,
-                            selected = isSelected,
-                            borderColor = BorderGrey,
-                            selectedBorderColor = Color.Transparent,
-                        ),
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(28.dp))
-
-            Button(
-                onClick = {
-                    onApply(
-                        DiscoverFilters(
-                            areas = selectedAreas,
-                            location = locationText,
-                            workModel = selectedWorkModel,
-                            duration = selectedDuration,
-                        )
-                    )
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = DarkBlue),
-            ) {
-                Text(
-                    "Aplicar Filtros",
-                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold),
+            options.forEach { option ->
+                DropdownMenuItem(
+                    text = { Text(option, color = DarkBlue) },
+                    onClick = {
+                        onOptionSelected(option)
+                        expanded = false
+                    },
                 )
             }
         }
+    }
+}
+
+@Composable
+fun FilterModal(
+    currentFilters: DiscoverFilters,
+    onApply: (DiscoverFilters) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var area by remember { mutableStateOf(currentFilters.area) }
+    var location by remember { mutableStateOf(currentFilters.location) }
+    var workModel by remember { mutableStateOf(currentFilters.workModel) }
+    var duration by remember { mutableStateOf(currentFilters.duration) }
+    var deadline by remember { mutableStateOf(currentFilters.deadline) }
+
+    val workModelOptions = listOf("Tempo Inteiro", "Tempo Parcial", "Remoto", "Híbrido")
+    val durationOptions = listOf("3 Meses", "6 Meses", "9 Meses", "12 Meses", "+12 Meses")
+    val deadlineOptions = listOf("1 Semana", "2 Semanas", "1 Mês", "3 Meses", "Sem limite")
+
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false),
+    ) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth(0.9f)
+                .wrapContentHeight(),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White),
+            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(20.dp)
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                // Header
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = "Filtros",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = DarkBlue,
+                    )
+                    IconButton(onClick = onDismiss) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = "Fechar",
+                            tint = DarkBlue,
+                        )
+                    }
+                }
+
+                // Campo 1 — Área de atuação
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    SectionLabel("Área de atuação")
+                    OutlinedTextField(
+                        value = area,
+                        onValueChange = { area = it },
+                        placeholder = { Text("Escreva aqui.", color = DarkGrey, fontSize = 14.sp) },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(10.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = LightBlue,
+                            unfocusedBorderColor = BorderGrey,
+                            focusedContainerColor = Color.White,
+                            unfocusedContainerColor = Color.White,
+                        ),
+                        singleLine = true,
+                    )
+                }
+
+                // Campo 2 — Localização
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    SectionLabel("Localização")
+                    OutlinedTextField(
+                        value = location,
+                        onValueChange = { location = it },
+                        placeholder = { Text("Escreva aqui.", color = DarkGrey, fontSize = 14.sp) },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(10.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = LightBlue,
+                            unfocusedBorderColor = BorderGrey,
+                            focusedContainerColor = Color.White,
+                            unfocusedContainerColor = Color.White,
+                        ),
+                        singleLine = true,
+                    )
+                }
+
+                // Campo 3 — Modelo de trabalho
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    SectionLabel("Modelo de trabalho")
+                    FilterDropdown(
+                        value = workModel,
+                        placeholder = "Seleciona um modelo.",
+                        options = workModelOptions,
+                        onOptionSelected = { workModel = it },
+                    )
+                }
+
+                // Campo 4 — Duração
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    SectionLabel("Duração")
+                    FilterDropdown(
+                        value = duration,
+                        placeholder = "Seleciona uma duração.",
+                        options = durationOptions,
+                        onOptionSelected = { duration = it },
+                    )
+                }
+
+                // Campo 5 — Data Limite
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    SectionLabel("Data Limite")
+                    FilterDropdown(
+                        value = deadline,
+                        placeholder = "Seleciona uma duração.",
+                        options = deadlineOptions,
+                        onOptionSelected = { deadline = it },
+                    )
+                }
+
+                // Botões
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    OutlinedButton(
+                        onClick = onDismiss,
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(48.dp),
+                        shape = RoundedCornerShape(10.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = DarkBlue),
+                        border = BorderStroke(1.dp, DarkBlue),
+                    ) {
+                        Text("Cancelar", fontWeight = FontWeight.SemiBold)
+                    }
+
+                    Button(
+                        onClick = {
+                            onApply(
+                                DiscoverFilters(
+                                    area = area,
+                                    location = location,
+                                    workModel = workModel,
+                                    duration = duration,
+                                    deadline = deadline,
+                                )
+                            )
+                        },
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(48.dp),
+                        shape = RoundedCornerShape(10.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = DarkBlue),
+                    ) {
+                        Text("Filtrar", color = Color.White, fontWeight = FontWeight.SemiBold)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun FilterModalPreview() {
+    MaterialTheme {
+        FilterModal(
+            currentFilters = DiscoverFilters(),
+            onApply = {},
+            onDismiss = {},
+        )
     }
 }
 

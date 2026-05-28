@@ -179,7 +179,15 @@ fun AppNavigation(
                 }
             )
         }
-        composable(Routes.ADMIN_MAIN) { AdminMainScreen() }
+        composable(Routes.ADMIN_MAIN) {
+            AdminMainScreen(
+                onLogout = {
+                    navController.navigate(Routes.LOGIN) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                },
+            )
+        }
         composable(Routes.ALUNO_MAIN) {
             AlunoMainScreen(
                 onLogout = {

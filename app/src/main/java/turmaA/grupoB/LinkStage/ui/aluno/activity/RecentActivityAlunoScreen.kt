@@ -1,9 +1,14 @@
 package turmaA.grupoB.LinkStage.ui.aluno.activity
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,15 +22,20 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Upload
 import androidx.compose.material.icons.outlined.CalendarMonth
+import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.FilterList
 import androidx.compose.material.icons.outlined.RadioButtonUnchecked
 import androidx.compose.material.icons.outlined.Search
@@ -37,8 +47,10 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
@@ -60,8 +72,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
 import turmaA.grupoB.LinkStage.ui.common.LinkStageLogo
+import turmaA.grupoB.LinkStage.ui.common.SectionLabel
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
@@ -91,6 +106,11 @@ data class ActivityLog(
     val description: String,
     val date: LocalDate,
     val status: ActivityLogStatus,
+    val company: String = "",
+    val companyLogoInitial: String = "",
+    val companyLogoColor: Color = Color(0xFF0E1572),
+    val requirements: List<String> = emptyList(),
+    val hasSubmitted: Boolean = false,
 )
 
 data class ActiveInternship(
@@ -131,24 +151,35 @@ fun RecentActivityAlunoScreen(
     modifier: Modifier = Modifier,
     homeViewModel: HomeViewModel = viewModel(),
     onSubmitReport: () -> Unit = {},
-    onAddActivityLog: () -> Unit = {},
+    onActivityClick: (String) -> Unit = {},
 ) {
     val hasActiveInternship by homeViewModel.hasActiveInternship.collectAsState()
     val activeInternship by homeViewModel.activeInternship.collectAsState()
     val activeApplications by homeViewModel.activeApplications.collectAsState()
     val pastApplications by homeViewModel.pastApplications.collectAsState()
 
+    var showAddActivityModal by remember { mutableStateOf(false) }
+
+    if (showAddActivityModal) {
+        AddActivityModal(
+            onSave = { _, _, _ ->
+                showAddActivityModal = false
+            },
+            onDismiss = { showAddActivityModal = false },
+        )
+    }
+
     if (hasActiveInternship && activeInternship != null) {
         Scaffold(
             modifier = modifier,
             floatingActionButton = {
                 FloatingActionButton(
-                    onClick = onAddActivityLog,
+                    onClick = { showAddActivityModal = true },
                     containerColor = DarkBlue,
                     contentColor = Color.White,
                     shape = CircleShape,
                 ) {
-                    Icon(Icons.Default.Add, contentDescription = "Adicionar registo")
+                    Icon(Icons.Default.Add, contentDescription = "Adicionar atividade")
                 }
             },
             containerColor = BackgroundLight,
@@ -156,6 +187,7 @@ fun RecentActivityAlunoScreen(
             ActiveInternshipContent(
                 internship = activeInternship!!,
                 onSubmitReport = onSubmitReport,
+                onActivityClick = onActivityClick,
                 modifier = Modifier.padding(innerPadding),
             )
         }
@@ -334,6 +366,7 @@ fun StatusBadge(status: ApplicationStatus) {
 private fun ActiveInternshipContent(
     internship: ActiveInternship,
     onSubmitReport: () -> Unit,
+    onActivityClick: (String) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val progress = calculateInternshipProgress(internship.startDate, internship.endDate)
@@ -375,7 +408,10 @@ private fun ActiveInternshipContent(
         }
 
         items(internship.activityLogs, key = { it.id }) { activityLog ->
-            ActivityLogCard(activityLog = activityLog)
+            ActivityLogCard(
+                activityLog = activityLog,
+                onClick = { onActivityClick(activityLog.id) },
+            )
             Spacer(modifier = Modifier.height(8.dp))
         }
 
@@ -453,13 +489,17 @@ fun InternshipHeader(
 }
 
 @Composable
-fun ActivityLogCard(activityLog: ActivityLog) {
+fun ActivityLogCard(
+    activityLog: ActivityLog,
+    onClick: () -> Unit = {},
+) {
     val isCompleted = activityLog.status == ActivityLogStatus.COMPLETED
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp),
+            .padding(horizontal = 16.dp)
+            .clickable { onClick() },
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
@@ -576,6 +616,208 @@ private fun ReportSubmissionCard(
                 text = "Submeter",
                 style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
             )
+        }
+    }
+}
+
+// endregion
+
+// region Add Activity Modal
+
+@Composable
+fun AddActivityModal(
+    onSave: (title: String, description: String, fileUri: Uri?) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var title by remember { mutableStateOf("") }
+    var description by remember { mutableStateOf("") }
+    var fileUri by remember { mutableStateOf<Uri?>(null) }
+    var fileName by remember { mutableStateOf<String?>(null) }
+    var titleError by remember { mutableStateOf(false) }
+
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        fileUri = uri
+        fileName = uri?.lastPathSegment
+    }
+
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false),
+    ) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth(0.92f)
+                .wrapContentHeight(),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White),
+            elevation = CardDefaults.cardElevation(8.dp),
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(20.dp)
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(14.dp),
+            ) {
+                // Header
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        "Adicionar Atividade",
+                        fontSize = 17.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = DarkBlue,
+                    )
+                    IconButton(onClick = onDismiss) {
+                        Icon(Icons.Default.Close, contentDescription = "Fechar", tint = DarkBlue)
+                    }
+                }
+
+                // Título
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    SectionLabel("Título")
+                    OutlinedTextField(
+                        value = title,
+                        onValueChange = {
+                            title = it
+                            titleError = false
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        placeholder = { Text("Escreva aqui.", color = DarkGrey, fontSize = 14.sp) },
+                        shape = RoundedCornerShape(10.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = if (titleError) Red else LightBlue,
+                            unfocusedBorderColor = if (titleError) Red else BorderGrey,
+                            focusedContainerColor = Color.White,
+                            unfocusedContainerColor = Color.White,
+                        ),
+                        singleLine = true,
+                        isError = titleError,
+                    )
+                    if (titleError) {
+                        Text("Campo obrigatório", color = Red, fontSize = 12.sp)
+                    }
+                }
+
+                // Descrição
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    SectionLabel("Breve descrição.")
+                    OutlinedTextField(
+                        value = description,
+                        onValueChange = { description = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        placeholder = { Text("Escreva aqui.", color = DarkGrey, fontSize = 14.sp) },
+                        shape = RoundedCornerShape(10.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = LightBlue,
+                            unfocusedBorderColor = BorderGrey,
+                            focusedContainerColor = Color.White,
+                            unfocusedContainerColor = Color.White,
+                        ),
+                        minLines = 3,
+                        maxLines = 5,
+                    )
+                }
+
+                // Anexos
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    SectionLabel("Anexos")
+                    if (fileUri != null) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .border(1.dp, LightBlue, RoundedCornerShape(12.dp))
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(Color.White)
+                                .padding(12.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.weight(1f),
+                            ) {
+                                Icon(Icons.Outlined.Description, contentDescription = null, tint = LightBlue)
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    fileName ?: "ficheiro",
+                                    fontSize = 13.sp,
+                                    color = DarkBlue,
+                                    fontWeight = FontWeight.Medium,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                            }
+                            IconButton(onClick = { fileUri = null; fileName = null }) {
+                                Icon(Icons.Default.Close, contentDescription = "Remover", tint = DarkGrey)
+                            }
+                        }
+                    } else {
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { launcher.launch("*/*") },
+                            shape = RoundedCornerShape(12.dp),
+                            colors = CardDefaults.cardColors(containerColor = Color.White),
+                            border = BorderStroke(1.dp, BorderGrey),
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(20.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(6.dp),
+                            ) {
+                                Icon(
+                                    Icons.Outlined.Description,
+                                    contentDescription = null,
+                                    tint = DarkGrey,
+                                    modifier = Modifier.size(40.dp),
+                                )
+                                Text("Selecionar Ficheiro", fontWeight = FontWeight.Bold, color = DarkBlue, fontSize = 14.sp)
+                                Text("PDF, DOCX até 10MB", color = DarkGrey, fontSize = 12.sp)
+                            }
+                        }
+                    }
+                }
+
+                // Botões
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    OutlinedButton(
+                        onClick = onDismiss,
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(48.dp),
+                        shape = RoundedCornerShape(10.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = DarkBlue),
+                        border = BorderStroke(1.dp, DarkBlue),
+                    ) {
+                        Text("Cancelar", fontWeight = FontWeight.SemiBold)
+                    }
+
+                    Button(
+                        onClick = {
+                            if (title.isBlank()) {
+                                titleError = true
+                            } else {
+                                onSave(title, description, fileUri)
+                            }
+                        },
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(48.dp),
+                        shape = RoundedCornerShape(10.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = DarkBlue),
+                    ) {
+                        Text("Guardar", color = Color.White, fontWeight = FontWeight.SemiBold)
+                    }
+                }
+            }
         }
     }
 }

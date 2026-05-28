@@ -52,9 +52,38 @@ private val mockActiveInternship = ActiveInternship(
     startDate = LocalDate.now().minusMonths(2),
     endDate = LocalDate.now().plusMonths(4),
     activityLogs = listOf(
-        ActivityLog("1", "Relatório semanal #1", "Entrega do primeiro relatório", LocalDate.now().minusWeeks(3), ActivityLogStatus.COMPLETED),
-        ActivityLog("2", "Ponto de controlo 1", "Apresentação de progresso", LocalDate.now().minusWeeks(1), ActivityLogStatus.COMPLETED),
-        ActivityLog("3", "Relatório semanal #2", "Entrega do segundo relatório", LocalDate.now().plusWeeks(1), ActivityLogStatus.PENDING),
+        ActivityLog(
+            id = "1",
+            title = "Ponto de Controlo 1",
+            description = "Foquei-me em desenhar as primeiras mockups.",
+            date = LocalDate.of(2026, 1, 31),
+            status = ActivityLogStatus.COMPLETED,
+            company = "Viana S.T.Arts",
+            companyLogoInitial = "V",
+            companyLogoColor = androidx.compose.ui.graphics.Color(0xFF212121),
+            requirements = listOf(
+                "PPT com o trabalho realizado.",
+                "Relatório atualizado até ao ponto atual.",
+                "Documentação adicional relevante.",
+            ),
+            hasSubmitted = true,
+        ),
+        ActivityLog(
+            id = "2",
+            title = "Ponto de Controlo 2",
+            description = "Foquei-me em desenhar as primeiras mockups.",
+            date = LocalDate.of(2026, 5, 5),
+            status = ActivityLogStatus.PENDING,
+            company = "Viana S.T.Arts",
+            companyLogoInitial = "V",
+            companyLogoColor = androidx.compose.ui.graphics.Color(0xFF212121),
+            requirements = listOf(
+                "PPT com o trabalho realizado.",
+                "Relatório atualizado até ao ponto atual.",
+                "Documentação adicional relevante.",
+            ),
+            hasSubmitted = false,
+        ),
     ),
 )
 
