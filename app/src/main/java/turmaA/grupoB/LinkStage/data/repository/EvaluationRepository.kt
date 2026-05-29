@@ -30,7 +30,7 @@ class EvaluationRepository {
             .decodeList<EvaluationModel>()
     }
 
-    suspend fun getEvaluationByIntershipAndType(
+    suspend fun getEvaluationByInternshipAndType(
         internshipId: String,
         evaluatorType: EvaluationType
     ): EvaluationModel? {
