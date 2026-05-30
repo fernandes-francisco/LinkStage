@@ -1,4 +1,15 @@
 package turmaA.grupoB.LinkStage.viewmodel.internships
 
-class InternshipUiState {
+import turmaA.grupoB.LinkStage.data.remote.model.internship.ActivityLogModel
+import turmaA.grupoB.LinkStage.data.remote.model.internship.InternshipModel
+
+sealed class InternshipUiState {
+    data object Idle : InternshipUiState()
+    data object Loading : InternshipUiState()
+    data class Success(val internship: InternshipModel) : InternshipUiState()
+    data class SuccessList(val internships: List<InternshipModel>) : InternshipUiState()
+    data class SuccessActivity(val activityLogModel: ActivityLogModel) : InternshipUiState()
+    data class SuccessActivityList(val activityLogModel: List<ActivityLogModel>) : InternshipUiState()
+    data object Empty : InternshipUiState()
+    data class Error(val message: String) : InternshipUiState()
 }
