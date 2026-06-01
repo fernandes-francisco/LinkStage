@@ -42,7 +42,7 @@ class InternshipRepository {
             .decodeList<InternshipModel>()
     }
 
-    suspend fun getInternshipsByInsitution(institutionId: String): List<InternshipModel> {
+    suspend fun getInternshipsByInstitution(institutionId: String): List<InternshipModel> {
         return supabase
             .from("internships")
             .select {
