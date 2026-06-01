@@ -45,9 +45,26 @@ class HomeViewModel : ViewModel() {
             setActiveInternship(mockActiveInternship)
         }
     }
+
+    fun addActivityLog(title: String, description: String) {
+        val currentInternship = _activeInternship.value ?: return
+        val newLog = ActivityLog(
+            id = (currentInternship.activityLogs.size + 1).toString(),
+            title = title,
+            description = description,
+            date = LocalDate.now(),
+            status = ActivityLogStatus.PENDING,
+            company = currentInternship.activityLogs.firstOrNull()?.company ?: "",
+            companyLogoInitial = currentInternship.activityLogs.firstOrNull()?.companyLogoInitial ?: "",
+            companyLogoColor = currentInternship.activityLogs.firstOrNull()?.companyLogoColor ?: androidx.compose.ui.graphics.Color(0xFF0E1572)
+        )
+        val updatedLogs = currentInternship.activityLogs + newLog
+        _activeInternship.value = currentInternship.copy(activityLogs = updatedLogs)
+    }
 }
 
 private val mockActiveInternship = ActiveInternship(
+    id = "mock_int_1",
     title = "Estágio em Desenvolvimento Web",
     startDate = LocalDate.now().minusMonths(2),
     endDate = LocalDate.now().plusMonths(4),

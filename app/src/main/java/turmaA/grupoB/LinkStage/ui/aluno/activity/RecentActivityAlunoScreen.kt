@@ -105,6 +105,11 @@ data class ApplicationItem(
     val status: ApplicationStatus,
 )
 
+data class CheckpointFile(
+    val id: String,
+    val name: String,
+)
+
 enum class ActivityLogStatus { COMPLETED, PENDING }
 
 data class ActivityLog(
@@ -118,9 +123,12 @@ data class ActivityLog(
     val companyLogoColor: Color = Color(0xFF0E1572),
     val requirements: List<String> = emptyList(),
     val hasSubmitted: Boolean = false,
+    val submittedAt: LocalDate? = null,
+    val submittedFiles: List<CheckpointFile> = emptyList(),
 )
 
 data class ActiveInternship(
+    val id: String,
     val title: String,
     val startDate: LocalDate,
     val endDate: LocalDate,
@@ -157,8 +165,10 @@ private fun formatDate(date: LocalDate): String {
 fun RecentActivityAlunoScreen(
     modifier: Modifier = Modifier,
     homeViewModel: HomeViewModel = viewModel(),
+    onBack: (() -> Unit)? = null,
     onSubmitReport: () -> Unit = {},
     onActivityClick: (String) -> Unit = {},
+    onViewResult: (String) -> Unit = {},
 ) {
     val hasActiveInternship by homeViewModel.hasActiveInternship.collectAsState()
     val activeInternship by homeViewModel.activeInternship.collectAsState()
@@ -183,7 +193,8 @@ fun RecentActivityAlunoScreen(
 
     if (showAddActivityModal) {
         AddActivityModal(
-            onSave = { _, _, _ ->
+            onSave = { title, desc, _ ->
+                homeViewModel.addActivityLog(title, desc)
                 showAddActivityModal = false
             },
             onDismiss = { showAddActivityModal = false },
@@ -196,9 +207,9 @@ fun RecentActivityAlunoScreen(
             floatingActionButton = {
                 FloatingActionButton(
                     onClick = { showAddActivityModal = true },
-                    containerColor = DarkBlue,
+                    containerColor = LightBlue,
                     contentColor = Color.White,
-                    shape = CircleShape,
+                    shape = RoundedCornerShape(16.dp),
                 ) {
                     Icon(Icons.Default.Add, contentDescription = "Adicionar atividade")
                 }
@@ -207,6 +218,7 @@ fun RecentActivityAlunoScreen(
         ) { innerPadding ->
             Column(modifier = Modifier.fillMaxSize()) {
                 CommonTopBar()
+                
                 ActiveInternshipContent(
                     internship = activeInternship!!,
                     onSubmitReport = onSubmitReport,
@@ -241,6 +253,7 @@ fun RecentActivityAlunoScreen(
             pastApplications = filteredPast,
             searchQuery = searchQuery,
             onSearchQueryChange = { searchQuery = it },
+            onBack = onBack,
             modifier = modifier,
             onFilterClick = { showFilterModal = true }
         )
@@ -257,6 +270,7 @@ private fun ApplicationsContent(
     pastApplications: List<ApplicationItem>,
     searchQuery: String,
     onSearchQueryChange: (String) -> Unit,
+    onBack: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
     onFilterClick: () -> Unit = {},
 ) {
@@ -270,12 +284,12 @@ private fun ApplicationsContent(
 
         item {
             Text(
-                text = "Atividade Recente",
+                text = "Atividades Recentes",
                 style = MaterialTheme.typography.headlineSmall.copy(
                     fontWeight = FontWeight.Bold,
                     color = DarkBlue,
                 ),
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
             )
         }
 
@@ -452,44 +466,46 @@ private fun ActiveInternshipContent(
 
     val daysRemaining = ChronoUnit.DAYS.between(LocalDate.now(), internship.endDate)
 
-    LazyColumn(
+    Column(
         modifier = modifier
             .fillMaxSize()
-            .background(BackgroundLight),
-        contentPadding = PaddingValues(bottom = 80.dp),
+            .background(BackgroundLight)
     ) {
-        item {
-            InternshipHeader(
-                internship = internship,
-                animatedProgress = animatedProgress,
-            )
-        }
+        InternshipHeader(
+            internship = internship,
+            animatedProgress = animatedProgress,
+        )
 
-        item {
-            Text(
-                text = "Atividade Recente",
-                style = MaterialTheme.typography.titleLarge.copy(
-                    fontWeight = FontWeight.Bold,
-                    color = DarkBlue,
-                ),
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-            )
-        }
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(bottom = 80.dp),
+        ) {
+            item {
+                Text(
+                    text = "Atividade Recente",
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = DarkBlue,
+                    ),
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                )
+            }
 
-        items(internship.activityLogs, key = { it.id }) { activityLog ->
-            ActivityLogCard(
-                activityLog = activityLog,
-                onClick = { onActivityClick(activityLog.id) },
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-        }
+            items(internship.activityLogs, key = { it.id }) { activityLog ->
+                ActivityLogCard(
+                    activityLog = activityLog,
+                    onClick = { onActivityClick(activityLog.id) },
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+            }
 
-        item {
-            Spacer(modifier = Modifier.height(8.dp))
-            ReportSubmissionCard(
-                daysRemaining = daysRemaining,
-                onSubmit = onSubmitReport,
-            )
+            item {
+                Spacer(modifier = Modifier.height(8.dp))
+                ReportSubmissionCard(
+                    daysRemaining = daysRemaining,
+                    onSubmit = onSubmitReport,
+                )
+            }
         }
     }
 }
@@ -502,15 +518,8 @@ fun InternshipHeader(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .padding(horizontal = 20.dp, vertical = 8.dp),
     ) {
-        Text(
-            text = "Estágio Ativo",
-            style = MaterialTheme.typography.labelMedium.copy(
-                fontWeight = FontWeight.SemiBold,
-                color = LightBlue,
-            ),
-        )
         Text(
             text = internship.title,
             style = MaterialTheme.typography.headlineSmall.copy(
@@ -709,41 +718,25 @@ fun AddActivityModal(
         fileName = uri?.lastPathSegment
     }
 
-    Dialog(
-        onDismissRequest = onDismiss,
-        properties = DialogProperties(usePlatformDefaultWidth = false),
-    ) {
-        Card(
-            modifier = Modifier
-                .fillMaxWidth(0.92f)
-                .wrapContentHeight(),
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
-            elevation = CardDefaults.cardElevation(8.dp),
-        ) {
+    LinkStageDialog(
+        title = "Adicionar Atividade",
+        onConfirm = {
+            if (title.isBlank()) {
+                titleError = true
+            } else {
+                onSave(title, description, fileUri)
+            }
+        },
+        onDismiss = onDismiss,
+        confirmText = "Guardar",
+        dismissText = "Cancelar",
+        content = {
             Column(
                 modifier = Modifier
-                    .padding(20.dp)
+                    .fillMaxWidth()
                     .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(14.dp),
             ) {
-                // Header
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        "Adicionar Atividade",
-                        fontSize = 17.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = DarkBlue,
-                    )
-                    IconButton(onClick = onDismiss) {
-                        Icon(Icons.Default.Close, contentDescription = "Fechar", tint = DarkBlue)
-                    }
-                }
-
                 // Título
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     SectionLabel("Título")
@@ -851,45 +844,11 @@ fun AddActivityModal(
                         }
                     }
                 }
-
-                // Botões
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    OutlinedButton(
-                        onClick = onDismiss,
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(48.dp),
-                        shape = RoundedCornerShape(10.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = DarkBlue),
-                        border = BorderStroke(1.dp, DarkBlue),
-                    ) {
-                        Text("Cancelar", fontWeight = FontWeight.SemiBold)
-                    }
-
-                    Button(
-                        onClick = {
-                            if (title.isBlank()) {
-                                titleError = true
-                            } else {
-                                onSave(title, description, fileUri)
-                            }
-                        },
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(48.dp),
-                        shape = RoundedCornerShape(10.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = DarkBlue),
-                    ) {
-                        Text("Guardar", color = Color.White, fontWeight = FontWeight.SemiBold)
-                    }
-                }
             }
         }
-    }
+    )
 }
+
 
 // endregion
 
@@ -904,91 +863,35 @@ private fun ActivityFilterModal(
     var selectedOption by remember { mutableStateOf(currentFilter) }
     val options = listOf("Todas", "Pendente", "Aceite", "Recusado")
 
-    Dialog(
-        onDismissRequest = onDismiss,
-        properties = DialogProperties(usePlatformDefaultWidth = false),
-    ) {
-        Card(
-            modifier = Modifier
-                .fillMaxWidth(0.9f)
-                .wrapContentHeight(),
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
-            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-        ) {
-            Column(
-                modifier = Modifier
-                    .padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-            ) {
-                // Header
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        text = "Filtrar Candidaturas",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = DarkBlue,
-                    )
-                    IconButton(onClick = onDismiss) {
-                        Icon(
-                            imageVector = Icons.Default.Close,
-                            contentDescription = "Fechar",
-                            tint = DarkBlue,
+    LinkStageDialog(
+        title = "Filtrar Candidaturas",
+        onConfirm = { onApply(selectedOption) },
+        onDismiss = onDismiss,
+        confirmText = "Filtrar",
+        dismissText = "Cancelar",
+        content = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                options.forEach { option ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(8.dp))
+                            .clickable { selectedOption = option }
+                            .padding(vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        RadioButton(
+                            selected = (option == selectedOption),
+                            onClick = { selectedOption = option },
+                            colors = RadioButtonDefaults.colors(selectedColor = DarkBlue)
                         )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(text = option, color = DarkGrey)
                     }
-                }
-
-                // Opções de Filtro
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    SectionLabel("Estado")
-                    options.forEach { option ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(8.dp))
-                                .clickable { selectedOption = option }
-                                .padding(vertical = 4.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            RadioButton(
-                                selected = (option == selectedOption),
-                                onClick = { selectedOption = option },
-                                colors = RadioButtonDefaults.colors(selectedColor = DarkBlue)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(text = option, color = DarkGrey)
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // Botões
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    LinkStageOutlinedButton(
-                        text = "Cancelar",
-                        onClick = onDismiss,
-                        modifier = Modifier.weight(1f),
-                        height = 48.dp
-                    )
-
-                    LinkStageButton(
-                        text = "Filtrar",
-                        onClick = { onApply(selectedOption) },
-                        modifier = Modifier.weight(1f),
-                        height = 48.dp
-                    )
                 }
             }
         }
-    }
+    )
 }
 
 @Composable

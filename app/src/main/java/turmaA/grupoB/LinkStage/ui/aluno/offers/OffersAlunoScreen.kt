@@ -72,6 +72,7 @@ import turmaA.grupoB.LinkStage.ui.common.LinkStageButton
 import turmaA.grupoB.LinkStage.ui.common.LinkStageDialog
 import turmaA.grupoB.LinkStage.ui.common.LinkStageLogo
 import turmaA.grupoB.LinkStage.ui.common.LinkStageOutlinedButton
+import turmaA.grupoB.LinkStage.ui.common.SecondaryTopBar
 import turmaA.grupoB.LinkStage.ui.common.SectionLabel
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
@@ -140,7 +141,7 @@ fun OffersAlunoScreen(
                     fontWeight = FontWeight.Bold,
                     color = DarkBlue,
                 ),
-                modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp),
+                modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
             )
         }
 
@@ -268,45 +269,29 @@ fun FilterModal(
     val durationOptions = listOf("3 Meses", "6 Meses", "9 Meses", "12 Meses", "+12 Meses")
     val deadlineOptions = listOf("1 Semana", "2 Semanas", "1 Mês", "3 Meses", "Sem limite")
 
-    Dialog(
-        onDismissRequest = onDismiss,
-        properties = DialogProperties(usePlatformDefaultWidth = false),
-    ) {
-        Card(
-            modifier = Modifier
-                .fillMaxWidth(0.9f)
-                .wrapContentHeight(),
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
-            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-        ) {
+    LinkStageDialog(
+        title = "Filtros",
+        onConfirm = {
+            onApply(
+                DiscoverFilters(
+                    area = area,
+                    location = location,
+                    workModel = workModel,
+                    duration = duration,
+                    deadline = deadline,
+                )
+            )
+        },
+        onDismiss = onDismiss,
+        confirmText = "Filtrar",
+        dismissText = "Cancelar",
+        content = {
             Column(
                 modifier = Modifier
-                    .padding(20.dp)
+                    .fillMaxWidth()
                     .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                // Header
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        text = "Filtros",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = DarkBlue,
-                    )
-                    IconButton(onClick = onDismiss) {
-                        Icon(
-                            imageVector = Icons.Default.Close,
-                            contentDescription = "Fechar",
-                            tint = DarkBlue,
-                        )
-                    }
-                }
-
                 // Campo 1 — Área de atuação
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     SectionLabel("Área de atuação")
@@ -377,39 +362,9 @@ fun FilterModal(
                         onOptionSelected = { deadline = it },
                     )
                 }
-
-                // Botões
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    LinkStageOutlinedButton(
-                        text = "Cancelar",
-                        onClick = onDismiss,
-                        modifier = Modifier.weight(1f),
-                        height = 48.dp
-                    )
-
-                    LinkStageButton(
-                        text = "Filtrar",
-                        onClick = {
-                            onApply(
-                                DiscoverFilters(
-                                    area = area,
-                                    location = location,
-                                    workModel = workModel,
-                                    duration = duration,
-                                    deadline = deadline,
-                                )
-                            )
-                        },
-                        modifier = Modifier.weight(1f),
-                        height = 48.dp
-                    )
-                }
             }
         }
-    }
+    )
 }
 
 @Preview(showBackground = true)

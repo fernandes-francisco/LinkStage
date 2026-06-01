@@ -33,9 +33,12 @@ import turmaA.grupoB.LinkStage.ui.aluno.activity.RecentActivityAlunoScreen
 import turmaA.grupoB.LinkStage.ui.aluno.chat.ChatAlunoScreen
 import turmaA.grupoB.LinkStage.ui.aluno.chat.ChatScreen
 import turmaA.grupoB.LinkStage.ui.aluno.chat.sampleConversations
+import turmaA.grupoB.LinkStage.ui.aluno.chat.sampleContacts
+import turmaA.grupoB.LinkStage.ui.aluno.chat.Conversation
 import turmaA.grupoB.LinkStage.ui.aluno.home.HomeAlunoScreen
 import turmaA.grupoB.LinkStage.ui.aluno.notifications.NotificationsAlunoScreen
 import turmaA.grupoB.LinkStage.ui.aluno.activity.ActivityDetailAlunoScreen
+import turmaA.grupoB.LinkStage.ui.aluno.activity.ReportSuccessScreen
 import turmaA.grupoB.LinkStage.ui.aluno.apply.ApplyScreen
 import turmaA.grupoB.LinkStage.ui.aluno.apply.ApplySuccessScreen
 import turmaA.grupoB.LinkStage.ui.aluno.apply.EditCvScreen
@@ -63,6 +66,7 @@ object AlunoRoutes {
     const val ACTIVITY_DETAIL = "activity_detail/{checkpointId}"
     const val UPDATE_PASSWORD = "update_password"
     const val INTERNSHIP_RESULT = "internship_result/{internshipId}"
+    const val REPORT_SUCCESS = "report_success"
 
     fun chatRoute(conversationId: String) = "chat/$conversationId"
     fun internshipResultRoute(internshipId: String) = "internship_result/$internshipId"
@@ -109,12 +113,14 @@ fun AlunoMainScreen(onLogout: () -> Unit = {}) {
                         NavigationBarItem(
                             selected = selected,
                             onClick = {
-                                navController.navigate(tab.route) {
-                                    popUpTo(navController.graph.findStartDestination().id) {
-                                        saveState = true
+                                if (!selected) {
+                                    navController.navigate(tab.route) {
+                                        popUpTo(navController.graph.findStartDestination().id) {
+                                            saveState = false
+                                        }
+                                        launchSingleTop = true
+                                        restoreState = false
                                     }
-                                    launchSingleTop = true
-                                    restoreState = true
                                 }
                             },
                             icon = { Icon(tab.icon, contentDescription = tab.title) },
@@ -144,7 +150,7 @@ fun AlunoMainScreen(onLogout: () -> Unit = {}) {
                 OffersAlunoScreen(
                     onOfferClick = { offerId ->
                         navController.navigate(AlunoRoutes.offerDetailRoute(offerId))
-                    },
+                    }
                 )
             }
             composable(
@@ -203,12 +209,25 @@ fun AlunoMainScreen(onLogout: () -> Unit = {}) {
             composable(AlunoRoutes.ACTIVITY) {
                 RecentActivityAlunoScreen(
                     homeViewModel = homeViewModel,
+                    onBack = { navController.popBackStack() },
                     onActivityClick = { checkpointId ->
                         navController.navigate(AlunoRoutes.activityDetailRoute(checkpointId))
                     },
                     onViewResult = { internshipId ->
                         navController.navigate(AlunoRoutes.internshipResultRoute(internshipId))
                     },
+                    onSubmitReport = {
+                        navController.navigate(AlunoRoutes.REPORT_SUCCESS)
+                    }
+                )
+            }
+            composable(AlunoRoutes.REPORT_SUCCESS) {
+                ReportSuccessScreen(
+                    onNavigateBack = {
+                        navController.navigate(AlunoRoutes.HOME) {
+                            popUpTo(AlunoRoutes.HOME) { inclusive = true }
+                        }
+                    }
                 )
             }
             composable(
@@ -262,7 +281,22 @@ fun AlunoMainScreen(onLogout: () -> Unit = {}) {
                 arguments = listOf(navArgument("conversationId") { type = NavType.StringType }),
             ) { backStackEntry ->
                 val conversationId = backStackEntry.arguments?.getString("conversationId") ?: return@composable
-                val conversation = sampleConversations.find { it.id == conversationId } ?: return@composable
+                
+                // Primeiro procura nas conversas existentes
+                val existingConversation = sampleConversations.find { it.id == conversationId }
+                
+                // Se não existir, procura nos contactos para criar uma nova conversa
+                val conversation = existingConversation ?: sampleContacts.find { it.id == conversationId }?.let { contact ->
+                    Conversation(
+                        id = contact.id,
+                        name = contact.name,
+                        initials = contact.initials,
+                        lastMessage = "Inicia uma nova conversa.",
+                        time = "Agora",
+                        avatarColorIndex = contact.avatarColorIndex
+                    )
+                } ?: return@composable
+
                 ChatScreen(
                     conversation = conversation,
                     onBack = { navController.popBackStack() },

@@ -168,13 +168,17 @@ fun OfferDetailAlunoScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .verticalScroll(rememberScrollState()),
         ) {
             OfferDetailHeader(offer = offer)
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState()),
+            ) {
+                Spacer(modifier = Modifier.height(12.dp))
 
-            OfferMetaChips(offer = offer)
+                OfferMetaChips(offer = offer)
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -220,6 +224,7 @@ fun OfferDetailAlunoScreen(
             }
 
             Spacer(modifier = Modifier.height(8.dp))
+            }
         }
     }
 }
@@ -230,42 +235,51 @@ fun OfferDetailAlunoScreen(
 
 @Composable
 private fun OfferDetailHeader(offer: OfferDetail) {
-    Row(
+    Column(
         modifier = Modifier
             .fillMaxWidth()
             .background(Color.White)
-            .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically,
+            .padding(bottom = 12.dp),
     ) {
-        Box(
+        Row(
             modifier = Modifier
-                .size(56.dp)
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
                 .clip(RoundedCornerShape(12.dp))
-                .background(offer.logoColor),
-            contentAlignment = Alignment.Center,
+                .background(BackgroundLight)
+                .padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(
-                text = offer.logoInitial,
-                color = Color.White,
-                fontWeight = FontWeight.Bold,
-                fontSize = 22.sp,
-            )
-        }
+            Box(
+                modifier = Modifier
+                    .size(44.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(offer.logoColor),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = offer.logoInitial,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                )
+            }
 
-        Spacer(modifier = Modifier.width(14.dp))
+            Spacer(modifier = Modifier.width(12.dp))
 
-        Column {
-            Text(
-                text = offer.title,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = DarkBlue,
-            )
-            Text(
-                text = offer.company,
-                fontSize = 14.sp,
-                color = DarkGrey,
-            )
+            Column {
+                Text(
+                    text = offer.title,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = DarkBlue,
+                )
+                Text(
+                    text = offer.company,
+                    fontSize = 13.sp,
+                    color = LightBlue,
+                )
+            }
         }
     }
 }

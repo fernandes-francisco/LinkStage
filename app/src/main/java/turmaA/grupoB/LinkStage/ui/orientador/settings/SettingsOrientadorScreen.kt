@@ -45,6 +45,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
 import turmaA.grupoB.LinkStage.ui.common.LinkStageLogo
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
@@ -77,20 +78,13 @@ fun SettingsOrientadorScreen(
             .background(BackgroundLight)
             .verticalScroll(rememberScrollState()),
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 12.dp),
-            contentAlignment = Alignment.Center,
-        ) {
-            LinkStageLogo()
-        }
+        CommonTopBar()
 
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 24.dp, vertical = 8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
+                .padding(horizontal = 20.dp, vertical = 8.dp),
+            horizontalAlignment = Alignment.Start,
         ) {
             Text(
                 text = "Definições",
@@ -98,12 +92,6 @@ fun SettingsOrientadorScreen(
                     fontWeight = FontWeight.Bold,
                     color = DarkBlue,
                 ),
-            )
-            Text(
-                text = "Gerir as suas definições de orientador",
-                style = MaterialTheme.typography.bodySmall,
-                color = DarkGrey,
-                textAlign = TextAlign.Center,
             )
         }
 
@@ -149,8 +137,6 @@ fun SettingsOrientadorScreen(
         }
 
         Spacer(modifier = Modifier.height(16.dp))
-
-        SettingsSectionHeader(title = "Configurações")
 
         SettingsCard(modifier = Modifier.padding(horizontal = 20.dp)) {
             SettingsRowItem(

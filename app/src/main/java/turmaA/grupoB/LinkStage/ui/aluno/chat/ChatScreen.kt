@@ -26,6 +26,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.border
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
@@ -345,7 +346,9 @@ private fun ChatTopBar(
                 DropdownMenu(
                     expanded = showMenu,
                     onDismissRequest = { showMenu = false },
-                    modifier = Modifier.background(Color.White)
+                    modifier = Modifier
+                        .background(BackgroundLight)
+                        .border(1.dp, BorderGrey, RoundedCornerShape(8.dp))
                 ) {
                     DropdownMenuItem(
                         text = { Text("Pesquisar na conversa") },

@@ -127,25 +127,29 @@ fun SettingsAlunoScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundLight)
-            .verticalScroll(rememberScrollState()),
+            .background(BackgroundLight),
     ) {
         CommonTopBar()
 
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 8.dp),
-            horizontalAlignment = Alignment.Start,
+                .weight(1f)
+                .verticalScroll(rememberScrollState()),
         ) {
-            Text(
-                text = "Configurações",
-                style = MaterialTheme.typography.headlineSmall.copy(
-                    fontWeight = FontWeight.Bold,
-                    color = DarkBlue,
-                ),
-            )
-        }
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 8.dp),
+                horizontalAlignment = Alignment.Start,
+            ) {
+                Text(
+                    text = "Definições",
+                    style = MaterialTheme.typography.headlineSmall.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = DarkBlue,
+                    ),
+                )
+            }
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -280,6 +284,7 @@ fun SettingsAlunoScreen(
         )
 
         Spacer(modifier = Modifier.height(24.dp))
+        }
     }
 }
 

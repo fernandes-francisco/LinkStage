@@ -41,6 +41,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
@@ -60,19 +61,40 @@ fun NotificationsAlunoScreen(
     val mensagens by settingsViewModel.notifMensagens.collectAsState()
     val lembretes by settingsViewModel.notifLembretes.collectAsState()
 
-    Scaffold(
-        modifier = modifier,
-        topBar = {
-            NotificationsTopBar(onBack = onBack)
-        },
-        containerColor = BackgroundLight
-    ) { paddingValues ->
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .background(BackgroundLight)
+    ) {
+        CommonTopBar()
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 8.dp, end = 20.dp, top = 0.dp, bottom = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(onClick = onBack) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Voltar",
+                    tint = DarkBlue
+                )
+            }
+            Text(
+                text = "Notificações",
+                style = MaterialTheme.typography.headlineSmall.copy(
+                    fontWeight = FontWeight.Bold,
+                    color = DarkBlue
+                )
+            )
+        }
+
         Column(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
+                .weight(1f)
                 .verticalScroll(rememberScrollState())
-                .padding(20.dp),
+                .padding(horizontal = 20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // Master Toggle Section
@@ -208,37 +230,6 @@ fun NotificationsAlunoScreen(
             }
             
             Spacer(modifier = Modifier.height(24.dp))
-        }
-    }
-}
-
-@Composable
-private fun NotificationsTopBar(onBack: () -> Unit) {
-    Surface(
-        color = Color.White,
-        shadowElevation = 2.dp
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp),
-            contentAlignment = Alignment.CenterStart
-        ) {
-            IconButton(onClick = onBack) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Voltar",
-                    tint = DarkBlue
-                )
-            }
-            Text(
-                text = "Definições de Notificação",
-                style = MaterialTheme.typography.titleLarge.copy(
-                    fontWeight = FontWeight.Bold,
-                    color = DarkBlue
-                ),
-                modifier = Modifier.align(Alignment.Center)
-            )
         }
     }
 }

@@ -22,24 +22,17 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Schedule
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -57,10 +50,15 @@ import androidx.compose.ui.unit.sp
 import turmaA.grupoB.LinkStage.ui.common.CheckItem
 import turmaA.grupoB.LinkStage.ui.common.ContentSection
 import turmaA.grupoB.LinkStage.ui.common.ContentSectionColored
+import turmaA.grupoB.LinkStage.ui.common.LinkStageButton
+import turmaA.grupoB.LinkStage.ui.common.LinkStageDialog
+import turmaA.grupoB.LinkStage.ui.common.SecondaryTopBar
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
+import turmaA.grupoB.LinkStage.ui.theme.Fade2
+import turmaA.grupoB.LinkStage.ui.theme.Fade3
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.ui.theme.MediumBlue
 import java.time.LocalDate
@@ -87,7 +85,6 @@ private fun formatDateUppercase(date: LocalDate): String {
     return "${monthNames[date.monthValue - 1]},${date.dayOfMonth}"
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ActivityDetailAlunoScreen(
     checkpointId: String,
@@ -104,88 +101,59 @@ fun ActivityDetailAlunoScreen(
         fileName = uri?.lastPathSegment
     }
 
-    val needsAttachment = activityLog.requirements.isNotEmpty()
-    val canSubmit = !hasSubmitted && (!needsAttachment || fileUri != null)
+    val canSubmit = !hasSubmitted
 
     if (showConfirmDialog) {
-        AlertDialog(
-            onDismissRequest = { showConfirmDialog = false },
-            title = {
-                Text("Submeter Atividade?", fontWeight = FontWeight.Bold, color = DarkBlue)
+        LinkStageDialog(
+            title = "Submeter Atividade?",
+            onConfirm = {
+                hasSubmitted = true
+                showConfirmDialog = false
             },
-            text = {
+            onDismiss = { showConfirmDialog = false },
+            confirmText = "Submeter",
+            dismissText = "Cancelar",
+            content = {
                 Text(
                     "Tens a certeza que queres submeter esta atividade? Esta ação não pode ser desfeita.",
                     color = DarkGrey,
                     lineHeight = 22.sp,
                 )
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        hasSubmitted = true
-                        showConfirmDialog = false
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = DarkBlue),
-                ) {
-                    Text("Submeter", color = Color.White)
-                }
-            },
-            dismissButton = {
-                OutlinedButton(
-                    onClick = { showConfirmDialog = false },
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = DarkBlue),
-                ) {
-                    Text("Cancelar")
-                }
-            },
-            containerColor = Color.White,
-            shape = RoundedCornerShape(16.dp),
+            }
         )
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        "Detalhes da Atividade",
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 16.sp,
-                        color = DarkBlue,
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar", tint = DarkBlue)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White),
-            )
-        },
-        containerColor = BackgroundLight,
-    ) { paddingValues ->
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(BackgroundLight),
+    ) {
+        SecondaryTopBar(title = "Detalhes da Atividade", onBack = onBack)
+
         Column(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues),
+                .weight(1f)
+                .verticalScroll(rememberScrollState()),
         ) {
+            // Header with logo and background
             Column(
                 modifier = Modifier
-                    .weight(1f)
-                    .verticalScroll(rememberScrollState()),
+                    .fillMaxWidth()
+                    .background(Color.White)
+                    .padding(bottom = 12.dp),
             ) {
-                // Header
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color.White)
-                        .padding(16.dp),
+                        .padding(horizontal = 16.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(BackgroundLight)
+                        .padding(12.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(48.dp)
+                            .size(44.dp)
                             .clip(RoundedCornerShape(10.dp))
                             .background(activityLog.companyLogoColor),
                         contentAlignment = Alignment.Center,
@@ -194,18 +162,28 @@ fun ActivityDetailAlunoScreen(
                             activityLog.companyLogoInitial,
                             color = Color.White,
                             fontWeight = FontWeight.Bold,
-                            fontSize = 20.sp,
+                            fontSize = 18.sp,
                         )
                     }
-                    Spacer(modifier = Modifier.width(14.dp))
+                    Spacer(modifier = Modifier.width(12.dp))
                     Column {
-                        Text(activityLog.title, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = DarkBlue)
-                        Text(activityLog.company, fontSize = 14.sp, color = LightBlue)
+                        Text(
+                            activityLog.title,
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = DarkBlue
+                        )
+                        Text(
+                            activityLog.company,
+                            fontSize = 13.sp,
+                            color = LightBlue
+                        )
                     }
                 }
+            }
 
-                // Deadline row
-                Row(
+            // Deadline row
+            Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 12.dp),
@@ -330,28 +308,15 @@ fun ActivityDetailAlunoScreen(
             }
 
             // Submit button
-            Button(
+            LinkStageButton(
+                text = if (hasSubmitted) "Atividade Submetida ✓" else "Submeter",
                 onClick = { if (canSubmit) showConfirmDialog = true },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 12.dp)
-                    .height(50.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = if (hasSubmitted) MediumBlue else DarkBlue,
-                    disabledContainerColor = MediumBlue,
-                    disabledContentColor = Color.White,
-                ),
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
                 enabled = canSubmit,
-            ) {
-                Text(
-                    text = if (hasSubmitted) "Atividade Submetida ✓" else "Submeter",
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = Color.White,
-                )
-            }
-        }
+                brush = if (hasSubmitted) Fade3 else Fade2
+            )
     }
 }
 

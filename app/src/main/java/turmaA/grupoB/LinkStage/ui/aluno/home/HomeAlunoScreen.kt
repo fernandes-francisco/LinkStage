@@ -2,10 +2,14 @@ package turmaA.grupoB.LinkStage.ui.aluno.home
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -19,6 +23,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
@@ -47,6 +53,7 @@ import turmaA.grupoB.LinkStage.ui.aluno.chat.ConversationItem
 import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
 import turmaA.grupoB.LinkStage.ui.common.LinkStageLogo
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
+import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.Fade3
@@ -92,12 +99,15 @@ fun HomeAlunoScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundLight)
-            .verticalScroll(rememberScrollState()),
+            .background(BackgroundLight),
     ) {
         CommonTopBar()
 
-        Column(modifier = Modifier.padding(horizontal = 20.dp)) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 12.dp)
+        ) {
             Text(
                 "Olá, $userName",
                 style = MaterialTheme.typography.headlineLarge.copy(
@@ -105,17 +115,31 @@ fun HomeAlunoScreen(
                     color = DarkBlue,
                 ),
             )
+            Text(
+                "Bem-vindo de volta ao LinkStage.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = DarkGrey
+            )
+        }
 
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .verticalScroll(rememberScrollState())
+                .padding(start = 20.dp, end = 20.dp, bottom = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
             // DEBUG: toggle para testar os dois estados
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(DarkGrey.copy(alpha = 0.1f), RoundedCornerShape(8.dp))
-                    .padding(horizontal = 12.dp, vertical = 4.dp),
+                    .background(Color.White, RoundedCornerShape(12.dp))
+                    .border(1.dp, BorderGrey.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    "DEBUG — Em estágio",
+                    "DEBUG — Modo Estágio",
                     style = MaterialTheme.typography.labelMedium,
                     color = DarkGrey,
                     modifier = Modifier.weight(1f),
@@ -132,8 +156,6 @@ fun HomeAlunoScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
             if (hasActiveInternship && activeInternship != null) {
                 // State B: Active internship
                 val internship = activeInternship!!
@@ -147,70 +169,91 @@ fun HomeAlunoScreen(
                 )
                 LaunchedEffect(Unit) { animationStarted = true }
 
-                SectionHeader(
+                HomeSectionCard(
                     title = "Estágio Ativo",
                     actionText = "Ver detalhes",
-                    onAction = {
-                        navController.navigate(AlunoRoutes.ACTIVITY)
-                    },
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                InternshipHeader(
-                    internship = internship,
-                    animatedProgress = animatedProgress,
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
+                    onAction = { navController.navigate(AlunoRoutes.ACTIVITY) }
+                ) {
+                    InternshipHeader(
+                        internship = internship,
+                        animatedProgress = animatedProgress,
+                    )
+                }
 
                 EntregasCard(mockEntregas)
             } else {
                 // State A: No internship — show recent applications
-                SectionHeader(
+                HomeSectionCard(
                     title = "Estado das candidaturas",
                     actionText = "Ver todas",
-                    onAction = {
-                        navController.navigate(AlunoRoutes.ACTIVITY)
-                    },
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-
-                recentApplications.forEach { application ->
-                    ApplicationCard(application = application)
+                    onAction = { navController.navigate(AlunoRoutes.ACTIVITY) }
+                ) {
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        recentApplications.take(2).forEach { application ->
+                            ApplicationCard(application = application)
+                        }
+                    }
                 }
 
-                Spacer(modifier = Modifier.height(8.dp))
-
-                SectionHeader(
+                HomeSectionCard(
                     title = "Descobre Oportunidades",
                     actionText = "Explorar",
-                    onAction = {
-                        navController.navigate(AlunoRoutes.DISCOVER)
-                    },
-                )
+                    onAction = { navController.navigate(AlunoRoutes.DISCOVER) }
+                ) {
+                    Text(
+                        "Encontra o estágio ideal para o teu perfil e dá o próximo passo na tua carreira.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = DarkGrey,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                }
             }
-
-            Spacer(modifier = Modifier.height(24.dp))
 
             // Recent messages — both states
-            SectionHeader(
+            HomeSectionCard(
                 title = "Mensagens Recentes",
                 actionText = "Ver todas",
-                onAction = {
-                    navController.navigate(AlunoRoutes.MESSAGES)
-                },
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-
-            recentConversations.forEach { conversation ->
-                ConversationItem(
-                    conversation = conversation,
-                    onClick = {
-                        navController.navigate(AlunoRoutes.chatRoute(conversation.id))
-                    },
-                )
+                onAction = { navController.navigate(AlunoRoutes.MESSAGES) }
+            ) {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    recentConversations.take(3).forEach { conversation ->
+                        ConversationItem(
+                            conversation = conversation,
+                            onClick = {
+                                navController.navigate(AlunoRoutes.chatRoute(conversation.id))
+                            },
+                        )
+                    }
+                }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+    }
+}
+
+@Composable
+private fun HomeSectionCard(
+    title: String,
+    actionText: String,
+    onAction: () -> Unit,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.5.dp),
+        border = BorderStroke(1.dp, BorderGrey.copy(alpha = 0.3f))
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            SectionHeader(
+                title = title,
+                actionText = actionText,
+                onAction = onAction
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            content()
         }
     }
 }
@@ -276,15 +319,18 @@ private fun SectionHeader(
         Text(
             title,
             style = MaterialTheme.typography.titleMedium.copy(
-                fontWeight = FontWeight.SemiBold,
+                fontWeight = FontWeight.Bold,
                 color = DarkBlue,
             ),
         )
-        TextButton(onClick = onAction) {
+        Row(
+            modifier = Modifier.clickable { onAction() },
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Text(
                 actionText,
                 color = LightBlue,
-                style = MaterialTheme.typography.labelMedium,
+                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
             )
             Spacer(modifier = Modifier.width(2.dp))
             Icon(

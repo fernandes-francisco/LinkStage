@@ -35,6 +35,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import turmaA.grupoB.LinkStage.ui.aluno.chat.ConversationItem
 import turmaA.grupoB.LinkStage.ui.aluno.chat.sampleConversations
+import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
 import turmaA.grupoB.LinkStage.ui.common.LinkStageLogo
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
@@ -69,63 +70,56 @@ fun ChatOrientadorScreen(
         },
         containerColor = BackgroundLight,
     ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues),
-        ) {
-            Spacer(modifier = Modifier.height(16.dp))
+        Column(modifier = Modifier.fillMaxSize()) {
+            CommonTopBar()
 
-            Box(
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp),
-                contentAlignment = Alignment.Center,
+                    .weight(1f)
+                    .padding(bottom = paddingValues.calculateBottomPadding()),
             ) {
-                LinkStageLogo()
-            }
+                Text(
+                    text = "Mensagens",
+                    style = MaterialTheme.typography.headlineSmall.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = DarkBlue,
+                    ),
+                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
+                )
 
-            Text(
-                text = "Mensagens",
-                style = MaterialTheme.typography.headlineSmall.copy(
-                    fontWeight = FontWeight.Bold,
-                    color = DarkBlue,
-                ),
-                modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
-            )
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp),
+                    placeholder = { Text("Pesquisar...", color = DarkGrey) },
+                    leadingIcon = {
+                        Icon(Icons.Outlined.Search, contentDescription = "Pesquisar", tint = DarkGrey)
+                    },
+                    shape = RoundedCornerShape(12.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        unfocusedBorderColor = Color.Transparent,
+                        focusedBorderColor = DarkBlue,
+                        unfocusedContainerColor = Color.White,
+                        focusedContainerColor = Color.White,
+                    ),
+                    singleLine = true,
+                )
 
-            OutlinedTextField(
-                value = searchQuery,
-                onValueChange = { searchQuery = it },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp),
-                placeholder = { Text("Pesquisar...", color = DarkGrey) },
-                leadingIcon = {
-                    Icon(Icons.Outlined.Search, contentDescription = "Pesquisar", tint = DarkGrey)
-                },
-                shape = RoundedCornerShape(12.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    unfocusedBorderColor = Color.Transparent,
-                    focusedBorderColor = DarkBlue,
-                    unfocusedContainerColor = Color.White,
-                    focusedContainerColor = Color.White,
-                ),
-                singleLine = true,
-            )
+                Spacer(modifier = Modifier.height(8.dp))
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-            LazyColumn(modifier = Modifier.fillMaxSize()) {
-                items(filtered, key = { it.id }) { conversation ->
-                    ConversationItem(
-                        conversation = conversation,
-                        onClick = { onOpenChat(conversation.id) },
-                    )
-                    HorizontalDivider(
-                        modifier = Modifier.padding(horizontal = 20.dp),
-                        color = BorderGrey,
-                    )
+                LazyColumn(modifier = Modifier.fillMaxSize()) {
+                    items(filtered, key = { it.id }) { conversation ->
+                        ConversationItem(
+                            conversation = conversation,
+                            onClick = { onOpenChat(conversation.id) },
+                        )
+                        HorizontalDivider(
+                            modifier = Modifier.padding(horizontal = 20.dp),
+                            color = BorderGrey,
+                        )
+                    }
                 }
             }
         }
