@@ -34,6 +34,10 @@ data class AdminMentor(
     val activeStudentsCount: Int,
     val avatarInitials: String,
     val avatarColorIndex: Int = 0,
+    val skills: List<String> = emptyList(),
+    val supervisionAreas: List<String> = emptyList(),
+    val internalNote: String = "",
+    val isAvailable: Boolean = true,
 )
 
 data class AdminInstitution(
@@ -76,10 +80,18 @@ val sampleMentors = listOf(
     AdminMentor(
         "m1", "Prof. Carvalho", "carvalho@ipvc.pt", "910000001",
         "ESTG-IPVC", "Informática", "1d atrás", 3, "PC", 0,
+        skills = listOf("Android", "Retrofit", "Firebase", "SQL", "Kotlin", "Room"),
+        supervisionAreas = listOf("Frontend", "Mobile Development", "Databases", "IA", "Cloud Services", "Backend"),
+        internalNote = "Orientador com vasta experiência em projetos mobile. Disponível para novos estágios a partir de setembro.",
+        isAvailable = true,
     ),
     AdminMentor(
         "m2", "Prof. Santos", "santos@ese.ipvc.pt", "910000002",
         "ESE-IPVC", "Educação", "2d atrás", 1, "PS", 1,
+        skills = listOf("Pedagogia", "Investigação", "Estatística", "SPSS"),
+        supervisionAreas = listOf("Educação Básica", "Didática", "Investigação Educacional"),
+        internalNote = "",
+        isAvailable = false,
     ),
 )
 
