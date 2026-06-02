@@ -5,21 +5,20 @@ import turmaA.grupoB.LinkStage.data.remote.model.enums.EvaluationType
 import turmaA.grupoB.LinkStage.data.remote.model.evaluation.CreateEvaluationInput
 import turmaA.grupoB.LinkStage.data.remote.model.evaluation.EvaluationModel
 import turmaA.grupoB.LinkStage.data.remote.model.evaluation.FinalGradeModel
-import turmaA.grupoB.LinkStage.data.remote.model.internship.InternshipModel
 import turmaA.grupoB.LinkStage.data.remote.supabase.SupabaseClientProvider
 
-class EvaluationRepository {
+class EvaluationRepository : EvaluationRepositoryInterface {
 
     private val supabase = SupabaseClientProvider.client
 
-    suspend fun getEvaluations(): List<EvaluationModel> {
+    override suspend fun getEvaluations(): List<EvaluationModel> {
         return supabase
             .from("evaluations")
             .select()
             .decodeList<EvaluationModel>()
     }
 
-    suspend fun getEvaluationsByInternship(internshipId: String): List<EvaluationModel> {
+    override suspend fun getEvaluationsByInternship(internshipId: String): List<EvaluationModel> {
         return supabase
             .from("evaluations")
             .select {
@@ -30,7 +29,7 @@ class EvaluationRepository {
             .decodeList<EvaluationModel>()
     }
 
-    suspend fun getEvaluationByIntershipAndType(
+    override suspend fun getEvaluationByInternshipAndType(
         internshipId: String,
         evaluatorType: EvaluationType
     ): EvaluationModel? {
@@ -46,7 +45,7 @@ class EvaluationRepository {
             .firstOrNull()
     }
 
-    suspend fun createEvaluation(input: CreateEvaluationInput): EvaluationModel {
+    override suspend fun createEvaluation(input: CreateEvaluationInput): EvaluationModel {
         return supabase
             .from("evaluations")
             .insert(input) {
@@ -55,7 +54,7 @@ class EvaluationRepository {
             .decodeSingle<EvaluationModel>()
     }
 
-    suspend fun getFinalGradeByInternship(internshipId: String): FinalGradeModel? {
+    override suspend fun getFinalGradeByInternship(internshipId: String): FinalGradeModel? {
         return supabase
             .from("final_grades")
             .select {
