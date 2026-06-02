@@ -9,11 +9,11 @@ import turmaA.grupoB.LinkStage.data.remote.model.communication.NotificationModel
 import turmaA.grupoB.LinkStage.data.remote.model.communication.SendMessageInput
 import turmaA.grupoB.LinkStage.data.remote.supabase.SupabaseClientProvider
 
-class CommunicationRepository {
+class CommunicationRepository : CommunicationRepositoryInterface {
 
     private val supabase = SupabaseClientProvider.client
 
-    suspend fun getNotificationsByUser(userId: String): List<NotificationModel> {
+    override suspend fun getNotificationsByUser(userId: String): List<NotificationModel> {
         return supabase
             .from("notifications")
             .select {
@@ -24,7 +24,7 @@ class CommunicationRepository {
             .decodeList<NotificationModel>()
     }
 
-    suspend fun getUnreadNotificationsByUser(userId: String): List<NotificationModel> {
+    override suspend fun getUnreadNotificationsByUser(userId: String): List<NotificationModel> {
         return supabase
             .from("notifications")
             .select {
@@ -36,23 +36,27 @@ class CommunicationRepository {
             .decodeList<NotificationModel>()
     }
 
-    suspend fun markNotificationAsRead(notificationId: String): NotificationModel {
+    override suspend fun markNotificationAsRead(notificationId: String): NotificationModel? {
         val updateData = mapOf(
             "is_read" to true
         )
 
-        return supabase
-            .from("notifications")
-            .update(updateData) {
-                select()
-                filter {
-                    eq("id", notificationId)
+        return try {
+            supabase
+                .from("notifications")
+                .update(updateData) {
+                    select()
+                    filter {
+                        eq("id", notificationId)
+                    }
                 }
-            }
-            .decodeSingle<NotificationModel>()
+                .decodeSingle<NotificationModel>()
+        } catch (_: Exception) {
+            null
+        }
     }
 
-    suspend fun getThreadById(threadId: String): MessageThreadModel? {
+    override suspend fun getThreadById(threadId: String): MessageThreadModel? {
         return supabase
             .from("message_threads")
             .select {
@@ -64,7 +68,7 @@ class CommunicationRepository {
             .firstOrNull()
     }
 
-    suspend fun getThreadsByInternship(internshipId: String): List<MessageThreadModel> {
+    override suspend fun getThreadsByInternship(internshipId: String): List<MessageThreadModel> {
         return supabase
             .from("message_threads")
             .select {
@@ -75,7 +79,7 @@ class CommunicationRepository {
             .decodeList<MessageThreadModel>()
     }
 
-    suspend fun getThreadByApplication(applicationId: String): List<MessageThreadModel> {
+    override suspend fun getThreadByApplication(applicationId: String): List<MessageThreadModel> {
         return supabase
             .from("message_threads")
             .select {
@@ -86,7 +90,7 @@ class CommunicationRepository {
             .decodeList<MessageThreadModel>()
     }
 
-    suspend fun getParticipantsByThread(threadId: String): List<MessageThreadParticipantModel> {
+    override suspend fun getParticipantsByThread(threadId: String): List<MessageThreadParticipantModel> {
         return supabase
             .from("message_thread_participants")
             .select {
@@ -97,7 +101,7 @@ class CommunicationRepository {
             .decodeList<MessageThreadParticipantModel>()
     }
 
-    suspend fun getMessagesByThread(threadId: String): List<MessageModel> {
+    override suspend fun getMessagesByThread(threadId: String): List<MessageModel> {
         return supabase
             .from("messages")
             .select {
@@ -108,29 +112,37 @@ class CommunicationRepository {
             .decodeList<MessageModel>()
     }
 
-    suspend fun sendMessage(input: SendMessageInput): MessageModel {
-        return supabase
-            .from("messages")
-            .insert(input) {
-                select()
-            }
-            .decodeSingle<MessageModel>()
+    override suspend fun sendMessage(input: SendMessageInput): MessageModel? {
+        return try {
+            supabase
+                .from("messages")
+                .insert(input) {
+                    select()
+                }
+                .decodeSingle<MessageModel>()
+        } catch (_: Exception) {
+            null
+        }
     }
 
-    suspend fun markMessageAsRead(messageId: String): MessageModel {
+    override suspend fun markMessageAsRead(messageId: String): MessageModel? {
         val updateData = mapOf(
             "is_read" to true
         )
 
-        return supabase
-            .from("messages")
-            .update(updateData) {
-                select()
-                filter {
+        return try {
+            supabase
+                .from("messages")
+                .update(updateData) {
+                    select()
+                    filter {
 
-                    eq("id", messageId)
+                        eq("id", messageId)
+                    }
                 }
-            }
-            .decodeSingle<MessageModel>()
+                .decodeSingle<MessageModel>()
+        } catch (_: Exception) {
+            null
+        }
     }
 }
