@@ -5,18 +5,18 @@ import turmaA.grupoB.LinkStage.data.remote.model.user.SupervisorModel
 import turmaA.grupoB.LinkStage.data.remote.model.user.SupervisorSkillModel
 import turmaA.grupoB.LinkStage.data.remote.supabase.SupabaseClientProvider
 
-class SupervisorRepository {
+class SupervisorRepository : SupervisorRepositoryInterface{
 
     private val supabase = SupabaseClientProvider.client
 
-    suspend fun getSupervisors(): List<SupervisorModel> {
+    override suspend fun getSupervisors(): List<SupervisorModel> {
         return supabase
             .from("supervisors")
             .select()
             .decodeList<SupervisorModel>()
     }
 
-    suspend fun getSupervisorById(supervisorId: String): SupervisorModel? {
+    override suspend fun getSupervisorById(supervisorId: String): SupervisorModel? {
         return supabase
             .from("supervisors")
             .select {
@@ -28,7 +28,7 @@ class SupervisorRepository {
             .firstOrNull()
     }
 
-    suspend fun getSupervisorByUserId(userId: String): SupervisorModel? {
+    override suspend fun getSupervisorByUserId(userId: String): SupervisorModel? {
         return supabase
             .from("supervisors")
             .select {
@@ -40,7 +40,7 @@ class SupervisorRepository {
             .firstOrNull()
     }
 
-    suspend fun getAvailableSupervisors(): List<SupervisorModel> {
+    override suspend fun getAvailableSupervisors(): List<SupervisorModel> {
         return supabase
             .from("supervisors")
             .select {
@@ -51,7 +51,7 @@ class SupervisorRepository {
             .decodeList<SupervisorModel>()
     }
 
-    suspend fun getSupervisorsByDepartment(department:String): List<SupervisorModel> {
+    override suspend fun getSupervisorsByDepartment(department:String): List<SupervisorModel> {
         return supabase
             .from("supervisors")
             .select {
@@ -62,7 +62,7 @@ class SupervisorRepository {
             .decodeList<SupervisorModel>()
     }
 
-    suspend fun getSupervisorSkills(supervisorId: String): List<SupervisorSkillModel> {
+    override suspend fun getSupervisorSkills(supervisorId: String): List<SupervisorSkillModel> {
         return supabase
             .from("supervisor_skills")
             .select {
