@@ -1,9 +1,7 @@
 package turmaA.grupoB.LinkStage.ui.instituicao.offers
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,7 +16,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -27,21 +24,22 @@ import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.FilterList
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -62,6 +60,7 @@ import androidx.navigation.compose.rememberNavController
 import turmaA.grupoB.LinkStage.ui.aluno.offers.OfferItem
 import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
 import turmaA.grupoB.LinkStage.ui.common.LinkStageDialog
+import turmaA.grupoB.LinkStage.ui.common.SectionLabel
 import turmaA.grupoB.LinkStage.ui.instituicao.InstituicaoRoutes
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
@@ -69,8 +68,6 @@ import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.ui.theme.Red
-
-private val topChipFilters = listOf("Todas", "Remotas", "Tempo Inteiro", "Tecnologia")
 
 private val sampleOffers = listOf(
     OfferItem("1", "Designer de Produto", "ESTG-IPVC", "Tempo Inteiro", "5h atras", Color(0xFF1565C0), "E", duration = "6 Meses", area = "Design", location = "Porto"),
@@ -85,22 +82,23 @@ fun OffersInstituicaoScreen(
     modifier: Modifier = Modifier,
 ) {
     var searchQuery by rememberSaveable { mutableStateOf("") }
-    var selectedTopFilter by rememberSaveable { mutableStateOf("Todas") }
     var offerToDelete by remember { mutableStateOf<OfferItem?>(null) }
+    var showFilterDialog by remember { mutableStateOf(false) }
+    var filterType by rememberSaveable { mutableStateOf("") }
+    var filterArea by rememberSaveable { mutableStateOf("") }
+    var filterLocation by rememberSaveable { mutableStateOf("") }
 
     val filteredOffers = sampleOffers.filter { offer ->
         val matchesSearch = searchQuery.isEmpty() ||
             offer.title.contains(searchQuery, ignoreCase = true) ||
             offer.company.contains(searchQuery, ignoreCase = true)
-
-        val matchesFilter = when (selectedTopFilter) {
-            "Remotas" -> offer.type.contains("Remoto", ignoreCase = true)
-            "Tempo Inteiro" -> offer.type.contains("Tempo Inteiro", ignoreCase = true)
-            "Tecnologia" -> offer.area.contains("Tecnologia", ignoreCase = true)
-            else -> true
-        }
-
-        matchesSearch && matchesFilter
+        val matchesType = filterType.isEmpty() ||
+            offer.type.contains(filterType, ignoreCase = true)
+        val matchesArea = filterArea.isEmpty() ||
+            offer.area.contains(filterArea, ignoreCase = true)
+        val matchesLocation = filterLocation.isEmpty() ||
+            offer.location.contains(filterLocation, ignoreCase = true)
+        matchesSearch && matchesType && matchesArea && matchesLocation
     }
 
     if (offerToDelete != null) {
@@ -108,6 +106,21 @@ fun OffersInstituicaoScreen(
             offerTitle = offerToDelete!!.title,
             onConfirm = { offerToDelete = null },
             onDismiss = { offerToDelete = null },
+        )
+    }
+
+    if (showFilterDialog) {
+        OfferFilterDialog(
+            currentType = filterType,
+            currentArea = filterArea,
+            currentLocation = filterLocation,
+            onApply = { type, area, location ->
+                filterType = type
+                filterArea = area
+                filterLocation = location
+                showFilterDialog = false
+            },
+            onDismiss = { showFilterDialog = false },
         )
     }
 
@@ -149,17 +162,9 @@ fun OffersInstituicaoScreen(
                 SearchBarWithFilter(
                     query = searchQuery,
                     onQueryChange = { searchQuery = it },
+                    onFilterClick = { showFilterDialog = true },
                 )
                 Spacer(modifier = Modifier.height(12.dp))
-            }
-
-            item {
-                FilterChips(
-                    filters = topChipFilters,
-                    selectedFilter = selectedTopFilter,
-                    onFilterSelected = { selectedTopFilter = it },
-                )
-                Spacer(modifier = Modifier.height(8.dp))
             }
 
             items(filteredOffers, key = { it.id }) { offer ->
@@ -178,6 +183,7 @@ fun OffersInstituicaoScreen(
 private fun SearchBarWithFilter(
     query: String,
     onQueryChange: (String) -> Unit,
+    onFilterClick: () -> Unit,
 ) {
     Row(
         modifier = Modifier
@@ -209,7 +215,7 @@ private fun SearchBarWithFilter(
                 .size(52.dp)
                 .clip(RoundedCornerShape(12.dp))
                 .background(DarkBlue)
-                .clickable { },
+                .clickable { onFilterClick() },
             contentAlignment = Alignment.Center,
         ) {
             Icon(
@@ -222,47 +228,114 @@ private fun SearchBarWithFilter(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun FilterChips(
-    filters: List<String>,
-    selectedFilter: String,
-    onFilterSelected: (String) -> Unit,
+private fun OfferFilterDialog(
+    currentType: String,
+    currentArea: String,
+    currentLocation: String,
+    onApply: (type: String, area: String, location: String) -> Unit,
+    onDismiss: () -> Unit,
 ) {
-    Row(
-        modifier = Modifier
-            .horizontalScroll(rememberScrollState())
-            .padding(horizontal = 20.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        filters.forEach { filter ->
-            val isSelected = filter == selectedFilter
-            FilterChip(
-                selected = isSelected,
-                onClick = { onFilterSelected(filter) },
-                label = {
-                    Text(
-                        text = filter,
-                        style = MaterialTheme.typography.labelMedium.copy(
-                            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
-                        ),
-                    )
-                },
-                shape = RoundedCornerShape(20.dp),
-                colors = FilterChipDefaults.filterChipColors(
-                    selectedContainerColor = DarkBlue,
-                    selectedLabelColor = Color.White,
-                    containerColor = Color.White,
-                    labelColor = DarkGrey,
-                ),
-                border = FilterChipDefaults.filterChipBorder(
-                    enabled = true,
-                    selected = isSelected,
-                    borderColor = BorderGrey,
-                    selectedBorderColor = Color.Transparent,
-                ),
+    var type by remember { mutableStateOf(currentType) }
+    var area by remember { mutableStateOf(currentArea) }
+    var location by remember { mutableStateOf(currentLocation) }
+    var typeExpanded by remember { mutableStateOf(false) }
+
+    val typeOptions = listOf("Todos", "Tempo Inteiro", "Tempo Parcial", "Remoto", "Híbrido")
+
+    LinkStageDialog(
+        title = "Filtros",
+        onConfirm = {
+            onApply(
+                if (type == "Todos") "" else type,
+                area,
+                location,
             )
-        }
-    }
+        },
+        onDismiss = onDismiss,
+        confirmText = "Filtrar",
+        dismissText = "Cancelar",
+        content = {
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    SectionLabel("Modelo de trabalho")
+                    ExposedDropdownMenuBox(
+                        expanded = typeExpanded,
+                        onExpandedChange = { typeExpanded = it },
+                    ) {
+                        OutlinedTextField(
+                            value = type.ifEmpty { "Todos" },
+                            onValueChange = {},
+                            readOnly = true,
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = typeExpanded) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .menuAnchor(MenuAnchorType.PrimaryNotEditable),
+                            shape = RoundedCornerShape(10.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = LightBlue,
+                                unfocusedBorderColor = BorderGrey,
+                                focusedContainerColor = Color.White,
+                                unfocusedContainerColor = Color.White,
+                            ),
+                            singleLine = true,
+                        )
+                        ExposedDropdownMenu(
+                            expanded = typeExpanded,
+                            onDismissRequest = { typeExpanded = false },
+                        ) {
+                            typeOptions.forEach { option ->
+                                DropdownMenuItem(
+                                    text = { Text(option) },
+                                    onClick = {
+                                        type = if (option == "Todos") "" else option
+                                        typeExpanded = false
+                                    },
+                                )
+                            }
+                        }
+                    }
+                }
+
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    SectionLabel("Área")
+                    OutlinedTextField(
+                        value = area,
+                        onValueChange = { area = it },
+                        placeholder = { Text("Escreva aqui.", color = DarkGrey, fontSize = 14.sp) },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(10.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = LightBlue,
+                            unfocusedBorderColor = BorderGrey,
+                            focusedContainerColor = Color.White,
+                            unfocusedContainerColor = Color.White,
+                        ),
+                        singleLine = true,
+                    )
+                }
+
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    SectionLabel("Localização")
+                    OutlinedTextField(
+                        value = location,
+                        onValueChange = { location = it },
+                        placeholder = { Text("Escreva aqui.", color = DarkGrey, fontSize = 14.sp) },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(10.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = LightBlue,
+                            unfocusedBorderColor = BorderGrey,
+                            focusedContainerColor = Color.White,
+                            unfocusedContainerColor = Color.White,
+                        ),
+                        singleLine = true,
+                    )
+                }
+            }
+        },
+    )
 }
 
 @Composable

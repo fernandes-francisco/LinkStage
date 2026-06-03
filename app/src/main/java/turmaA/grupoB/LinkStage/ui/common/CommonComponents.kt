@@ -386,7 +386,7 @@ fun ContentSectionColored(
     ) {
         Column(
             modifier = Modifier
-                .background(Fade1)
+                .background(turmaA.grupoB.LinkStage.ui.theme.Fade3)
                 .padding(16.dp)
         ) {
             Text(

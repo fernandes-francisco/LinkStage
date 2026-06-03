@@ -73,6 +73,7 @@ import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.Fade1
+import turmaA.grupoB.LinkStage.ui.theme.Fade2
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 
 @Composable
@@ -90,7 +91,12 @@ fun MentorDetailInstituicaoScreen(
             .background(BackgroundLight),
     ) {
         // Header
-        Column(modifier = Modifier.background(Color.White)) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color.White)
+                .padding(bottom = 12.dp),
+        ) {
             Row(
                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                 verticalAlignment = Alignment.CenterVertically,
@@ -107,21 +113,26 @@ fun MentorDetailInstituicaoScreen(
             }
 
             Row(
-                modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 12.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(BackgroundLight)
+                    .padding(12.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Box(
                     modifier = Modifier
-                        .size(52.dp)
+                        .size(44.dp)
                         .clip(CircleShape)
                         .background(Fade1),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Text(mentor.avatarInitials, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                    Text(mentor.avatarInitials, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                 }
-                Column(modifier = Modifier.padding(start = 14.dp)) {
-                    Text(mentor.name, color = DarkBlue, fontWeight = FontWeight.Bold, fontSize = 20.sp)
-                    Text(mentor.institution, color = LightBlue, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                Column(modifier = Modifier.padding(start = 12.dp)) {
+                    Text(mentor.name, color = DarkBlue, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                    Text(mentor.institution, color = LightBlue, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
                 }
             }
         }
@@ -222,7 +233,8 @@ private fun DetailsTab(mentor: AdminMentor) {
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Button(
                             onClick = { showSaveDialog = true },
-                            colors = ButtonDefaults.buttonColors(containerColor = DarkBlue),
+                            modifier = Modifier.background(Fade2, RoundedCornerShape(10.dp)),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
                             shape = RoundedCornerShape(10.dp),
                         ) {
                             Text("Guardar", fontWeight = FontWeight.SemiBold)
@@ -250,9 +262,10 @@ private fun DetailsTab(mentor: AdminMentor) {
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
-                .height(50.dp),
+                .height(50.dp)
+                .background(Fade2, RoundedCornerShape(12.dp)),
             shape = RoundedCornerShape(12.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = DarkBlue),
+            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
         ) {
             Icon(Icons.Outlined.Work, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
             Spacer(modifier = Modifier.width(8.dp))

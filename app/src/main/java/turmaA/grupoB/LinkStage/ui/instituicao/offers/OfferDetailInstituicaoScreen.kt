@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -28,7 +27,6 @@ import androidx.compose.material.icons.outlined.Cancel
 import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material.icons.outlined.People
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -42,7 +40,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -79,6 +76,8 @@ import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
+import turmaA.grupoB.LinkStage.ui.theme.Fade1
+import turmaA.grupoB.LinkStage.ui.theme.Fade2
 import turmaA.grupoB.LinkStage.ui.theme.MediumBlue
 import turmaA.grupoB.LinkStage.ui.theme.Red
 
@@ -148,7 +147,12 @@ fun OfferDetailInstituicaoScreen(
             .background(BackgroundLight),
     ) {
         // Fixed header
-        Column(modifier = Modifier.background(Color.White)) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color.White)
+                .padding(bottom = 12.dp),
+        ) {
             Row(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
                 verticalAlignment = Alignment.CenterVertically,
@@ -161,28 +165,33 @@ fun OfferDetailInstituicaoScreen(
             }
 
             Row(
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(BackgroundLight)
+                    .padding(12.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Box(
                     modifier = Modifier
-                        .size(52.dp)
-                        .clip(RoundedCornerShape(12.dp))
+                        .size(44.dp)
+                        .clip(RoundedCornerShape(10.dp))
                         .background(offer.logoColor),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Text(offer.logoInitial, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 22.sp)
+                    Text(offer.logoInitial, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
                 }
-                Spacer(modifier = Modifier.width(14.dp))
+                Spacer(modifier = Modifier.width(12.dp))
                 Column {
-                    Text(offer.title, color = DarkBlue, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                    Text(offer.company, color = LightBlue, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                    Text(offer.title, color = DarkBlue, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                    Text(offer.company, color = LightBlue, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
                 }
             }
         }
 
         LinkStageTabRow(
-            tabs = listOf("Detalhes", "Candidaturas"),
+            tabs = listOf("Detalhes", "Candidaturas", "Gerir"),
             selectedIndex = selectedTab,
             onTabSelected = { selectedTab = it },
         )
@@ -192,17 +201,12 @@ fun OfferDetailInstituicaoScreen(
             when (selectedTab) {
                 0 -> DetailsTab(offer = offer)
                 1 -> ApplicationsTab(navController = navController)
+                2 -> ManageTab(
+                    onEdit = { navController.navigate(InstituicaoRoutes.offerFormRoute(offer.id)) },
+                    onClose = { showCloseDialog = true },
+                    onDelete = { showDeleteDialog = true },
+                )
             }
-        }
-
-        // Bottom bar only on details tab
-        if (selectedTab == 0) {
-            OfferActionBar(
-                onViewApplications = { selectedTab = 1 },
-                onEdit = { navController.navigate(InstituicaoRoutes.offerFormRoute(offer.id)) },
-                onClose = { showCloseDialog = true },
-                onDelete = { showDeleteDialog = true },
-            )
         }
     }
 }
@@ -455,67 +459,56 @@ private fun EmptyStateCard(message: String) {
 
 // endregion
 
-// region Bottom Action Bar
+// region Tab 2 — Manage
 
 @Composable
-private fun OfferActionBar(
-    onViewApplications: () -> Unit,
+private fun ManageTab(
     onEdit: () -> Unit,
     onClose: () -> Unit,
     onDelete: () -> Unit,
 ) {
-    Surface(color = Color.White, shadowElevation = 8.dp) {
-        Column(
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 16.dp, vertical = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Button(
+            onClick = onEdit,
             modifier = Modifier
                 .fillMaxWidth()
-                .navigationBarsPadding()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+                .height(48.dp)
+                .background(Fade2, RoundedCornerShape(10.dp)),
+            shape = RoundedCornerShape(10.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
         ) {
-            Button(
-                onClick = onViewApplications,
-                modifier = Modifier.fillMaxWidth().height(48.dp),
-                shape = RoundedCornerShape(10.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = DarkBlue),
-            ) {
-                Icon(Icons.Outlined.People, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Ver candidaturas", fontWeight = FontWeight.SemiBold)
-            }
+            Icon(Icons.Outlined.Edit, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("Editar oferta", fontWeight = FontWeight.SemiBold)
+        }
 
-            OutlinedButton(
-                onClick = onEdit,
-                modifier = Modifier.fillMaxWidth().height(48.dp),
-                shape = RoundedCornerShape(10.dp),
-                border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(brush = androidx.compose.ui.graphics.SolidColor(DarkBlue)),
-            ) {
-                Icon(Icons.Outlined.Edit, contentDescription = null, tint = DarkBlue, modifier = Modifier.size(18.dp))
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Editar oferta", color = DarkBlue, fontWeight = FontWeight.SemiBold)
-            }
+        OutlinedButton(
+            onClick = onClose,
+            modifier = Modifier.fillMaxWidth().height(48.dp),
+            shape = RoundedCornerShape(10.dp),
+            border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(brush = androidx.compose.ui.graphics.SolidColor(DarkGrey)),
+        ) {
+            Icon(Icons.Outlined.Cancel, contentDescription = null, tint = DarkGrey, modifier = Modifier.size(18.dp))
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("Fechar oferta", color = DarkGrey, fontWeight = FontWeight.SemiBold)
+        }
 
-            OutlinedButton(
-                onClick = onClose,
-                modifier = Modifier.fillMaxWidth().height(48.dp),
-                shape = RoundedCornerShape(10.dp),
-                border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(brush = androidx.compose.ui.graphics.SolidColor(DarkGrey)),
-            ) {
-                Icon(Icons.Outlined.Cancel, contentDescription = null, tint = DarkGrey, modifier = Modifier.size(18.dp))
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Fechar oferta", color = DarkGrey, fontWeight = FontWeight.SemiBold)
-            }
-
-            Button(
-                onClick = onDelete,
-                modifier = Modifier.fillMaxWidth().height(48.dp),
-                shape = RoundedCornerShape(10.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Red.copy(alpha = 0.12f)),
-                border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(brush = androidx.compose.ui.graphics.SolidColor(Red)),
-            ) {
-                Icon(Icons.Outlined.Delete, contentDescription = null, tint = Red, modifier = Modifier.size(18.dp))
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Remover oferta", color = Red, fontWeight = FontWeight.SemiBold)
-            }
+        Button(
+            onClick = onDelete,
+            modifier = Modifier.fillMaxWidth().height(48.dp),
+            shape = RoundedCornerShape(10.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Red.copy(alpha = 0.12f)),
+            border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(brush = androidx.compose.ui.graphics.SolidColor(Red)),
+        ) {
+            Icon(Icons.Outlined.Delete, contentDescription = null, tint = Red, modifier = Modifier.size(18.dp))
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("Remover oferta", color = Red, fontWeight = FontWeight.SemiBold)
         }
     }
 }
