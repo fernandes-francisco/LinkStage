@@ -28,7 +28,7 @@ class SupervisorRepository {
             .firstOrNull()
     }
 
-    suspend fun getSuperVisorByUserId(userId: String): SupervisorModel? {
+    suspend fun getSupervisorByUserId(userId: String): SupervisorModel? {
         return supabase
             .from("supervisors")
             .select {
