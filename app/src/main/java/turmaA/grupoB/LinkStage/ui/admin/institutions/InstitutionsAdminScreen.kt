@@ -2,7 +2,6 @@ package turmaA.grupoB.LinkStage.ui.admin.institutions
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,29 +15,21 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.outlined.FilterList
 import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
@@ -63,9 +54,8 @@ import turmaA.grupoB.LinkStage.ui.admin.AdminInstitution
 import turmaA.grupoB.LinkStage.ui.admin.AdminRoutes
 import turmaA.grupoB.LinkStage.ui.admin.sampleInstitutions
 import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
-import turmaA.grupoB.LinkStage.ui.common.LinkStageButton
 import turmaA.grupoB.LinkStage.ui.common.LinkStageDialog
-import turmaA.grupoB.LinkStage.ui.common.LinkStageLogo
+import turmaA.grupoB.LinkStage.ui.common.SectionLabel
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
@@ -73,31 +63,43 @@ import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.ui.theme.MediumBlue
 
-private val institutionChipFilters = listOf("Todas", "Instituição", "Empresa")
-
 @Composable
 fun InstitutionsAdminScreen(
     navController: NavController,
     modifier: Modifier = Modifier,
 ) {
     var searchQuery by rememberSaveable { mutableStateOf("") }
-    var selectedChip by rememberSaveable { mutableStateOf("Todas") }
     var showAddDialog by remember { mutableStateOf(false) }
+    var showFilterDialog by remember { mutableStateOf(false) }
+    var filterType by rememberSaveable { mutableStateOf("") }
+    var filterLocation by rememberSaveable { mutableStateOf("") }
 
     val filtered = sampleInstitutions.filter { institution ->
         val matchesSearch = searchQuery.isBlank() ||
             institution.name.contains(searchQuery, ignoreCase = true) ||
             institution.code.contains(searchQuery, ignoreCase = true) ||
             institution.location.contains(searchQuery, ignoreCase = true)
-        val matchesChip = when (selectedChip) {
-            "Todas" -> true
-            else -> institution.type == selectedChip
-        }
-        matchesSearch && matchesChip
+        val matchesType = filterType.isEmpty() || institution.type == filterType
+        val matchesLocation = filterLocation.isEmpty() ||
+            institution.location.contains(filterLocation, ignoreCase = true)
+        matchesSearch && matchesType && matchesLocation
     }
 
     if (showAddDialog) {
         AddInstitutionDialog(onDismiss = { showAddDialog = false })
+    }
+
+    if (showFilterDialog) {
+        InstitutionFilterDialog(
+            currentType = filterType,
+            currentLocation = filterLocation,
+            onApply = { type, location ->
+                filterType = type
+                filterLocation = location
+                showFilterDialog = false
+            },
+            onDismiss = { showFilterDialog = false },
+        )
     }
 
     Scaffold(
@@ -106,10 +108,11 @@ fun InstitutionsAdminScreen(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { showAddDialog = true },
-                containerColor = DarkBlue,
-                shape = CircleShape,
+                containerColor = LightBlue,
+                contentColor = Color.White,
+                shape = RoundedCornerShape(16.dp),
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Adicionar Instituição", tint = Color.White)
+                Icon(Icons.Default.Add, contentDescription = "Adicionar Instituição")
             }
         },
     ) { innerPadding ->
@@ -121,16 +124,14 @@ fun InstitutionsAdminScreen(
                     .padding(bottom = innerPadding.calculateBottomPadding()),
             ) {
                 item {
-                    Column(modifier = Modifier.background(Color.White)) {
-                        Text(
-                            text = "Instituições",
-                            style = MaterialTheme.typography.headlineSmall.copy(
-                                fontWeight = FontWeight.Bold,
-                                color = DarkBlue,
-                            ),
-                            modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp),
-                        )
-                    }
+                    Text(
+                        text = "Instituições",
+                        style = MaterialTheme.typography.headlineSmall.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = DarkBlue,
+                        ),
+                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp),
+                    )
                 }
 
                 item {
@@ -138,15 +139,7 @@ fun InstitutionsAdminScreen(
                     SearchBarWithFilter(
                         query = searchQuery,
                         onQueryChange = { searchQuery = it },
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                }
-
-                item {
-                    QuickFilterChips(
-                        filters = institutionChipFilters,
-                        selectedFilter = selectedChip,
-                        onFilterSelected = { selectedChip = it },
+                        onFilterClick = { showFilterDialog = true },
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                 }
@@ -170,6 +163,7 @@ fun InstitutionsAdminScreen(
 private fun SearchBarWithFilter(
     query: String,
     onQueryChange: (String) -> Unit,
+    onFilterClick: () -> Unit,
 ) {
     Row(
         modifier = Modifier
@@ -201,7 +195,7 @@ private fun SearchBarWithFilter(
                 .size(52.dp)
                 .clip(RoundedCornerShape(12.dp))
                 .background(DarkBlue)
-                .clickable { },
+                .clickable { onFilterClick() },
             contentAlignment = Alignment.Center,
         ) {
             Icon(
@@ -214,47 +208,93 @@ private fun SearchBarWithFilter(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun QuickFilterChips(
-    filters: List<String>,
-    selectedFilter: String,
-    onFilterSelected: (String) -> Unit,
+private fun InstitutionFilterDialog(
+    currentType: String,
+    currentLocation: String,
+    onApply: (type: String, location: String) -> Unit,
+    onDismiss: () -> Unit,
 ) {
-    Row(
-        modifier = Modifier
-            .horizontalScroll(rememberScrollState())
-            .padding(horizontal = 20.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        filters.forEach { filter ->
-            val isSelected = filter == selectedFilter
-            FilterChip(
-                selected = isSelected,
-                onClick = { onFilterSelected(filter) },
-                label = {
-                    Text(
-                        text = filter,
-                        style = MaterialTheme.typography.labelMedium.copy(
-                            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
-                        ),
-                    )
-                },
-                shape = RoundedCornerShape(20.dp),
-                colors = FilterChipDefaults.filterChipColors(
-                    selectedContainerColor = DarkBlue,
-                    selectedLabelColor = Color.White,
-                    containerColor = Color.White,
-                    labelColor = DarkGrey,
-                ),
-                border = FilterChipDefaults.filterChipBorder(
-                    enabled = true,
-                    selected = isSelected,
-                    borderColor = BorderGrey,
-                    selectedBorderColor = Color.Transparent,
-                ),
+    var type by remember { mutableStateOf(currentType) }
+    var location by remember { mutableStateOf(currentLocation) }
+    var typeExpanded by remember { mutableStateOf(false) }
+
+    val typeOptions = listOf("Todas", "Instituição", "Empresa")
+
+    LinkStageDialog(
+        title = "Filtros",
+        onConfirm = {
+            onApply(
+                if (type == "Todas") "" else type,
+                location,
             )
-        }
-    }
+        },
+        onDismiss = onDismiss,
+        confirmText = "Filtrar",
+        dismissText = "Cancelar",
+        content = {
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    SectionLabel("Tipo")
+                    ExposedDropdownMenuBox(
+                        expanded = typeExpanded,
+                        onExpandedChange = { typeExpanded = it },
+                    ) {
+                        OutlinedTextField(
+                            value = type.ifEmpty { "Todas" },
+                            onValueChange = {},
+                            readOnly = true,
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = typeExpanded) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .menuAnchor(MenuAnchorType.PrimaryNotEditable),
+                            shape = RoundedCornerShape(10.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = LightBlue,
+                                unfocusedBorderColor = BorderGrey,
+                                focusedContainerColor = Color.White,
+                                unfocusedContainerColor = Color.White,
+                            ),
+                            singleLine = true,
+                        )
+                        ExposedDropdownMenu(
+                            expanded = typeExpanded,
+                            onDismissRequest = { typeExpanded = false },
+                        ) {
+                            typeOptions.forEach { option ->
+                                DropdownMenuItem(
+                                    text = { Text(option) },
+                                    onClick = {
+                                        type = if (option == "Todas") "" else option
+                                        typeExpanded = false
+                                    },
+                                )
+                            }
+                        }
+                    }
+                }
+
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    SectionLabel("Localização")
+                    OutlinedTextField(
+                        value = location,
+                        onValueChange = { location = it },
+                        placeholder = { Text("Escreva aqui.", color = DarkGrey, fontSize = 14.sp) },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(10.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = LightBlue,
+                            unfocusedBorderColor = BorderGrey,
+                            focusedContainerColor = Color.White,
+                            unfocusedContainerColor = Color.White,
+                        ),
+                        singleLine = true,
+                    )
+                }
+            }
+        },
+    )
 }
 
 @Composable

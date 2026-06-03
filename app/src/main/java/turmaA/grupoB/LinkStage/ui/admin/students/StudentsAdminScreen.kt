@@ -2,7 +2,6 @@ package turmaA.grupoB.LinkStage.ui.admin.students
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,7 +15,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -25,21 +23,15 @@ import androidx.compose.material.icons.outlined.FilterList
 import androidx.compose.material.icons.outlined.KeyboardArrowDown
 import androidx.compose.material.icons.outlined.KeyboardArrowUp
 import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
@@ -69,9 +61,7 @@ import turmaA.grupoB.LinkStage.ui.admin.avatarColors
 import turmaA.grupoB.LinkStage.ui.admin.sampleMentors
 import turmaA.grupoB.LinkStage.ui.admin.sampleStudents
 import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
-import turmaA.grupoB.LinkStage.ui.common.LinkStageButton
 import turmaA.grupoB.LinkStage.ui.common.LinkStageDialog
-import turmaA.grupoB.LinkStage.ui.common.LinkStageLogo
 import turmaA.grupoB.LinkStage.ui.common.LinkStageTabRow
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
@@ -79,9 +69,6 @@ import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.ui.theme.MediumBlue
-
-private val studentChipFilters = listOf("Todos", "Em estágio", "Sem estágio")
-private val mentorChipFilters = listOf("Todos", "ESTG-IPVC", "ESE-IPVC")
 
 @Composable
 fun StudentsAdminScreen(
@@ -94,7 +81,7 @@ fun StudentsAdminScreen(
         modifier = modifier,
         containerColor = BackgroundLight,
         topBar = {
-            Column(modifier = Modifier.background(Color.White)) {
+            Column {
                 CommonTopBar()
 
                 Text(
@@ -105,24 +92,20 @@ fun StudentsAdminScreen(
                     ),
                     modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp),
                 )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                LinkStageTabRow(
-                    tabs = listOf("Alunos", "Orientadores"),
-                    selectedIndex = selectedTab,
-                    onTabSelected = { selectedTab = it },
-                )
             }
         },
     ) { innerPadding ->
         when (selectedTab) {
             0 -> StudentsTabContent(
                 navController = navController,
+                selectedTab = selectedTab,
+                onTabSelected = { selectedTab = it },
                 modifier = Modifier.padding(innerPadding),
             )
             1 -> MentorsTabContent(
                 navController = navController,
+                selectedTab = selectedTab,
+                onTabSelected = { selectedTab = it },
                 modifier = Modifier.padding(innerPadding),
             )
         }
@@ -134,23 +117,32 @@ fun StudentsAdminScreen(
 @Composable
 private fun StudentsTabContent(
     navController: NavController,
+    selectedTab: Int,
+    onTabSelected: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var searchQuery by rememberSaveable { mutableStateOf("") }
-    var selectedChip by rememberSaveable { mutableStateOf("Todos") }
     var showAddDialog by remember { mutableStateOf(false) }
+    var showFilterDialog by remember { mutableStateOf(false) }
+    var filterStatus by rememberSaveable { mutableStateOf("") }
+    var filterInstitution by rememberSaveable { mutableStateOf("") }
+    var filterCourse by rememberSaveable { mutableStateOf("") }
 
     val filtered = sampleStudents.filter { student ->
         val matchesSearch = searchQuery.isBlank() ||
             student.name.contains(searchQuery, ignoreCase = true) ||
             student.course.contains(searchQuery, ignoreCase = true) ||
             student.institution.contains(searchQuery, ignoreCase = true)
-        val matchesChip = when (selectedChip) {
+        val matchesStatus = when (filterStatus) {
             "Em estágio" -> student.hasActiveInternship
             "Sem estágio" -> !student.hasActiveInternship
             else -> true
         }
-        matchesSearch && matchesChip
+        val matchesInstitution = filterInstitution.isEmpty() ||
+            student.institution.contains(filterInstitution, ignoreCase = true)
+        val matchesCourse = filterCourse.isEmpty() ||
+            student.course.contains(filterCourse, ignoreCase = true)
+        matchesSearch && matchesStatus && matchesInstitution && matchesCourse
     }
 
     val grouped = filtered
@@ -165,16 +157,32 @@ private fun StudentsTabContent(
         AddStudentDialog(onDismiss = { showAddDialog = false })
     }
 
+    if (showFilterDialog) {
+        StudentFilterDialog(
+            currentStatus = filterStatus,
+            currentInstitution = filterInstitution,
+            currentCourse = filterCourse,
+            onApply = { status, institution, course ->
+                filterStatus = status
+                filterInstitution = institution
+                filterCourse = course
+                showFilterDialog = false
+            },
+            onDismiss = { showFilterDialog = false },
+        )
+    }
+
     Scaffold(
         modifier = modifier,
         containerColor = BackgroundLight,
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { showAddDialog = true },
-                containerColor = DarkBlue,
-                shape = CircleShape,
+                containerColor = LightBlue,
+                contentColor = Color.White,
+                shape = RoundedCornerShape(16.dp),
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Adicionar Aluno", tint = Color.White)
+                Icon(Icons.Default.Add, contentDescription = "Adicionar Aluno")
             }
         },
     ) { innerPadding ->
@@ -189,15 +197,13 @@ private fun StudentsTabContent(
                     query = searchQuery,
                     onQueryChange = { searchQuery = it },
                     placeholder = "Pesquisar alunos...",
+                    onFilterClick = { showFilterDialog = true },
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-            }
-
-            item {
-                QuickFilterChips(
-                    filters = studentChipFilters,
-                    selectedFilter = selectedChip,
-                    onFilterSelected = { selectedChip = it },
+                LinkStageTabRow(
+                    tabs = listOf("Alunos", "Orientadores"),
+                    selectedIndex = selectedTab,
+                    onTabSelected = onTabSelected,
                 )
                 Spacer(modifier = Modifier.height(8.dp))
             }
@@ -337,22 +343,26 @@ fun StudentListItem(
 @Composable
 private fun MentorsTabContent(
     navController: NavController,
+    selectedTab: Int,
+    onTabSelected: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var searchQuery by rememberSaveable { mutableStateOf("") }
-    var selectedChip by rememberSaveable { mutableStateOf("Todos") }
     var showAddDialog by remember { mutableStateOf(false) }
+    var showFilterDialog by remember { mutableStateOf(false) }
+    var filterInstitution by rememberSaveable { mutableStateOf("") }
+    var filterDepartment by rememberSaveable { mutableStateOf("") }
 
     val filtered = sampleMentors.filter { mentor ->
         val matchesSearch = searchQuery.isBlank() ||
             mentor.name.contains(searchQuery, ignoreCase = true) ||
             mentor.email.contains(searchQuery, ignoreCase = true) ||
             mentor.institution.contains(searchQuery, ignoreCase = true)
-        val matchesChip = when (selectedChip) {
-            "Todos" -> true
-            else -> mentor.institution == selectedChip
-        }
-        matchesSearch && matchesChip
+        val matchesInstitution = filterInstitution.isEmpty() ||
+            mentor.institution == filterInstitution
+        val matchesDepartment = filterDepartment.isEmpty() ||
+            mentor.department.contains(filterDepartment, ignoreCase = true)
+        matchesSearch && matchesInstitution && matchesDepartment
     }
 
     val grouped = filtered.groupBy { it.institution }
@@ -365,16 +375,30 @@ private fun MentorsTabContent(
         AddMentorDialog(onDismiss = { showAddDialog = false })
     }
 
+    if (showFilterDialog) {
+        MentorFilterDialog(
+            currentInstitution = filterInstitution,
+            currentDepartment = filterDepartment,
+            onApply = { institution, department ->
+                filterInstitution = institution
+                filterDepartment = department
+                showFilterDialog = false
+            },
+            onDismiss = { showFilterDialog = false },
+        )
+    }
+
     Scaffold(
         modifier = modifier,
         containerColor = BackgroundLight,
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { showAddDialog = true },
-                containerColor = DarkBlue,
-                shape = CircleShape,
+                containerColor = LightBlue,
+                contentColor = Color.White,
+                shape = RoundedCornerShape(16.dp),
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Adicionar Orientador", tint = Color.White)
+                Icon(Icons.Default.Add, contentDescription = "Adicionar Orientador")
             }
         },
     ) { innerPadding ->
@@ -389,15 +413,13 @@ private fun MentorsTabContent(
                     query = searchQuery,
                     onQueryChange = { searchQuery = it },
                     placeholder = "Pesquisar orientadores...",
+                    onFilterClick = { showFilterDialog = true },
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-            }
-
-            item {
-                QuickFilterChips(
-                    filters = mentorChipFilters,
-                    selectedFilter = selectedChip,
-                    onFilterSelected = { selectedChip = it },
+                LinkStageTabRow(
+                    tabs = listOf("Alunos", "Orientadores"),
+                    selectedIndex = selectedTab,
+                    onTabSelected = onTabSelected,
                 )
                 Spacer(modifier = Modifier.height(8.dp))
             }
@@ -503,6 +525,7 @@ private fun SearchBarWithFilter(
     query: String,
     onQueryChange: (String) -> Unit,
     placeholder: String,
+    onFilterClick: () -> Unit,
 ) {
     Row(
         modifier = Modifier
@@ -534,7 +557,7 @@ private fun SearchBarWithFilter(
                 .size(52.dp)
                 .clip(RoundedCornerShape(12.dp))
                 .background(DarkBlue)
-                .clickable { },
+                .clickable { onFilterClick() },
             contentAlignment = Alignment.Center,
         ) {
             Icon(
@@ -542,49 +565,6 @@ private fun SearchBarWithFilter(
                 contentDescription = "Filtros",
                 tint = Color.White,
                 modifier = Modifier.size(22.dp),
-            )
-        }
-    }
-}
-
-@Composable
-private fun QuickFilterChips(
-    filters: List<String>,
-    selectedFilter: String,
-    onFilterSelected: (String) -> Unit,
-) {
-    Row(
-        modifier = Modifier
-            .horizontalScroll(rememberScrollState())
-            .padding(horizontal = 20.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        filters.forEach { filter ->
-            val isSelected = filter == selectedFilter
-            FilterChip(
-                selected = isSelected,
-                onClick = { onFilterSelected(filter) },
-                label = {
-                    Text(
-                        text = filter,
-                        style = MaterialTheme.typography.labelMedium.copy(
-                            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
-                        ),
-                    )
-                },
-                shape = RoundedCornerShape(20.dp),
-                colors = FilterChipDefaults.filterChipColors(
-                    selectedContainerColor = DarkBlue,
-                    selectedLabelColor = Color.White,
-                    containerColor = Color.White,
-                    labelColor = DarkGrey,
-                ),
-                border = FilterChipDefaults.filterChipBorder(
-                    enabled = true,
-                    selected = isSelected,
-                    borderColor = BorderGrey,
-                    selectedBorderColor = Color.Transparent,
-                ),
             )
         }
     }
@@ -632,6 +612,238 @@ private fun InstitutionHeader(
 // endregion
 
 // region Dialogs
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun StudentFilterDialog(
+    currentStatus: String,
+    currentInstitution: String,
+    currentCourse: String,
+    onApply: (status: String, institution: String, course: String) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var status by remember { mutableStateOf(currentStatus) }
+    var institution by remember { mutableStateOf(currentInstitution) }
+    var course by remember { mutableStateOf(currentCourse) }
+    var statusExpanded by remember { mutableStateOf(false) }
+    var institutionExpanded by remember { mutableStateOf(false) }
+
+    val statusOptions = listOf("Todos", "Em estágio", "Sem estágio")
+    val institutionOptions = sampleStudents.map { it.institution }.distinct()
+
+    LinkStageDialog(
+        title = "Filtros",
+        onConfirm = {
+            onApply(
+                if (status == "Todos") "" else status,
+                institution,
+                course,
+            )
+        },
+        onDismiss = onDismiss,
+        confirmText = "Filtrar",
+        dismissText = "Cancelar",
+        content = {
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    turmaA.grupoB.LinkStage.ui.common.SectionLabel("Estado")
+                    ExposedDropdownMenuBox(
+                        expanded = statusExpanded,
+                        onExpandedChange = { statusExpanded = it },
+                    ) {
+                        OutlinedTextField(
+                            value = status.ifEmpty { "Todos" },
+                            onValueChange = {},
+                            readOnly = true,
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = statusExpanded) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .menuAnchor(MenuAnchorType.PrimaryNotEditable),
+                            shape = RoundedCornerShape(10.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = LightBlue,
+                                unfocusedBorderColor = BorderGrey,
+                                focusedContainerColor = Color.White,
+                                unfocusedContainerColor = Color.White,
+                            ),
+                            singleLine = true,
+                        )
+                        ExposedDropdownMenu(
+                            expanded = statusExpanded,
+                            onDismissRequest = { statusExpanded = false },
+                        ) {
+                            statusOptions.forEach { option ->
+                                DropdownMenuItem(
+                                    text = { Text(option) },
+                                    onClick = {
+                                        status = if (option == "Todos") "" else option
+                                        statusExpanded = false
+                                    },
+                                )
+                            }
+                        }
+                    }
+                }
+
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    turmaA.grupoB.LinkStage.ui.common.SectionLabel("Instituição")
+                    ExposedDropdownMenuBox(
+                        expanded = institutionExpanded,
+                        onExpandedChange = { institutionExpanded = it },
+                    ) {
+                        OutlinedTextField(
+                            value = institution.ifEmpty { "Todas" },
+                            onValueChange = {},
+                            readOnly = true,
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = institutionExpanded) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .menuAnchor(MenuAnchorType.PrimaryNotEditable),
+                            shape = RoundedCornerShape(10.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = LightBlue,
+                                unfocusedBorderColor = BorderGrey,
+                                focusedContainerColor = Color.White,
+                                unfocusedContainerColor = Color.White,
+                            ),
+                            singleLine = true,
+                        )
+                        ExposedDropdownMenu(
+                            expanded = institutionExpanded,
+                            onDismissRequest = { institutionExpanded = false },
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("Todas") },
+                                onClick = {
+                                    institution = ""
+                                    institutionExpanded = false
+                                },
+                            )
+                            institutionOptions.forEach { option ->
+                                DropdownMenuItem(
+                                    text = { Text(option) },
+                                    onClick = {
+                                        institution = option
+                                        institutionExpanded = false
+                                    },
+                                )
+                            }
+                        }
+                    }
+                }
+
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    turmaA.grupoB.LinkStage.ui.common.SectionLabel("Curso")
+                    OutlinedTextField(
+                        value = course,
+                        onValueChange = { course = it },
+                        placeholder = { Text("Escreva aqui.", color = DarkGrey, fontSize = 14.sp) },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(10.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = LightBlue,
+                            unfocusedBorderColor = BorderGrey,
+                            focusedContainerColor = Color.White,
+                            unfocusedContainerColor = Color.White,
+                        ),
+                        singleLine = true,
+                    )
+                }
+            }
+        },
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun MentorFilterDialog(
+    currentInstitution: String,
+    currentDepartment: String,
+    onApply: (institution: String, department: String) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var institution by remember { mutableStateOf(currentInstitution) }
+    var department by remember { mutableStateOf(currentDepartment) }
+    var institutionExpanded by remember { mutableStateOf(false) }
+
+    val institutionOptions = sampleMentors.map { it.institution }.distinct()
+
+    LinkStageDialog(
+        title = "Filtros",
+        onConfirm = { onApply(institution, department) },
+        onDismiss = onDismiss,
+        confirmText = "Filtrar",
+        dismissText = "Cancelar",
+        content = {
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    turmaA.grupoB.LinkStage.ui.common.SectionLabel("Instituição")
+                    ExposedDropdownMenuBox(
+                        expanded = institutionExpanded,
+                        onExpandedChange = { institutionExpanded = it },
+                    ) {
+                        OutlinedTextField(
+                            value = institution.ifEmpty { "Todas" },
+                            onValueChange = {},
+                            readOnly = true,
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = institutionExpanded) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .menuAnchor(MenuAnchorType.PrimaryNotEditable),
+                            shape = RoundedCornerShape(10.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = LightBlue,
+                                unfocusedBorderColor = BorderGrey,
+                                focusedContainerColor = Color.White,
+                                unfocusedContainerColor = Color.White,
+                            ),
+                            singleLine = true,
+                        )
+                        ExposedDropdownMenu(
+                            expanded = institutionExpanded,
+                            onDismissRequest = { institutionExpanded = false },
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("Todas") },
+                                onClick = {
+                                    institution = ""
+                                    institutionExpanded = false
+                                },
+                            )
+                            institutionOptions.forEach { option ->
+                                DropdownMenuItem(
+                                    text = { Text(option) },
+                                    onClick = {
+                                        institution = option
+                                        institutionExpanded = false
+                                    },
+                                )
+                            }
+                        }
+                    }
+                }
+
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    turmaA.grupoB.LinkStage.ui.common.SectionLabel("Departamento")
+                    OutlinedTextField(
+                        value = department,
+                        onValueChange = { department = it },
+                        placeholder = { Text("Escreva aqui.", color = DarkGrey, fontSize = 14.sp) },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(10.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = LightBlue,
+                            unfocusedBorderColor = BorderGrey,
+                            focusedContainerColor = Color.White,
+                            unfocusedContainerColor = Color.White,
+                        ),
+                        singleLine = true,
+                    )
+                }
+            }
+        },
+    )
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

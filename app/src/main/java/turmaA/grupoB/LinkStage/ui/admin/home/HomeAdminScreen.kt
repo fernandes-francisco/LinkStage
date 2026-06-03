@@ -75,9 +75,9 @@ fun HomeAdminScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Novos utilizadores
+            // Novos alunos
             SectionHeader(
-                title = "Novos utilizadores",
+                title = "Novos alunos",
                 onViewAll = {
                     navController.navigate(AdminRoutes.STUDENTS) {
                         popUpTo(navController.graph.findStartDestination().id) {

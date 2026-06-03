@@ -92,7 +92,7 @@ fun AppNavigation(
         composable(Routes.LOGIN) {
             LoginScreen(
                 onLoginClick = { _, _ ->
-                    navController.navigate(Routes.ORIENTADOR_MAIN) {
+                    navController.navigate(Routes.ADMIN_MAIN) {
                         popUpTo(Routes.LOGIN) { inclusive = true }
                     }
                 },
