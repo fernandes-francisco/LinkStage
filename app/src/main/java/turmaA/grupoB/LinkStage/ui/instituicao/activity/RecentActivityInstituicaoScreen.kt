@@ -1,6 +1,5 @@
 package turmaA.grupoB.LinkStage.ui.instituicao.activity
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -26,10 +25,15 @@ import androidx.compose.material.icons.outlined.FilterList
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
@@ -38,6 +42,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -52,10 +57,14 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import turmaA.grupoB.LinkStage.ui.aluno.chat.avatarColors
 import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
+import turmaA.grupoB.LinkStage.ui.common.LinkStageDialog
 import turmaA.grupoB.LinkStage.ui.common.LinkStageTabRow
+import turmaA.grupoB.LinkStage.ui.common.SectionLabel
+import turmaA.grupoB.LinkStage.ui.instituicao.InstituicaoRoutes
 import turmaA.grupoB.LinkStage.ui.instituicao.InstitutionInternship
 import turmaA.grupoB.LinkStage.ui.instituicao.InstitutionMentorItem
 import turmaA.grupoB.LinkStage.ui.instituicao.InternshipStatus
+import turmaA.grupoB.LinkStage.ui.instituicao.MentorStatus
 import turmaA.grupoB.LinkStage.ui.instituicao.internshipStatusColor
 import turmaA.grupoB.LinkStage.ui.instituicao.internshipStatusLabel
 import turmaA.grupoB.LinkStage.ui.instituicao.mentorStatusColor
@@ -66,7 +75,6 @@ import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
-import turmaA.grupoB.LinkStage.ui.instituicao.InstituicaoRoutes
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 
 @Composable
@@ -76,6 +84,40 @@ fun ActivityInstituicaoScreen(
 ) {
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
     var searchQuery by rememberSaveable { mutableStateOf("") }
+    var showFilterDialog by remember { mutableStateOf(false) }
+
+    // Internship filters
+    var filterInternshipStatus by rememberSaveable { mutableStateOf("") }
+    var filterInternshipMentor by rememberSaveable { mutableStateOf("") }
+
+    // Mentor filters
+    var filterMentorStatus by rememberSaveable { mutableStateOf("") }
+    var filterMentorInstitution by rememberSaveable { mutableStateOf("") }
+
+    if (showFilterDialog) {
+        when (selectedTab) {
+            0 -> InternshipFilterDialog(
+                currentStatus = filterInternshipStatus,
+                currentMentor = filterInternshipMentor,
+                onApply = { status, mentor ->
+                    filterInternshipStatus = status
+                    filterInternshipMentor = mentor
+                    showFilterDialog = false
+                },
+                onDismiss = { showFilterDialog = false },
+            )
+            1 -> MentorFilterDialog(
+                currentStatus = filterMentorStatus,
+                currentInstitution = filterMentorInstitution,
+                onApply = { status, institution ->
+                    filterMentorStatus = status
+                    filterMentorInstitution = institution
+                    showFilterDialog = false
+                },
+                onDismiss = { showFilterDialog = false },
+            )
+        }
+    }
 
     Scaffold(
         modifier = modifier,
@@ -109,9 +151,10 @@ fun ActivityInstituicaoScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            SearchBar(
+            SearchBarWithFilter(
                 query = searchQuery,
                 onQueryChange = { searchQuery = it },
+                onFilterClick = { showFilterDialog = true },
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -123,17 +166,28 @@ fun ActivityInstituicaoScreen(
             )
 
             when (selectedTab) {
-                0 -> InternshipsTab(searchQuery = searchQuery, navController = navController)
-                1 -> MentorsTab(searchQuery = searchQuery, navController = navController)
+                0 -> InternshipsTab(
+                    searchQuery = searchQuery,
+                    filterStatus = filterInternshipStatus,
+                    filterMentor = filterInternshipMentor,
+                    navController = navController,
+                )
+                1 -> MentorsTab(
+                    searchQuery = searchQuery,
+                    filterStatus = filterMentorStatus,
+                    filterInstitution = filterMentorInstitution,
+                    navController = navController,
+                )
             }
         }
     }
 }
 
 @Composable
-private fun SearchBar(
+private fun SearchBarWithFilter(
     query: String,
     onQueryChange: (String) -> Unit,
+    onFilterClick: () -> Unit,
 ) {
     Row(
         modifier = Modifier
@@ -165,7 +219,7 @@ private fun SearchBar(
                 .size(52.dp)
                 .clip(RoundedCornerShape(12.dp))
                 .background(DarkBlue)
-                .clickable { },
+                .clickable { onFilterClick() },
             contentAlignment = Alignment.Center,
         ) {
             Icon(
@@ -178,12 +232,213 @@ private fun SearchBar(
     }
 }
 
+// region Filter Dialogs
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun InternshipsTab(searchQuery: String, navController: NavController) {
+private fun InternshipFilterDialog(
+    currentStatus: String,
+    currentMentor: String,
+    onApply: (status: String, mentor: String) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var status by remember { mutableStateOf(currentStatus) }
+    var mentor by remember { mutableStateOf(currentMentor) }
+    var statusExpanded by remember { mutableStateOf(false) }
+
+    val statusOptions = listOf(
+        "Todos", "Em acompanhamento", "Por avaliar", "Concluído", "Sem orientador"
+    )
+
+    LinkStageDialog(
+        title = "Filtros — Estágios",
+        onConfirm = {
+            onApply(
+                if (status == "Todos") "" else status,
+                mentor,
+            )
+        },
+        onDismiss = onDismiss,
+        confirmText = "Filtrar",
+        dismissText = "Cancelar",
+        content = {
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    SectionLabel("Estado")
+                    ExposedDropdownMenuBox(
+                        expanded = statusExpanded,
+                        onExpandedChange = { statusExpanded = it },
+                    ) {
+                        OutlinedTextField(
+                            value = status.ifEmpty { "Todos" },
+                            onValueChange = {},
+                            readOnly = true,
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = statusExpanded) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .menuAnchor(MenuAnchorType.PrimaryNotEditable),
+                            shape = RoundedCornerShape(10.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = LightBlue,
+                                unfocusedBorderColor = BorderGrey,
+                                focusedContainerColor = Color.White,
+                                unfocusedContainerColor = Color.White,
+                            ),
+                            singleLine = true,
+                        )
+                        ExposedDropdownMenu(
+                            expanded = statusExpanded,
+                            onDismissRequest = { statusExpanded = false },
+                        ) {
+                            statusOptions.forEach { option ->
+                                DropdownMenuItem(
+                                    text = { Text(option) },
+                                    onClick = {
+                                        status = if (option == "Todos") "" else option
+                                        statusExpanded = false
+                                    },
+                                )
+                            }
+                        }
+                    }
+                }
+
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    SectionLabel("Orientador")
+                    OutlinedTextField(
+                        value = mentor,
+                        onValueChange = { mentor = it },
+                        placeholder = { Text("Escreva aqui.", color = DarkGrey, fontSize = 14.sp) },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(10.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = LightBlue,
+                            unfocusedBorderColor = BorderGrey,
+                            focusedContainerColor = Color.White,
+                            unfocusedContainerColor = Color.White,
+                        ),
+                        singleLine = true,
+                    )
+                }
+            }
+        },
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun MentorFilterDialog(
+    currentStatus: String,
+    currentInstitution: String,
+    onApply: (status: String, institution: String) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var status by remember { mutableStateOf(currentStatus) }
+    var institution by remember { mutableStateOf(currentInstitution) }
+    var statusExpanded by remember { mutableStateOf(false) }
+
+    val statusOptions = listOf("Todos", "Em acompanhamento", "Inativo", "Sem estágios")
+
+    LinkStageDialog(
+        title = "Filtros — Orientadores",
+        onConfirm = {
+            onApply(
+                if (status == "Todos") "" else status,
+                institution,
+            )
+        },
+        onDismiss = onDismiss,
+        confirmText = "Filtrar",
+        dismissText = "Cancelar",
+        content = {
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    SectionLabel("Estado")
+                    ExposedDropdownMenuBox(
+                        expanded = statusExpanded,
+                        onExpandedChange = { statusExpanded = it },
+                    ) {
+                        OutlinedTextField(
+                            value = status.ifEmpty { "Todos" },
+                            onValueChange = {},
+                            readOnly = true,
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = statusExpanded) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .menuAnchor(MenuAnchorType.PrimaryNotEditable),
+                            shape = RoundedCornerShape(10.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = LightBlue,
+                                unfocusedBorderColor = BorderGrey,
+                                focusedContainerColor = Color.White,
+                                unfocusedContainerColor = Color.White,
+                            ),
+                            singleLine = true,
+                        )
+                        ExposedDropdownMenu(
+                            expanded = statusExpanded,
+                            onDismissRequest = { statusExpanded = false },
+                        ) {
+                            statusOptions.forEach { option ->
+                                DropdownMenuItem(
+                                    text = { Text(option) },
+                                    onClick = {
+                                        status = if (option == "Todos") "" else option
+                                        statusExpanded = false
+                                    },
+                                )
+                            }
+                        }
+                    }
+                }
+
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    SectionLabel("Instituição")
+                    OutlinedTextField(
+                        value = institution,
+                        onValueChange = { institution = it },
+                        placeholder = { Text("Escreva aqui.", color = DarkGrey, fontSize = 14.sp) },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(10.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = LightBlue,
+                            unfocusedBorderColor = BorderGrey,
+                            focusedContainerColor = Color.White,
+                            unfocusedContainerColor = Color.White,
+                        ),
+                        singleLine = true,
+                    )
+                }
+            }
+        },
+    )
+}
+
+// endregion
+
+// region Tabs
+
+@Composable
+private fun InternshipsTab(
+    searchQuery: String,
+    filterStatus: String,
+    filterMentor: String,
+    navController: NavController,
+) {
     val filtered = sampleInstitutionInternships.filter { internship ->
-        searchQuery.isEmpty() ||
+        val matchesSearch = searchQuery.isEmpty() ||
             internship.studentName.contains(searchQuery, ignoreCase = true) ||
             internship.offerTitle.contains(searchQuery, ignoreCase = true)
+        val matchesStatus = filterStatus.isEmpty() || when (filterStatus) {
+            "Em acompanhamento" -> internship.status == InternshipStatus.IN_PROGRESS
+            "Por avaliar" -> internship.status == InternshipStatus.PENDING_REVIEW
+            "Concluído" -> internship.status == InternshipStatus.COMPLETED
+            "Sem orientador" -> internship.status == InternshipStatus.NO_MENTOR
+            else -> true
+        }
+        val matchesMentor = filterMentor.isEmpty() ||
+            internship.mentorName.contains(filterMentor, ignoreCase = true)
+        matchesSearch && matchesStatus && matchesMentor
     }
 
     LazyColumn(
@@ -282,11 +537,25 @@ private fun InternshipCard(internship: InstitutionInternship, onClick: () -> Uni
 }
 
 @Composable
-private fun MentorsTab(searchQuery: String, navController: NavController) {
+private fun MentorsTab(
+    searchQuery: String,
+    filterStatus: String,
+    filterInstitution: String,
+    navController: NavController,
+) {
     val filtered = sampleInstitutionMentors.filter { mentor ->
-        searchQuery.isEmpty() ||
+        val matchesSearch = searchQuery.isEmpty() ||
             mentor.name.contains(searchQuery, ignoreCase = true) ||
             mentor.institution.contains(searchQuery, ignoreCase = true)
+        val matchesStatus = filterStatus.isEmpty() || when (filterStatus) {
+            "Em acompanhamento" -> mentor.status == MentorStatus.ACTIVE
+            "Inativo" -> mentor.status == MentorStatus.INACTIVE
+            "Sem estágios" -> mentor.status == MentorStatus.NO_STUDENTS
+            else -> true
+        }
+        val matchesInstitution = filterInstitution.isEmpty() ||
+            mentor.institution.contains(filterInstitution, ignoreCase = true)
+        matchesSearch && matchesStatus && matchesInstitution
     }
 
     LazyColumn(
@@ -358,6 +627,8 @@ private fun MentorCard(mentor: InstitutionMentorItem, onClick: () -> Unit = {}) 
         }
     }
 }
+
+// endregion
 
 @Composable
 private fun StatusBadge(label: String, color: Color) {
