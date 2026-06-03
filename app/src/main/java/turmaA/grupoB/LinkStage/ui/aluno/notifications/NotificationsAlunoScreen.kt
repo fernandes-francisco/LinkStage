@@ -60,6 +60,8 @@ fun NotificationsAlunoScreen(
     val candidaturas by settingsViewModel.notifCandidaturas.collectAsState()
     val mensagens by settingsViewModel.notifMensagens.collectAsState()
     val lembretes by settingsViewModel.notifLembretes.collectAsState()
+    val orientador by settingsViewModel.notifOrientador.collectAsState()
+    val avaliacao by settingsViewModel.notifAvaliacao.collectAsState()
 
     Column(
         modifier = modifier
@@ -93,7 +95,6 @@ fun NotificationsAlunoScreen(
         Column(
             modifier = Modifier
                 .weight(1f)
-                .verticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -131,8 +132,8 @@ fun NotificationsAlunoScreen(
                         NotificationRow(
                             title = "Orientador Atribuído",
                             subtitle = "Saber quando lhe é atribuído um docente",
-                            checked = true, 
-                            onCheckedChange = {}
+                            checked = orientador, 
+                            onCheckedChange = { settingsViewModel.toggleNotifOrientador(it) }
                         )
                     }
                 }
@@ -157,33 +158,27 @@ fun NotificationsAlunoScreen(
                         NotificationRow(
                             title = "Avaliação Concluída",
                             subtitle = "Alertar quando a classificação final estiver disponível",
-                            checked = true,
-                            onCheckedChange = {}
+                            checked = avaliacao,
+                            onCheckedChange = { settingsViewModel.toggleNotifAvaliacao(it) }
                         )
                     }
                 }
 
                 // Atividade Section
                 Column {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            "REGISTO DE ATIVIDADE",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = DarkGrey,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(start = 4.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        BrevementeBadge()
-                    }
-                    Spacer(modifier = Modifier.height(8.dp))
-                    NotificationSection(containerColor = Color.White.copy(alpha = 0.5f)) {
+                    Text(
+                        "REGISTO DE ATIVIDADE",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = DarkGrey,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(start = 4.dp, bottom = 8.dp)
+                    )
+                    NotificationSection {
                         NotificationRow(
                             title = "Lembretes Diários",
                             subtitle = "Lembrar de registar novas atividades no diário",
                             checked = lembretes,
-                            onCheckedChange = { settingsViewModel.toggleNotifLembretes(it) },
-                            enabled = false
+                            onCheckedChange = { settingsViewModel.toggleNotifLembretes(it) }
                         )
                     }
                 }
@@ -293,19 +288,3 @@ private fun NotificationRow(
     }
 }
 
-@Composable
-private fun BrevementeBadge() {
-    Box(
-        modifier = Modifier
-            .clip(RoundedCornerShape(4.dp))
-            .background(DarkGrey.copy(alpha = 0.1f))
-            .padding(horizontal = 6.dp, vertical = 2.dp)
-    ) {
-        Text(
-            "Brevemente",
-            fontSize = 8.sp,
-            fontWeight = FontWeight.Bold,
-            color = DarkGrey
-        )
-    }
-}

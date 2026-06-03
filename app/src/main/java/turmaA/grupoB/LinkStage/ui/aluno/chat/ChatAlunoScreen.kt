@@ -1,7 +1,9 @@
 package turmaA.grupoB.LinkStage.ui.aluno.chat
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -47,6 +49,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
+import turmaA.grupoB.LinkStage.ui.common.LinkStageDialog
 import turmaA.grupoB.LinkStage.ui.common.LinkStageLogo
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
@@ -124,9 +127,11 @@ private fun MessagesListScreen(
 ) {
     var searchQuery by rememberSaveable { mutableStateOf("") }
     var showNewMessageModal by rememberSaveable { mutableStateOf(false) }
+    var currentConversations by remember { mutableStateOf(conversations) }
+    var conversationToDelete by remember { mutableStateOf<Conversation?>(null) }
 
-    val filtered = if (searchQuery.isEmpty()) conversations
-    else conversations.filter {
+    val filtered = if (searchQuery.isEmpty()) currentConversations
+    else currentConversations.filter {
         it.name.contains(searchQuery, ignoreCase = true) ||
             it.lastMessage.contains(searchQuery, ignoreCase = true)
     }
@@ -137,6 +142,26 @@ private fun MessagesListScreen(
             onContactSelected = { contactId ->
                 showNewMessageModal = false
                 onOpenChat(contactId)
+            }
+        )
+    }
+
+    if (conversationToDelete != null) {
+        LinkStageDialog(
+            title = "Apagar Conversa",
+            onConfirm = {
+                currentConversations = currentConversations.filter { it.id != conversationToDelete!!.id }
+                conversationToDelete = null
+            },
+            onDismiss = { conversationToDelete = null },
+            confirmText = "Apagar",
+            dismissText = "Cancelar",
+            content = {
+                Text(
+                    text = "Tens a certeza que pretendes apagar a conversa com ${conversationToDelete!!.name}?",
+                    color = DarkGrey,
+                    lineHeight = 22.sp,
+                )
             }
         )
     }
@@ -184,6 +209,7 @@ private fun MessagesListScreen(
                         ConversationItem(
                             conversation = conversation,
                             onClick = { onOpenChat(conversation.id) },
+                            onLongClick = { conversationToDelete = conversation }
                         )
                         HorizontalDivider(
                             modifier = Modifier.padding(horizontal = 20.dp),
@@ -196,15 +222,20 @@ private fun MessagesListScreen(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ConversationItem(
     conversation: Conversation,
     onClick: () -> Unit,
+    onLongClick: () -> Unit = {},
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick() }
+            .combinedClickable(
+                onClick = onClick,
+                onLongClick = onLongClick
+            )
             .padding(horizontal = 20.dp, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {

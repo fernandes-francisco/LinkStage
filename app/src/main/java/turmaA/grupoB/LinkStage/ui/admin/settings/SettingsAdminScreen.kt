@@ -1,6 +1,7 @@
 package turmaA.grupoB.LinkStage.ui.admin.settings
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -21,6 +22,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowForward
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -28,10 +31,15 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -41,13 +49,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
+import turmaA.grupoB.LinkStage.ui.common.LinkStageButton
+import turmaA.grupoB.LinkStage.ui.common.LinkStageDialog
 import turmaA.grupoB.LinkStage.ui.common.LinkStageLogo
+import turmaA.grupoB.LinkStage.ui.common.ValidationItem
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
@@ -55,13 +70,18 @@ import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.Fade1
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.ui.theme.Red
+import turmaA.grupoB.LinkStage.viewmodel.SettingsViewModel
 
 @Composable
 fun SettingsAdminScreen(
     onLogout: () -> Unit = {},
+    settingsViewModel: SettingsViewModel = viewModel(),
     modifier: Modifier = Modifier,
 ) {
+    val currentLanguage by settingsViewModel.currentLanguage.collectAsState()
     var showLogoutDialog by remember { mutableStateOf(false) }
+    var showPasswordDialog by remember { mutableStateOf(false) }
+    val uriHandler = LocalUriHandler.current
 
     if (showLogoutDialog) {
         LogoutConfirmDialog(
@@ -70,6 +90,15 @@ fun SettingsAdminScreen(
                 onLogout()
             },
             onDismiss = { showLogoutDialog = false },
+        )
+    }
+
+    if (showPasswordDialog) {
+        ChangePasswordDialog(
+            onDismiss = { showPasswordDialog = false },
+            onConfirm = { newPassword ->
+                showPasswordDialog = false
+            }
         )
     }
 
@@ -85,7 +114,7 @@ fun SettingsAdminScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 24.dp, vertical = 8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
+            horizontalAlignment = Alignment.Start,
         ) {
             Text(
                 text = "Definições",
@@ -93,12 +122,6 @@ fun SettingsAdminScreen(
                     fontWeight = FontWeight.Bold,
                     color = DarkBlue,
                 ),
-            )
-            Text(
-                text = "Gerir as definições da plataforma",
-                style = MaterialTheme.typography.bodySmall,
-                color = DarkGrey,
-                textAlign = TextAlign.Center,
             )
         }
 
@@ -142,6 +165,15 @@ fun SettingsAdminScreen(
                     )
                 }
             }
+
+            HorizontalDivider(color = BorderGrey)
+
+            SettingsRowItem(
+                label = "Políticas de Privacidade",
+                onClick = {
+                    uriHandler.openUri("https://www.google.com")
+                },
+            )
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -152,8 +184,8 @@ fun SettingsAdminScreen(
         SettingsCard(modifier = Modifier.padding(horizontal = 20.dp)) {
             SettingsRowItem(
                 icon = Icons.Outlined.Settings,
-                label = "Gestão de Utilizadores",
-                onClick = { },
+                label = "Alterar Palavra-Passe",
+                onClick = { showPasswordDialog = true },
             )
 
             HorizontalDivider(
@@ -161,22 +193,31 @@ fun SettingsAdminScreen(
                 modifier = Modifier.padding(horizontal = 16.dp),
             )
 
-            SettingsRowItem(
-                icon = Icons.Outlined.Settings,
-                label = "Notificações",
-                onClick = { },
-            )
-
-            HorizontalDivider(
-                color = BorderGrey,
-                modifier = Modifier.padding(horizontal = 16.dp),
-            )
-
-            SettingsRowItem(
-                icon = Icons.Outlined.Settings,
-                label = "Segurança",
-                onClick = { },
-            )
+            // Language toggle
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 14.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Settings,
+                    contentDescription = null,
+                    tint = DarkGrey,
+                    modifier = Modifier.size(20.dp),
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Text(
+                    text = "Idioma",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = DarkBlue,
+                    modifier = Modifier.weight(1f),
+                )
+                LanguageToggle(
+                    selectedLang = currentLanguage,
+                    onSelect = { settingsViewModel.changeLanguage(it) },
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -209,25 +250,13 @@ fun SettingsAdminScreen(
         Spacer(modifier = Modifier.height(32.dp))
 
         // Logout button
-        Button(
+        LinkStageButton(
+            text = "Terminar Sessão",
             onClick = { showLogoutDialog = true },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp)
-                .height(52.dp),
-            shape = RoundedCornerShape(12.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Red,
-                contentColor = Color.White,
-            ),
-        ) {
-            Text(
-                text = "Terminar Sessão",
-                style = MaterialTheme.typography.titleSmall.copy(
-                    fontWeight = FontWeight.SemiBold,
-                ),
-            )
-        }
+            modifier = Modifier.padding(horizontal = 20.dp),
+            height = 52.dp,
+            brush = androidx.compose.ui.graphics.SolidColor(Red)
+        )
 
         Spacer(modifier = Modifier.height(24.dp))
     }
@@ -309,47 +338,134 @@ private fun SettingsRowItem(
 }
 
 @Composable
+private fun LanguageToggle(
+    selectedLang: String,
+    onSelect: (String) -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .clip(RoundedCornerShape(8.dp))
+            .border(1.dp, BorderGrey, RoundedCornerShape(8.dp)),
+    ) {
+        listOf("PT", "EN").forEach { lang ->
+            val isSelected = lang == selectedLang
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(7.dp))
+                    .background(if (isSelected) DarkBlue else Color.Transparent)
+                    .clickable { onSelect(lang) }
+                    .padding(horizontal = 16.dp, vertical = 6.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = lang,
+                    style = MaterialTheme.typography.labelMedium.copy(
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                    ),
+                    color = if (isSelected) Color.White else DarkGrey,
+                )
+            }
+        }
+    }
+}
+
+@Composable
 private fun LogoutConfirmDialog(
     onConfirm: () -> Unit,
     onDismiss: () -> Unit,
 ) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
+    LinkStageDialog(
+        title = "Terminar Sessão",
+        onConfirm = onConfirm,
+        onDismiss = onDismiss,
+        confirmText = "Terminar",
+        dismissText = "Cancelar",
+        content = {
             Text(
-                text = "Terminar Sessão",
-                fontWeight = FontWeight.Bold,
-                color = DarkBlue,
+                text = "Tens a certeza que queres terminar sessão?",
+                color = DarkGrey,
             )
-        },
-        text = {
-            Column {
-                Text(
-                    text = "Tens a certeza que queres terminar sessão?",
-                    color = DarkGrey,
-                )
-                Spacer(modifier = Modifier.height(24.dp))
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(48.dp)
-                        .clip(RoundedCornerShape(10.dp))
-                        .background(Red)
-                        .clickable { onConfirm() },
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text("Terminar Sessão", color = Color.White, fontWeight = FontWeight.Bold)
+        }
+    )
+}
+
+@Composable
+fun ChangePasswordDialog(
+    onDismiss: () -> Unit,
+    onConfirm: (String) -> Unit,
+) {
+    var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
+    var passwordVisible by remember { mutableStateOf(false) }
+    var confirmPasswordVisible by remember { mutableStateOf(false) }
+
+    val hasNumber by remember { derivedStateOf { password.any { it.isDigit() } } }
+    val hasUpperAndLower by remember {
+        derivedStateOf {
+            password.any { it.isUpperCase() } && password.any { it.isLowerCase() }
+        }
+    }
+    val hasMinLength by remember { derivedStateOf { password.length >= 8 } }
+    val isPasswordValid by remember { derivedStateOf { hasNumber && hasUpperAndLower && hasMinLength } }
+    val isConfirmValid by remember { derivedStateOf { confirmPassword == password && confirmPassword.isNotEmpty() } }
+
+    val isEnabled = isPasswordValid && isConfirmValid
+
+    LinkStageDialog(
+        onDismiss = onDismiss,
+        title = "Alterar Palavra-passe",
+        onConfirm = { onConfirm(password) },
+        confirmText = "Atualizar",
+        dismissText = "Cancelar",
+        confirmEnabled = isEnabled,
+        content = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Column {
+                    Text("Nova Palavra-passe", style = MaterialTheme.typography.labelMedium, color = DarkGrey)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    OutlinedTextField(
+                        value = password,
+                        onValueChange = { password = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(10.dp),
+                        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                        trailingIcon = {
+                            IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                                Icon(if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff, null)
+                            }
+                        },
+                        singleLine = true
+                    )
+                }
+
+                Column {
+                    Text("Confirmar Palavra-passe", style = MaterialTheme.typography.labelMedium, color = DarkGrey)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    OutlinedTextField(
+                        value = confirmPassword,
+                        onValueChange = { confirmPassword = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(10.dp),
+                        visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                        trailingIcon = {
+                            IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
+                                Icon(if (confirmPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff, null)
+                            }
+                        },
+                        singleLine = true,
+                        isError = confirmPassword.isNotEmpty() && !isConfirmValid
+                    )
+                }
+
+                if (password.isNotEmpty()) {
+                    Column {
+                        ValidationItem(text = "Incluir um número", isValid = hasNumber)
+                        ValidationItem(text = "Incluir maiúsculas e minúsculas", isValid = hasUpperAndLower)
+                        ValidationItem(text = "Mínimo 8 caracteres", isValid = hasMinLength)
+                    }
                 }
             }
-        },
-        confirmButton = {},
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancelar", color = DarkGrey)
-            }
-        },
-        containerColor = Color(0xFFF5F5F5),
-        shape = RoundedCornerShape(16.dp),
+        }
     )
 }
 

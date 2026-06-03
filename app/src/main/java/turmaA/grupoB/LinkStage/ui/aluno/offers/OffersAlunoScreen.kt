@@ -1,9 +1,7 @@
 package turmaA.grupoB.LinkStage.ui.aluno.offers
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,7 +23,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.FilterList
@@ -40,8 +37,6 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -110,7 +105,6 @@ data class DiscoverFilters(
 
 // endregion
 
-private val topChipFilters = listOf("Todas", "Remotas", "Tempo Inteiro", "Tecnologia")
 
 @Composable
 fun OffersAlunoScreen(
@@ -124,7 +118,6 @@ fun OffersAlunoScreen(
     val hasActiveFilters = currentFilters != DiscoverFilters()
 
     var showFilterModal by remember { mutableStateOf(false) }
-    var selectedTopFilter by remember { mutableStateOf("Todas") }
 
     LazyColumn(
         modifier = modifier
@@ -156,26 +149,6 @@ fun OffersAlunoScreen(
             Spacer(modifier = Modifier.height(12.dp))
         }
 
-        item {
-            FilterChips(
-                filters = topChipFilters,
-                selectedFilter = selectedTopFilter,
-                onFilterSelected = { filter ->
-                    selectedTopFilter = filter
-                    val newWorkModel = when (filter) {
-                        "Remotas" -> "Remoto"
-                        "Tempo Inteiro" -> "Tempo Inteiro"
-                        else -> ""
-                    }
-                    val newArea = if (filter == "Tecnologia") "Tecnologia" else ""
-                    discoverViewModel.applyFilters(
-                        if (filter == "Todas") DiscoverFilters()
-                        else currentFilters.copy(workModel = newWorkModel, area = newArea)
-                    )
-                },
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-        }
 
         items(filteredOffers, key = { it.id }) { offer ->
             OfferCard(
@@ -450,48 +423,6 @@ private fun SearchBarWithFilter(
     }
 }
 
-@Composable
-private fun FilterChips(
-    filters: List<String>,
-    selectedFilter: String,
-    onFilterSelected: (String) -> Unit,
-) {
-    Row(
-        modifier = Modifier
-            .horizontalScroll(rememberScrollState())
-            .padding(horizontal = 20.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        filters.forEach { filter ->
-            val isSelected = filter == selectedFilter
-            FilterChip(
-                selected = isSelected,
-                onClick = { onFilterSelected(filter) },
-                label = {
-                    Text(
-                        text = filter,
-                        style = MaterialTheme.typography.labelMedium.copy(
-                            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
-                        ),
-                    )
-                },
-                shape = RoundedCornerShape(20.dp),
-                colors = FilterChipDefaults.filterChipColors(
-                    selectedContainerColor = DarkBlue,
-                    selectedLabelColor = Color.White,
-                    containerColor = Color.White,
-                    labelColor = DarkGrey,
-                ),
-                border = FilterChipDefaults.filterChipBorder(
-                    enabled = true,
-                    selected = isSelected,
-                    borderColor = BorderGrey,
-                    selectedBorderColor = Color.Transparent,
-                ),
-            )
-        }
-    }
-}
 
 @Composable
 private fun OfferCard(
@@ -551,9 +482,9 @@ private fun OfferCard(
                     modifier = Modifier.size(36.dp),
                 ) {
                     Icon(
-                        imageVector = if (isFav) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
+                        imageVector = Icons.Outlined.FavoriteBorder,
                         contentDescription = if (isFav) "Remover favorito" else "Adicionar favorito",
-                        tint = if (isFav) Red else DarkGrey,
+                        tint = if (isFav) LightBlue else DarkGrey,
                     )
                 }
             }

@@ -15,20 +15,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -50,6 +42,9 @@ import turmaA.grupoB.LinkStage.ui.admin.students.DeleteConfirmDialog
 import turmaA.grupoB.LinkStage.ui.admin.students.MentorListItem
 import turmaA.grupoB.LinkStage.ui.admin.students.StudentListItem
 import turmaA.grupoB.LinkStage.ui.common.ContentSection
+import turmaA.grupoB.LinkStage.ui.common.LinkStageButton
+import turmaA.grupoB.LinkStage.ui.common.LinkStageDialog
+import turmaA.grupoB.LinkStage.ui.common.SecondaryTopBar
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
@@ -78,40 +73,27 @@ fun InstitutionDetailAdminScreen(
     }
 
     if (showDeleteDialog) {
-        DeleteConfirmDialog(
+        LinkStageDialog(
             title = "Remover Instituição",
-            message = "Tens a certeza que queres remover \"${institution.name}\"? Esta ação não pode ser revertida.",
             onConfirm = {
                 showDeleteDialog = false
                 onBack()
             },
             onDismiss = { showDeleteDialog = false },
+            confirmText = "Remover",
+            dismissText = "Cancelar",
+            content = {
+                Text(
+                    text = "Tens a certeza que pretendes remover a instituição \"${institution.name}\"? Esta ação não pode ser desfeita.",
+                    color = DarkGrey,
+                    lineHeight = 22.sp,
+                )
+            }
         )
     }
 
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        "Detalhes da Instituição",
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 16.sp,
-                        color = DarkBlue,
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Voltar",
-                            tint = DarkBlue,
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White),
-            )
-        },
+        topBar = { SecondaryTopBar(title = "Detalhes da Instituição", onBack = onBack) },
         containerColor = BackgroundLight,
     ) { paddingValues ->
         Column(
@@ -120,23 +102,26 @@ fun InstitutionDetailAdminScreen(
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState()),
         ) {
-            // Header Card
-            Card(
+            // Header
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
-                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+                    .background(Color.White)
+                    .padding(bottom = 12.dp),
             ) {
                 Row(
-                    modifier = Modifier.padding(16.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(BackgroundLight)
+                        .padding(12.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(64.dp)
-                            .clip(RoundedCornerShape(14.dp))
+                            .size(44.dp)
+                            .clip(RoundedCornerShape(10.dp))
                             .background(institution.logoColor),
                         contentAlignment = Alignment.Center,
                     ) {
@@ -144,39 +129,45 @@ fun InstitutionDetailAdminScreen(
                             text = institution.logoInitial,
                             color = Color.White,
                             fontWeight = FontWeight.Bold,
-                            fontSize = 26.sp,
+                            fontSize = 18.sp,
                         )
                     }
-                    Spacer(modifier = Modifier.width(14.dp))
-                    Column {
-                        Text(
-                            text = institution.name,
-                            color = DarkBlue,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 20.sp,
-                        )
-                        Text(
-                            text = institution.code,
-                            color = DarkGrey,
-                            fontSize = 13.sp,
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(6.dp))
-                                .background(LightBlue)
-                                .padding(horizontal = 10.dp, vertical = 4.dp),
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             Text(
-                                text = institution.type,
+                                text = institution.name,
                                 color = DarkBlue,
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 11.sp,
+                                fontSize = 15.sp,
                             )
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(6.dp))
+                                    .background(LightBlue.copy(alpha = 0.15f))
+                                    .padding(horizontal = 8.dp, vertical = 2.dp),
+                            ) {
+                                Text(
+                                    text = institution.type,
+                                    color = DarkBlue,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 10.sp,
+                                )
+                            }
                         }
+                        Text(
+                            text = institution.code,
+                            color = LightBlue,
+                            fontSize = 13.sp,
+                        )
                     }
                 }
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
 
             // Stats Row
             Row(
@@ -266,20 +257,13 @@ fun InstitutionDetailAdminScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             // Remove Button
-            Button(
+            LinkStageButton(
+                text = "Remover Instituição",
                 onClick = { showDeleteDialog = true },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-                    .height(50.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Red,
-                    contentColor = Color.White,
-                ),
-            ) {
-                Text("Remover Instituição", fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
-            }
+                modifier = Modifier.padding(horizontal = 16.dp),
+                height = 50.dp,
+                brush = androidx.compose.ui.graphics.SolidColor(Red)
+            )
 
             Spacer(modifier = Modifier.height(24.dp))
         }
@@ -294,7 +278,7 @@ private fun StatCard(
     modifier: Modifier = Modifier,
 ) {
     Card(
-        modifier = modifier,
+        modifier = modifier.padding(vertical = 4.dp),
         shape = RoundedCornerShape(10.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),

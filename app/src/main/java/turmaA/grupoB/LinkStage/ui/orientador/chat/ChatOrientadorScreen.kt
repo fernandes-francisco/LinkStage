@@ -25,6 +25,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -33,9 +34,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import turmaA.grupoB.LinkStage.ui.aluno.chat.Conversation
 import turmaA.grupoB.LinkStage.ui.aluno.chat.ConversationItem
 import turmaA.grupoB.LinkStage.ui.aluno.chat.sampleConversations
 import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
+import turmaA.grupoB.LinkStage.ui.common.LinkStageDialog
 import turmaA.grupoB.LinkStage.ui.common.LinkStageLogo
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
@@ -49,11 +53,33 @@ fun ChatOrientadorScreen(
     modifier: Modifier = Modifier,
 ) {
     var searchQuery by rememberSaveable { mutableStateOf("") }
+    var currentConversations by remember { mutableStateOf(sampleConversations) }
+    var conversationToDelete by remember { mutableStateOf<Conversation?>(null) }
 
-    val filtered = if (searchQuery.isEmpty()) sampleConversations
-    else sampleConversations.filter {
+    val filtered = if (searchQuery.isEmpty()) currentConversations
+    else currentConversations.filter {
         it.name.contains(searchQuery, ignoreCase = true) ||
             it.lastMessage.contains(searchQuery, ignoreCase = true)
+    }
+
+    if (conversationToDelete != null) {
+        LinkStageDialog(
+            title = "Apagar Conversa",
+            onConfirm = {
+                currentConversations = currentConversations.filter { it.id != conversationToDelete!!.id }
+                conversationToDelete = null
+            },
+            onDismiss = { conversationToDelete = null },
+            confirmText = "Apagar",
+            dismissText = "Cancelar",
+            content = {
+                Text(
+                    text = "Tens a certeza que pretendes apagar a conversa com ${conversationToDelete!!.name}?",
+                    color = DarkGrey,
+                    lineHeight = 22.sp,
+                )
+            }
+        )
     }
 
     Scaffold(
@@ -114,6 +140,7 @@ fun ChatOrientadorScreen(
                         ConversationItem(
                             conversation = conversation,
                             onClick = { onOpenChat(conversation.id) },
+                            onLongClick = { conversationToDelete = conversation }
                         )
                         HorizontalDivider(
                             modifier = Modifier.padding(horizontal = 20.dp),

@@ -83,7 +83,7 @@ private data class AlunoTab(
 )
 
 private val alunoTabs = listOf(
-    AlunoTab("Overview", Icons.Outlined.Home, AlunoRoutes.HOME),
+    AlunoTab("Ínicio", Icons.Outlined.Home, AlunoRoutes.HOME),
     AlunoTab("Estágios", Icons.Outlined.Work, AlunoRoutes.DISCOVER),
     AlunoTab("Atividade", Icons.Outlined.History, AlunoRoutes.ACTIVITY),
     AlunoTab("Mensagens", Icons.AutoMirrored.Outlined.Chat, AlunoRoutes.MESSAGES),

@@ -23,6 +23,12 @@ class SettingsViewModel : ViewModel() {
     private val _notifLembretes = MutableStateFlow(false)
     val notifLembretes: StateFlow<Boolean> = _notifLembretes.asStateFlow()
 
+    private val _notifOrientador = MutableStateFlow(true)
+    val notifOrientador: StateFlow<Boolean> = _notifOrientador.asStateFlow()
+
+    private val _notifAvaliacao = MutableStateFlow(true)
+    val notifAvaliacao: StateFlow<Boolean> = _notifAvaliacao.asStateFlow()
+
     private val _user = MutableStateFlow(
         LoggedUser(
             name = "Tomás Silva",
@@ -49,6 +55,14 @@ class SettingsViewModel : ViewModel() {
 
     fun toggleNotifLembretes(enabled: Boolean) {
         _notifLembretes.value = enabled
+    }
+
+    fun toggleNotifOrientador(enabled: Boolean) {
+        _notifOrientador.value = enabled
+    }
+
+    fun toggleNotifAvaliacao(enabled: Boolean) {
+        _notifAvaliacao.value = enabled
     }
 
     fun logout() {

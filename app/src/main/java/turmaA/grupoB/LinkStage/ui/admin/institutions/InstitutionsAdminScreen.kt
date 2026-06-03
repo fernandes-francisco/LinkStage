@@ -220,7 +220,7 @@ private fun InstitutionFilterDialog(
     var location by remember { mutableStateOf(currentLocation) }
     var typeExpanded by remember { mutableStateOf(false) }
 
-    val typeOptions = listOf("Todas", "Instituição", "Empresa")
+    val typeOptions = listOf("Todas", "Instituição de Ensino", "Instituição Empresarial")
 
     LinkStageDialog(
         title = "Filtros",
@@ -266,7 +266,12 @@ private fun InstitutionFilterDialog(
                                 DropdownMenuItem(
                                     text = { Text(option) },
                                     onClick = {
-                                        type = if (option == "Todas") "" else option
+                                        type = when (option) {
+                                            "Todas" -> ""
+                                            "Instituição de Ensino" -> "Instituição de Ensino"
+                                            "Instituição Empresarial" -> "Instituição Empresarial"
+                                            else -> option
+                                        }
                                         typeExpanded = false
                                     },
                                 )
@@ -383,7 +388,7 @@ private fun AddInstitutionDialog(onDismiss: () -> Unit) {
     var email by remember { mutableStateOf("") }
     var typeExpanded by remember { mutableStateOf(false) }
 
-    val types = listOf("Instituição", "Empresa")
+    val types = listOf("Instituição de Ensino", "Instituição Empresarial")
 
     LinkStageDialog(
         onDismiss = onDismiss,

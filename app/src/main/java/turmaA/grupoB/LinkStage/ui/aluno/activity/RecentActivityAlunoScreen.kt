@@ -454,6 +454,28 @@ private fun ActiveInternshipContent(
     onActivityClick: (String) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
+    var showSubmitConfirmation by remember { mutableStateOf(false) }
+
+    if (showSubmitConfirmation) {
+        LinkStageDialog(
+            title = "Submeter Relatório",
+            onConfirm = {
+                showSubmitConfirmation = false
+                onSubmitReport()
+            },
+            onDismiss = { showSubmitConfirmation = false },
+            confirmText = "Submeter",
+            dismissText = "Cancelar",
+            content = {
+                Text(
+                    text = "Tens a certeza que pretendes submeter o relatório final? Esta ação não pode ser desfeita e marcará o teu estágio como concluído.",
+                    color = DarkGrey,
+                    lineHeight = 22.sp,
+                )
+            }
+        )
+    }
+
     val progress = calculateInternshipProgress(internship.startDate, internship.endDate)
 
     var animationStarted by remember { mutableStateOf(false) }
@@ -503,7 +525,7 @@ private fun ActiveInternshipContent(
                 Spacer(modifier = Modifier.height(8.dp))
                 ReportSubmissionCard(
                     daysRemaining = daysRemaining,
-                    onSubmit = onSubmitReport,
+                    onSubmit = { showSubmitConfirmation = true },
                 )
             }
         }

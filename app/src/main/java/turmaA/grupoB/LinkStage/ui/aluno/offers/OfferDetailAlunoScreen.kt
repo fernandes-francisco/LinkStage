@@ -23,7 +23,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.Schedule
@@ -452,10 +451,9 @@ private fun OfferDetailBottomBar(
                 ) {
                     IconButton(onClick = onFavouriteToggle) {
                         Icon(
-                            imageVector = if (isFavourite) Icons.Default.Favorite
-                            else Icons.Outlined.FavoriteBorder,
+                            imageVector = Icons.Outlined.FavoriteBorder,
                             contentDescription = "Favorito",
-                            tint = if (isFavourite) Red else DarkGrey,
+                            tint = if (isFavourite) LightBlue else DarkGrey,
                         )
                     }
                 }

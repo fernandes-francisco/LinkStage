@@ -98,12 +98,12 @@ val sampleMentors = listOf(
 val sampleInstitutions = listOf(
     AdminInstitution(
         "i1", "Uni. de Aveiro", "UA", "U", Color(0xFF1565C0),
-        "Instituição", "Aveiro", "2h atrás", 45, 8, 12,
+        "Instituição de Ensino", "Aveiro", "2h atrás", 45, 8, 12,
         "geral@ua.pt", "ua.pt",
     ),
     AdminInstitution(
         "i2", "Pingo Doce", "PD", "P", Color(0xFF388E3C),
-        "Empresa", "Lisboa", "3h atrás", 12, 2, 5,
+        "Instituição Empresarial", "Lisboa", "3h atrás", 12, 2, 5,
         "estagios@pingodoce.pt", "pingodoce.pt",
     ),
 )
