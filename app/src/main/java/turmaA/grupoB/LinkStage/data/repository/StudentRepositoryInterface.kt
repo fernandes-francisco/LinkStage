@@ -7,5 +7,5 @@ interface StudentRepositoryInterface {
     suspend fun getStudentById(studentId: String): StudentModel?
     suspend fun getStudentByUserId(userId: String): StudentModel?
     suspend fun getStudentByNumber(studentNumber: String): StudentModel?
-    suspend fun getStudentByCourse(course: String): List<StudentModel>
+    suspend fun getStudentsByCourse(course: String): List<StudentModel>
 }

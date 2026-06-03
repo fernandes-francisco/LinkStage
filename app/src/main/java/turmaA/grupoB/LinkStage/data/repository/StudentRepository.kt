@@ -51,7 +51,7 @@ class StudentRepository : StudentRepositoryInterface {
             .firstOrNull()
     }
 
-    override suspend fun getStudentByCourse(course: String): List<StudentModel> {
+    override suspend fun getStudentsByCourse(course: String): List<StudentModel> {
         return supabase
             .from("students")
             .select {
