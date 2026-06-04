@@ -1,6 +1,5 @@
 package turmaA.grupoB.LinkStage.data.repository
 
-import android.animation.TypeEvaluator
 import turmaA.grupoB.LinkStage.data.remote.model.enums.EvaluationType
 import turmaA.grupoB.LinkStage.data.remote.model.evaluation.CreateEvaluationInput
 import turmaA.grupoB.LinkStage.data.remote.model.evaluation.EvaluationModel
