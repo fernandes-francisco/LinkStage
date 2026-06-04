@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class CreateActivityLogInput(
     @SerialName("internship_id")
-    val intershipId: String,
+    val internshipId: String,
 
     @SerialName("student_id")
     val studentId: String,
