@@ -1,7 +1,9 @@
 package turmaA.grupoB.LinkStage.ui.orientador.settings
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -20,17 +22,14 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowForward
 import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,14 +38,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import turmaA.grupoB.LinkStage.ui.aluno.settings.ChangePasswordDialog
+import turmaA.grupoB.LinkStage.ui.aluno.settings.LoggedUser
 import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
-import turmaA.grupoB.LinkStage.ui.common.LinkStageLogo
+import turmaA.grupoB.LinkStage.ui.common.LinkStageButton
+import turmaA.grupoB.LinkStage.ui.common.LinkStageDialog
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
@@ -54,29 +58,47 @@ import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.Fade1
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.ui.theme.Red
+import turmaA.grupoB.LinkStage.viewmodel.SettingsViewModel
 
 @Composable
 fun SettingsOrientadorScreen(
     onLogout: () -> Unit = {},
+    onNotificationsClick: () -> Unit = {},
+    settingsViewModel: SettingsViewModel = viewModel(),
     modifier: Modifier = Modifier,
 ) {
+    val user by settingsViewModel.user.collectAsState()
+    val currentLanguage by settingsViewModel.currentLanguage.collectAsState()
+
     var showLogoutDialog by remember { mutableStateOf(false) }
+    var showPasswordDialog by remember { mutableStateOf(false) }
+    val uriHandler = LocalUriHandler.current
 
     if (showLogoutDialog) {
         LogoutConfirmDialog(
             onConfirm = {
                 showLogoutDialog = false
+                settingsViewModel.logout()
                 onLogout()
             },
             onDismiss = { showLogoutDialog = false },
         )
     }
 
+    if (showPasswordDialog) {
+        ChangePasswordDialog(
+            onDismiss = { showPasswordDialog = false },
+            onConfirm = { newPassword ->
+                // Lógica de update
+                showPasswordDialog = false
+            }
+        )
+    }
+
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(BackgroundLight)
-            .verticalScroll(rememberScrollState()),
+            .background(BackgroundLight),
     ) {
         CommonTopBar()
 
@@ -95,124 +117,168 @@ fun SettingsOrientadorScreen(
             )
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .verticalScroll(rememberScrollState()),
+        ) {
+            Spacer(modifier = Modifier.height(16.dp))
 
-        SettingsCard(modifier = Modifier.padding(horizontal = 20.dp)) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Box(
+            // Profile card
+            SettingsCard(modifier = Modifier.padding(horizontal = 20.dp)) {
+                Row(
                     modifier = Modifier
-                        .size(48.dp)
-                        .clip(CircleShape)
-                        .background(brush = Fade1),
-                    contentAlignment = Alignment.Center,
+                        .fillMaxWidth()
+                        .clickable { }
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
+                    UserAvatar(user = user, size = 48)
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = user.name,
+                            style = MaterialTheme.typography.bodyLarge.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = DarkBlue,
+                            ),
+                        )
+                        Text(
+                            text = user.email,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = DarkGrey,
+                        )
+                    }
+                }
+
+                HorizontalDivider(color = BorderGrey)
+
+                SettingsRowItem(
+                    label = "Políticas de Privacidade",
+                    onClick = {
+                        uriHandler.openUri("https://www.google.com") // Substituir pelo link real
+                    },
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Settings section
+            SettingsSectionHeader(title = "Configurações")
+
+            SettingsCard(modifier = Modifier.padding(horizontal = 20.dp)) {
+                SettingsRowItem(
+                    icon = Icons.Outlined.Settings,
+                    label = "Alterar Palavra-Passe",
+                    onClick = { showPasswordDialog = true },
+                )
+
+                HorizontalDivider(
+                    color = BorderGrey,
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                )
+
+                SettingsRowItem(
+                    icon = Icons.Outlined.Settings,
+                    label = "Notificações",
+                    onClick = onNotificationsClick,
+                )
+
+                HorizontalDivider(
+                    color = BorderGrey,
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                )
+
+                // Language toggle
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 14.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Settings,
+                        contentDescription = null,
+                        tint = DarkGrey,
+                        modifier = Modifier.size(20.dp),
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        text = "JJ",
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp,
+                        text = "Idioma",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = DarkBlue,
+                        modifier = Modifier.weight(1f),
+                    )
+                    LanguageToggle(
+                        selectedLang = currentLanguage,
+                        onSelect = { settingsViewModel.changeLanguage(it) },
                     )
                 }
-                Spacer(modifier = Modifier.width(12.dp))
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = "Orientador",
-                        style = MaterialTheme.typography.bodyLarge.copy(
-                            fontWeight = FontWeight.Bold,
-                            color = DarkBlue,
-                        ),
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // App version section
+            SettingsSectionHeader(title = "Versão da APP")
+
+            SettingsCard(modifier = Modifier.padding(horizontal = 20.dp)) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 14.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Settings,
+                        contentDescription = null,
+                        tint = DarkGrey,
+                        modifier = Modifier.size(20.dp),
                     )
+                    Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        text = "orientador@linkstage.pt",
+                        text = "V1.0.0 - Android 36 / Kotlin / Supabase",
                         style = MaterialTheme.typography.bodySmall,
                         color = DarkGrey,
                     )
                 }
             }
-        }
 
-        Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
-        SettingsCard(modifier = Modifier.padding(horizontal = 20.dp)) {
-            SettingsRowItem(
-                icon = Icons.Outlined.Settings,
-                label = "Perfil",
-                onClick = { },
-            )
-            HorizontalDivider(
-                color = BorderGrey,
-                modifier = Modifier.padding(horizontal = 16.dp),
-            )
-            SettingsRowItem(
-                icon = Icons.Outlined.Settings,
-                label = "Notificações",
-                onClick = { },
-            )
-            HorizontalDivider(
-                color = BorderGrey,
-                modifier = Modifier.padding(horizontal = 16.dp),
-            )
-            SettingsRowItem(
-                icon = Icons.Outlined.Settings,
-                label = "Segurança",
-                onClick = { },
-            )
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        SettingsSectionHeader(title = "Versão da APP")
-
-        SettingsCard(modifier = Modifier.padding(horizontal = 20.dp)) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 14.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.Settings,
-                    contentDescription = null,
-                    tint = DarkGrey,
-                    modifier = Modifier.size(20.dp),
-                )
-                Spacer(modifier = Modifier.width(12.dp))
-                Text(
-                    text = "V1.0.0 - Android 36 / Kotlin / Supabase",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = DarkGrey,
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        Button(
-            onClick = { showLogoutDialog = true },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp)
-                .height(52.dp),
-            shape = RoundedCornerShape(12.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Red,
-                contentColor = Color.White,
-            ),
-        ) {
-            Text(
+            // Logout button
+            LinkStageButton(
                 text = "Terminar Sessão",
-                style = MaterialTheme.typography.titleSmall.copy(
-                    fontWeight = FontWeight.SemiBold,
-                ),
+                onClick = { showLogoutDialog = true },
+                modifier = Modifier.padding(horizontal = 20.dp),
+                height = 52.dp,
+                brush = SolidColor(Red)
             )
-        }
 
-        Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(24.dp))
+        }
+    }
+}
+
+@Composable
+private fun UserAvatar(user: LoggedUser, size: Int = 48) {
+    val initials = user.name
+        .split(" ")
+        .take(2)
+        .joinToString("") { it.first().uppercase() }
+
+    Box(
+        modifier = Modifier
+            .size(size.dp)
+            .clip(CircleShape)
+            .background(brush = Fade1),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = initials,
+            color = Color.White,
+            fontWeight = FontWeight.Bold,
+            fontSize = (size / 3).sp,
+        )
     }
 }
 
@@ -292,61 +358,60 @@ private fun SettingsRowItem(
 }
 
 @Composable
+private fun LanguageToggle(
+    selectedLang: String,
+    onSelect: (String) -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .clip(RoundedCornerShape(8.dp))
+            .border(1.dp, BorderGrey, RoundedCornerShape(8.dp)),
+    ) {
+        listOf("PT", "EN").forEach { lang ->
+            val isSelected = lang == selectedLang
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(7.dp))
+                    .background(if (isSelected) DarkBlue else Color.Transparent)
+                    .clickable { onSelect(lang) }
+                    .padding(horizontal = 16.dp, vertical = 6.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = lang,
+                    style = MaterialTheme.typography.labelMedium.copy(
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                    ),
+                    color = if (isSelected) Color.White else DarkGrey,
+                )
+            }
+        }
+    }
+}
+
+@Composable
 private fun LogoutConfirmDialog(
     onConfirm: () -> Unit,
     onDismiss: () -> Unit,
 ) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
+    LinkStageDialog(
+        title = "Terminar Sessão",
+        onConfirm = onConfirm,
+        onDismiss = onDismiss,
+        confirmText = "Terminar",
+        dismissText = "Cancelar",
+        content = {
             Text(
-                text = "Terminar Sessão",
-                fontWeight = FontWeight.Bold,
-                color = DarkBlue,
+                text = "Tens a certeza que queres terminar sessão?",
+                color = DarkGrey,
             )
-        },
-        text = {
-            Column {
-                Text(
-                    text = "Tens a certeza que queres terminar sessão?",
-                    color = DarkGrey,
-                )
-                Spacer(modifier = Modifier.height(24.dp))
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(48.dp)
-                        .clip(RoundedCornerShape(10.dp))
-                        .background(Red)
-                        .clickable { onConfirm() },
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text("Terminar Sessão", color = Color.White, fontWeight = FontWeight.Bold)
-                }
-            }
-        },
-        confirmButton = {},
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancelar", color = DarkGrey)
-            }
-        },
-        containerColor = Color(0xFFF5F5F5),
-        shape = RoundedCornerShape(16.dp),
+        }
     )
 }
 
 @Preview(showSystemUi = true)
 @Composable
 private fun SettingsOrientadorScreenPreview() {
-    MaterialTheme {
-        SettingsOrientadorScreen()
-    }
-}
-
-@Preview(showSystemUi = true, device = "spec:width=411dp,height=891dp,orientation=landscape")
-@Composable
-private fun SettingsOrientadorScreenLandscapePreview() {
     MaterialTheme {
         SettingsOrientadorScreen()
     }

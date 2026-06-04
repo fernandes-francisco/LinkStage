@@ -133,25 +133,25 @@ fun SettingsAlunoScreen(
 
         Column(
             modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 8.dp),
+            horizontalAlignment = Alignment.Start,
+        ) {
+            Text(
+                text = "Definições",
+                style = MaterialTheme.typography.headlineSmall.copy(
+                    fontWeight = FontWeight.Bold,
+                    color = DarkBlue,
+                ),
+            )
+        }
+
+        Column(
+            modifier = Modifier
                 .weight(1f)
                 .verticalScroll(rememberScrollState()),
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 8.dp),
-                horizontalAlignment = Alignment.Start,
-            ) {
-                Text(
-                    text = "Definições",
-                    style = MaterialTheme.typography.headlineSmall.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = DarkBlue,
-                    ),
-                )
-            }
-
-        Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
         // Profile card
         SettingsCard(modifier = Modifier.padding(horizontal = 20.dp)) {

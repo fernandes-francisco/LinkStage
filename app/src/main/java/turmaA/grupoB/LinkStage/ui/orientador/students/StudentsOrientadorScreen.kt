@@ -46,6 +46,7 @@ import androidx.navigation.compose.rememberNavController
 import turmaA.grupoB.LinkStage.ui.admin.AdminStudent
 import turmaA.grupoB.LinkStage.ui.orientador.OrientadorRoutes
 import turmaA.grupoB.LinkStage.ui.orientador.sampleMentorStudents
+import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
 import turmaA.grupoB.LinkStage.ui.common.LinkStageLogo
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
@@ -71,23 +72,18 @@ fun StudentsOrientadorScreen(
             .fillMaxSize()
             .background(BackgroundLight),
     ) {
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-            LinkStageLogo()
-        }
-
-        Spacer(modifier = Modifier.height(12.dp))
+        CommonTopBar()
 
         Text(
             text = "Alunos orientados",
-            fontSize = 22.sp,
-            fontWeight = FontWeight.Bold,
-            color = DarkBlue,
-            modifier = Modifier.padding(horizontal = 20.dp),
+            style = MaterialTheme.typography.headlineSmall.copy(
+                fontWeight = FontWeight.Bold,
+                color = DarkBlue,
+            ),
+            modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
         )
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
         OutlinedTextField(
             value = searchQuery,

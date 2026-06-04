@@ -7,8 +7,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -20,23 +22,18 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.ArrowForward
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.Work
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -56,6 +53,7 @@ import turmaA.grupoB.LinkStage.ui.aluno.offers.ResponsibilityItem
 import turmaA.grupoB.LinkStage.ui.common.CheckItem
 import turmaA.grupoB.LinkStage.ui.common.ContentSection
 import turmaA.grupoB.LinkStage.ui.common.ContentSectionColored
+import turmaA.grupoB.LinkStage.ui.common.SecondaryTopBar
 import turmaA.grupoB.LinkStage.ui.orientador.MentorInternship
 import turmaA.grupoB.LinkStage.ui.orientador.OrientadorRoutes
 import turmaA.grupoB.LinkStage.ui.orientador.sampleMentorInternships
@@ -67,7 +65,7 @@ import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.Fade1
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 
-@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun MentorInternshipDetailScreen(
     internshipId: String = "i1",
@@ -78,162 +76,165 @@ fun MentorInternshipDetailScreen(
         ?: sampleMentorStudents.first(),
 ) {
     Scaffold(
-        topBar = {
-            TopAppBar(
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Voltar",
-                            tint = DarkBlue,
-                        )
-                    }
-                },
-                title = {
-                    Text(
-                        text = "Estágios Envolvidos",
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 16.sp,
-                        color = DarkBlue,
-                    )
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White),
-            )
-        },
+        topBar = { SecondaryTopBar(title = "Detalhes do Estágio", onBack = { navController.popBackStack() }) },
         containerColor = BackgroundLight,
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .verticalScroll(rememberScrollState()),
         ) {
-            // Header
-            Row(
+            // Fixed header with grey background
+            InternshipFixedHeader(internship = internship)
+
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color.White)
-                    .padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically,
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState()),
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(44.dp)
-                        .clip(RoundedCornerShape(10.dp))
-                        .background(internship.logoColor),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text(
-                        text = internship.logoInitial,
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp,
-                    )
-                }
-                Spacer(modifier = Modifier.width(14.dp))
-                Column {
-                    Text(
-                        text = internship.offerTitle,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = DarkBlue,
-                    )
-                    Text(
-                        text = internship.institutionName,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = LightBlue,
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // Meta chips
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
-                MetaChip(
-                    icon = Icons.Outlined.LocationOn,
-                    label = "Localização",
-                    value = internship.location,
-                    modifier = Modifier.weight(1f),
-                )
-                MetaChip(
-                    icon = Icons.Outlined.Schedule,
-                    label = "Duração",
-                    value = internship.duration,
-                    modifier = Modifier.weight(1f),
-                )
-                MetaChip(
-                    icon = Icons.Outlined.Work,
-                    label = "Tipo",
-                    value = internship.type,
-                    modifier = Modifier.weight(1f),
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Sobre a empresa
-            if (internship.aboutCompany.isNotEmpty()) {
-                ContentSection(title = "Sobre a empresa") {
-                    Text(
-                        text = internship.aboutCompany,
-                        fontSize = 14.sp,
-                        color = DarkGrey,
-                        lineHeight = 22.sp,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-                    )
-                }
                 Spacer(modifier = Modifier.height(12.dp))
-            }
 
-            // Responsabilidades
-            if (internship.responsibilities.isNotEmpty()) {
-                ContentSection(title = "Responsabilidades") {
-                    internship.responsibilities.forEach { item ->
-                        ResponsibilityItem(text = item)
+                // Meta chips (3 equal size)
+                InternshipMetaChips(internship = internship)
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Sobre a empresa
+                if (internship.aboutCompany.isNotEmpty()) {
+                    ContentSection(title = "Sobre a empresa") {
+                        Text(
+                            text = internship.aboutCompany,
+                            fontSize = 14.sp,
+                            color = DarkGrey,
+                            lineHeight = 22.sp,
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                        )
                     }
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
                 }
-                Spacer(modifier = Modifier.height(12.dp))
-            }
 
-            // Requisitos
-            if (internship.requirements.isNotEmpty()) {
-                ContentSectionColored(title = "Requisitos") {
-                    internship.requirements.forEach { item ->
-                        CheckItem(text = item)
+                // Responsabilidades
+                if (internship.responsibilities.isNotEmpty()) {
+                    ContentSection(title = "Responsabilidades") {
+                        internship.responsibilities.forEach { item ->
+                            ResponsibilityItem(text = item)
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
                     }
+                    Spacer(modifier = Modifier.height(12.dp))
                 }
-                Spacer(modifier = Modifier.height(12.dp))
-            }
 
-            // Benefícios
-            if (internship.benefits.isNotEmpty()) {
-                ContentSection(title = "Benefícios") {
-                    FlowRow(
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        internship.benefits.forEach { benefit ->
-                            BenefitChip(text = benefit)
+                // Requisitos
+                if (internship.requirements.isNotEmpty()) {
+                    ContentSectionColored(title = "Requisitos") {
+                        internship.requirements.forEach { item ->
+                            CheckItem(text = item)
                         }
                     }
+                    Spacer(modifier = Modifier.height(12.dp))
                 }
-                Spacer(modifier = Modifier.height(12.dp))
+
+                // Benefícios
+                if (internship.benefits.isNotEmpty()) {
+                    ContentSection(title = "Benefícios") {
+                        FlowRow(
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            internship.benefits.forEach { benefit ->
+                                BenefitChip(text = benefit)
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
+
+                // Aluno estagiário
+                InternshipStudentSection(student = student, navController = navController)
+
+                Spacer(modifier = Modifier.height(24.dp))
             }
-
-            // Aluno estagiário
-            InternshipStudentSection(student = student, navController = navController)
-
-            Spacer(modifier = Modifier.height(16.dp))
         }
+    }
+}
+
+@Composable
+private fun InternshipFixedHeader(internship: MentorInternship) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color.White)
+            .padding(bottom = 12.dp),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(BackgroundLight)
+                .padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(44.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(internship.logoColor),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = internship.logoInitial,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                )
+            }
+            Spacer(modifier = Modifier.width(12.dp))
+            Column {
+                Text(
+                    text = internship.offerTitle,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = DarkBlue,
+                )
+                Text(
+                    text = internship.businessInstitutionName,
+                    fontSize = 13.sp,
+                    color = LightBlue,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun InternshipMetaChips(internship: MentorInternship) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+            .height(IntrinsicSize.Min),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        MetaChip(
+            icon = Icons.Outlined.LocationOn,
+            label = "Localização",
+            value = internship.location,
+            modifier = Modifier.weight(1f).fillMaxHeight(),
+        )
+        MetaChip(
+            icon = Icons.Outlined.Schedule,
+            label = "Duração",
+            value = internship.duration,
+            modifier = Modifier.weight(1f).fillMaxHeight(),
+        )
+        MetaChip(
+            icon = Icons.Outlined.Work,
+            label = "Tipo",
+            value = internship.type,
+            modifier = Modifier.weight(1f).fillMaxHeight(),
+        )
     }
 }
 

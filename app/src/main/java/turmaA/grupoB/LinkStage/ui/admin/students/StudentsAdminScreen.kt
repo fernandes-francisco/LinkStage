@@ -76,21 +76,73 @@ fun StudentsAdminScreen(
     modifier: Modifier = Modifier,
 ) {
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
+    var searchQuery by rememberSaveable { mutableStateOf("") }
+    var showFilterDialog by remember { mutableStateOf(false) }
+
+    // State for filters
+    var studentFilterStatus by rememberSaveable { mutableStateOf("") }
+    var studentFilterInstitution by rememberSaveable { mutableStateOf("") }
+    var studentFilterCourse by rememberSaveable { mutableStateOf("") }
+
+    var mentorFilterInstitution by rememberSaveable { mutableStateOf("") }
+    var mentorFilterDepartment by rememberSaveable { mutableStateOf("") }
+
+    if (showFilterDialog) {
+        if (selectedTab == 0) {
+            StudentFilterDialog(
+                currentStatus = studentFilterStatus,
+                currentInstitution = studentFilterInstitution,
+                currentCourse = studentFilterCourse,
+                onApply = { status, institution, course ->
+                    studentFilterStatus = status
+                    studentFilterInstitution = institution
+                    studentFilterCourse = course
+                    showFilterDialog = false
+                },
+                onDismiss = { showFilterDialog = false },
+            )
+        } else {
+            MentorFilterDialog(
+                currentInstitution = mentorFilterInstitution,
+                currentDepartment = mentorFilterDepartment,
+                onApply = { institution, department ->
+                    mentorFilterInstitution = institution
+                    mentorFilterDepartment = department
+                    showFilterDialog = false
+                },
+                onDismiss = { showFilterDialog = false },
+            )
+        }
+    }
 
     Scaffold(
         modifier = modifier,
         containerColor = BackgroundLight,
         topBar = {
-            Column {
+            Column(modifier = Modifier.background(BackgroundLight)) {
                 CommonTopBar()
 
                 Text(
-                    text = if (selectedTab == 0) "Alunos" else "Orientadores",
+                    text = "Utilizadores",
                     style = MaterialTheme.typography.headlineSmall.copy(
                         fontWeight = FontWeight.Bold,
                         color = DarkBlue,
                     ),
-                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp),
+                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+                SearchBarWithFilter(
+                    query = searchQuery,
+                    onQueryChange = { searchQuery = it },
+                    placeholder = if (selectedTab == 0) "Pesquisar alunos..." else "Pesquisar orientadores...",
+                    onFilterClick = { showFilterDialog = true },
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                LinkStageTabRow(
+                    tabs = listOf("Alunos", "Orientadores"),
+                    selectedIndex = selectedTab,
+                    onTabSelected = { selectedTab = it },
                 )
             }
         },
@@ -98,15 +150,18 @@ fun StudentsAdminScreen(
         when (selectedTab) {
             0 -> StudentsTabContent(
                 navController = navController,
-                selectedTab = selectedTab,
-                onTabSelected = { selectedTab = it },
-                modifier = Modifier.padding(innerPadding),
+                searchQuery = searchQuery,
+                filterStatus = studentFilterStatus,
+                filterInstitution = studentFilterInstitution,
+                filterCourse = studentFilterCourse,
+                modifier = Modifier.padding(top = innerPadding.calculateTopPadding()),
             )
             1 -> MentorsTabContent(
                 navController = navController,
-                selectedTab = selectedTab,
-                onTabSelected = { selectedTab = it },
-                modifier = Modifier.padding(innerPadding),
+                searchQuery = searchQuery,
+                filterInstitution = mentorFilterInstitution,
+                filterDepartment = mentorFilterDepartment,
+                modifier = Modifier.padding(top = innerPadding.calculateTopPadding()),
             )
         }
     }
@@ -117,31 +172,28 @@ fun StudentsAdminScreen(
 @Composable
 private fun StudentsTabContent(
     navController: NavController,
-    selectedTab: Int,
-    onTabSelected: (Int) -> Unit,
+    searchQuery: String,
+    filterStatus: String,
+    filterInstitution: String,
+    filterCourse: String,
     modifier: Modifier = Modifier,
 ) {
-    var searchQuery by rememberSaveable { mutableStateOf("") }
     var showAddDialog by remember { mutableStateOf(false) }
-    var showFilterDialog by remember { mutableStateOf(false) }
-    var filterStatus by rememberSaveable { mutableStateOf("") }
-    var filterInstitution by rememberSaveable { mutableStateOf("") }
-    var filterCourse by rememberSaveable { mutableStateOf("") }
 
     val filtered = sampleStudents.filter { student ->
         val matchesSearch = searchQuery.isBlank() ||
-            student.name.contains(searchQuery, ignoreCase = true) ||
-            student.course.contains(searchQuery, ignoreCase = true) ||
-            student.institution.contains(searchQuery, ignoreCase = true)
+                student.name.contains(searchQuery, ignoreCase = true) ||
+                student.course.contains(searchQuery, ignoreCase = true) ||
+                student.institution.contains(searchQuery, ignoreCase = true)
         val matchesStatus = when (filterStatus) {
             "Em estágio" -> student.hasActiveInternship
             "Sem estágio" -> !student.hasActiveInternship
             else -> true
         }
         val matchesInstitution = filterInstitution.isEmpty() ||
-            student.institution.contains(filterInstitution, ignoreCase = true)
+                student.institution.contains(filterInstitution, ignoreCase = true)
         val matchesCourse = filterCourse.isEmpty() ||
-            student.course.contains(filterCourse, ignoreCase = true)
+                student.course.contains(filterCourse, ignoreCase = true)
         matchesSearch && matchesStatus && matchesInstitution && matchesCourse
     }
 
@@ -155,21 +207,6 @@ private fun StudentsTabContent(
 
     if (showAddDialog) {
         AddStudentDialog(onDismiss = { showAddDialog = false })
-    }
-
-    if (showFilterDialog) {
-        StudentFilterDialog(
-            currentStatus = filterStatus,
-            currentInstitution = filterInstitution,
-            currentCourse = filterCourse,
-            onApply = { status, institution, course ->
-                filterStatus = status
-                filterInstitution = institution
-                filterCourse = course
-                showFilterDialog = false
-            },
-            onDismiss = { showFilterDialog = false },
-        )
     }
 
     Scaffold(
@@ -191,23 +228,6 @@ private fun StudentsTabContent(
                 .fillMaxSize()
                 .padding(innerPadding),
         ) {
-            item {
-                Spacer(modifier = Modifier.height(8.dp))
-                SearchBarWithFilter(
-                    query = searchQuery,
-                    onQueryChange = { searchQuery = it },
-                    placeholder = "Pesquisar alunos...",
-                    onFilterClick = { showFilterDialog = true },
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                LinkStageTabRow(
-                    tabs = listOf("Alunos", "Orientadores"),
-                    selectedIndex = selectedTab,
-                    onTabSelected = onTabSelected,
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-            }
-
             grouped.forEach { (institution, courseMap) ->
                 val totalStudents = courseMap.values.sumOf { it.size }
                 val isExpanded = expandedInstitutions[institution] == true
@@ -343,25 +363,22 @@ fun StudentListItem(
 @Composable
 private fun MentorsTabContent(
     navController: NavController,
-    selectedTab: Int,
-    onTabSelected: (Int) -> Unit,
+    searchQuery: String,
+    filterInstitution: String,
+    filterDepartment: String,
     modifier: Modifier = Modifier,
 ) {
-    var searchQuery by rememberSaveable { mutableStateOf("") }
     var showAddDialog by remember { mutableStateOf(false) }
-    var showFilterDialog by remember { mutableStateOf(false) }
-    var filterInstitution by rememberSaveable { mutableStateOf("") }
-    var filterDepartment by rememberSaveable { mutableStateOf("") }
 
     val filtered = sampleMentors.filter { mentor ->
         val matchesSearch = searchQuery.isBlank() ||
-            mentor.name.contains(searchQuery, ignoreCase = true) ||
-            mentor.email.contains(searchQuery, ignoreCase = true) ||
-            mentor.institution.contains(searchQuery, ignoreCase = true)
+                mentor.name.contains(searchQuery, ignoreCase = true) ||
+                mentor.email.contains(searchQuery, ignoreCase = true) ||
+                mentor.institution.contains(searchQuery, ignoreCase = true)
         val matchesInstitution = filterInstitution.isEmpty() ||
-            mentor.institution == filterInstitution
+                mentor.institution == filterInstitution
         val matchesDepartment = filterDepartment.isEmpty() ||
-            mentor.department.contains(filterDepartment, ignoreCase = true)
+                mentor.department.contains(filterDepartment, ignoreCase = true)
         matchesSearch && matchesInstitution && matchesDepartment
     }
 
@@ -373,19 +390,6 @@ private fun MentorsTabContent(
 
     if (showAddDialog) {
         AddMentorDialog(onDismiss = { showAddDialog = false })
-    }
-
-    if (showFilterDialog) {
-        MentorFilterDialog(
-            currentInstitution = filterInstitution,
-            currentDepartment = filterDepartment,
-            onApply = { institution, department ->
-                filterInstitution = institution
-                filterDepartment = department
-                showFilterDialog = false
-            },
-            onDismiss = { showFilterDialog = false },
-        )
     }
 
     Scaffold(
@@ -407,23 +411,6 @@ private fun MentorsTabContent(
                 .fillMaxSize()
                 .padding(innerPadding),
         ) {
-            item {
-                Spacer(modifier = Modifier.height(8.dp))
-                SearchBarWithFilter(
-                    query = searchQuery,
-                    onQueryChange = { searchQuery = it },
-                    placeholder = "Pesquisar orientadores...",
-                    onFilterClick = { showFilterDialog = true },
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                LinkStageTabRow(
-                    tabs = listOf("Alunos", "Orientadores"),
-                    selectedIndex = selectedTab,
-                    onTabSelected = onTabSelected,
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-            }
-
             grouped.forEach { (institution, mentors) ->
                 val isExpanded = expandedInstitutions[institution] == true
 

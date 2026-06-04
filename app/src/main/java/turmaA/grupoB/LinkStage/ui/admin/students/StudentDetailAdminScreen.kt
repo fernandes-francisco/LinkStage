@@ -16,23 +16,15 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.Work
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -42,27 +34,31 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import turmaA.grupoB.LinkStage.ui.admin.avatarColors
 import turmaA.grupoB.LinkStage.ui.admin.sampleStudents
 import turmaA.grupoB.LinkStage.ui.common.ContentSection
+import turmaA.grupoB.LinkStage.ui.common.LinkStageButton
+import turmaA.grupoB.LinkStage.ui.common.LinkStageDialog
+import turmaA.grupoB.LinkStage.ui.common.SecondaryTopBar
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.Fade1
+import turmaA.grupoB.LinkStage.ui.theme.Fade3
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.ui.theme.MediumBlue
 import turmaA.grupoB.LinkStage.ui.theme.Red
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StudentDetailAdminScreen(
     studentId: String,
     onBack: () -> Unit,
+    onViewInternship: (String) -> Unit = {},
 ) {
     val student = sampleStudents.find { it.id == studentId } ?: run {
         onBack()
@@ -72,41 +68,43 @@ fun StudentDetailAdminScreen(
     var showDeleteDialog by remember { mutableStateOf(false) }
 
     if (showDeleteDialog) {
-        DeleteConfirmDialog(
+        LinkStageDialog(
             title = "Remover Aluno",
-            message = "Tens a certeza que queres remover \"${student.name}\"? Esta ação não pode ser revertida.",
             onConfirm = {
                 showDeleteDialog = false
                 onBack()
             },
             onDismiss = { showDeleteDialog = false },
+            confirmText = "Remover",
+            dismissText = "Cancelar",
+            content = {
+                Text(
+                    text = "Tens a certeza que queres remover \"${student.name}\"? Esta ação não pode ser revertida.",
+                    color = DarkGrey,
+                    lineHeight = 22.sp,
+                )
+            }
         )
     }
 
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        "Detalhes do Aluno",
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 16.sp,
-                        color = DarkBlue,
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Voltar",
-                            tint = DarkBlue,
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White),
-            )
-        },
+        topBar = { SecondaryTopBar(title = "Detalhes do Aluno", onBack = onBack) },
         containerColor = BackgroundLight,
+        bottomBar = {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(BackgroundLight)
+                    .padding(16.dp)
+            ) {
+                LinkStageButton(
+                    text = "Remover Aluno",
+                    onClick = { showDeleteDialog = true },
+                    height = 50.dp,
+                    brush = SolidColor(Red)
+                )
+            }
+        }
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -177,46 +175,37 @@ fun StudentDetailAdminScreen(
 
             // Internship Status
             if (student.hasActiveInternship) {
-                Card(
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(containerColor = DarkBlue),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+                        .padding(horizontal = 16.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(brush = Fade3)
                 ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                Icons.Outlined.Work,
-                                contentDescription = null,
-                                tint = LightBlue,
-                                modifier = Modifier.size(20.dp),
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = "Estágio Ativo",
-                                color = Color.White,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 15.sp,
-                            )
-                        }
-                        Spacer(modifier = Modifier.height(8.dp))
+                    Column(modifier = Modifier.padding(20.dp)) {
+                        Text(
+                            text = "Estágio Ativo",
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp,
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
                         Text(
                             text = "Empresa: ${student.internshipCompany}",
                             color = Color.White.copy(alpha = 0.8f),
-                            fontSize = 13.sp,
+                            fontSize = 14.sp,
                         )
-                        Spacer(modifier = Modifier.height(12.dp))
+                        Spacer(modifier = Modifier.height(16.dp))
                         Button(
-                            onClick = { },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = LightBlue,
-                                contentColor = DarkBlue,
-                            ),
+                            onClick = { onViewInternship(student.id) },
+                            modifier = Modifier.fillMaxWidth().height(44.dp),
                             shape = RoundedCornerShape(10.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color.White,
+                                contentColor = DarkBlue
+                            )
                         ) {
-                            Text("Ver Estágio", fontWeight = FontWeight.SemiBold)
+                            Text("Ver Detalhes do Estágio", fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -226,7 +215,7 @@ fun StudentDetailAdminScreen(
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp),
                     shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(containerColor = BackgroundLight),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
                     elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
                 ) {
                     Column(
@@ -263,25 +252,7 @@ fun StudentDetailAdminScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Remove Button
-            Button(
-                onClick = { showDeleteDialog = true },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-                    .height(50.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Red,
-                    contentColor = Color.White,
-                ),
-            ) {
-                Text("Remover Aluno", fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
@@ -319,42 +290,6 @@ private fun ApplicationPlaceholderItem(title: String, company: String, status: S
             Text(text = status, color = MediumBlue, fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
         }
     }
-}
-
-@Composable
-fun DeleteConfirmDialog(
-    title: String,
-    message: String,
-    onConfirm: () -> Unit,
-    onDismiss: () -> Unit,
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Text(text = title, fontWeight = FontWeight.Bold, color = DarkBlue)
-        },
-        text = {
-            Text(text = message, color = DarkGrey, lineHeight = 22.sp)
-        },
-        confirmButton = {
-            Button(
-                onClick = onConfirm,
-                colors = ButtonDefaults.buttonColors(containerColor = Red),
-            ) {
-                Text("Remover", color = Color.White)
-            }
-        },
-        dismissButton = {
-            OutlinedButton(
-                onClick = onDismiss,
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = DarkBlue),
-            ) {
-                Text("Cancelar")
-            }
-        },
-        containerColor = Color.White,
-        shape = RoundedCornerShape(16.dp),
-    )
 }
 
 @Preview(showSystemUi = true)

@@ -11,8 +11,8 @@ import java.time.LocalDate
 data class MentorInternship(
     val id: String,
     val offerTitle: String,
-    val institutionName: String,
-    val institutionType: String,
+    val businessInstitutionName: String,
+    val schoolInstitutionName: String,
     val logoInitial: String,
     val logoColor: Color,
     val endDate: LocalDate,
@@ -25,6 +25,7 @@ data class MentorInternship(
     val responsibilities: List<String> = emptyList(),
     val requirements: List<String> = emptyList(),
     val benefits: List<String> = emptyList(),
+    val isBusinessInternship: Boolean = true,
 )
 
 data class InternshipEvaluation(
@@ -45,8 +46,8 @@ val sampleMentorInternships = listOf(
     MentorInternship(
         id = "i1",
         offerTitle = "UI/UX Designer",
-        institutionName = "Continente",
-        institutionType = "Instituição",
+        businessInstitutionName = "Continente",
+        schoolInstitutionName = "ESTG - IPVC",
         logoInitial = "C",
         logoColor = Color(0xFFE53935),
         endDate = LocalDate.of(2026, 5, 5),
@@ -67,14 +68,15 @@ val sampleMentorInternships = listOf(
             "Comunicação excelente escrita e verbal em Inglês.",
         ),
         benefits = listOf("Passe de Transporte Público", "Programa de Mentoria", "Mercado Competitivo"),
+        isBusinessInternship = true
     ),
     MentorInternship(
         id = "i2",
         offerTitle = "Designer de Produto",
-        institutionName = "Uni. de Aveiro",
-        institutionType = "Instituto Escolar",
-        logoInitial = "U",
-        logoColor = Color(0xFF1565C0),
+        businessInstitutionName = "Viana S.T.Arts",
+        schoolInstitutionName = "Uni. de Aveiro",
+        logoInitial = "V",
+        logoColor = Color(0xFF212121),
         endDate = LocalDate.of(2026, 6, 27),
         studentName = "Francisco Fernandes",
         studentId = "s2",
@@ -91,6 +93,7 @@ val sampleMentorInternships = listOf(
             "Experiência com ferramentas de prototipagem.",
         ),
         benefits = listOf("Certificado de Estágio", "Acesso a Laboratórios"),
+        isBusinessInternship = false
     ),
 )
 

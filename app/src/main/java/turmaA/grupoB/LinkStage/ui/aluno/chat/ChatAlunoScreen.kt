@@ -92,6 +92,8 @@ val sampleConversations = listOf(
 )
 
 val sampleContacts = listOf(
+    Contact("s1", "Tiago Rodrigues", "Estudante", "TR", 0),
+    Contact("s2", "Francisco Fernandes", "Estudante", "FF", 1),
     Contact("13", "Ana Silva", "Gestora de Projeto", "AS", 0),
     Contact("10", "Francisco Fernandes", "Orientador Instituição", "FF", 0),
     Contact("14", "José Santos", "Tutor Técnico", "JS", 1),
@@ -178,16 +180,9 @@ private fun MessagesListScreen(
                 Icon(Icons.Default.Add, contentDescription = "Nova mensagem")
             }
         },
-        containerColor = BackgroundLight,
-    ) { paddingValues ->
-        Column(modifier = Modifier.fillMaxSize()) {
-            CommonTopBar()
-            
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(bottom = paddingValues.calculateBottomPadding()),
-            ) {
+        topBar = {
+            Column(modifier = Modifier.background(BackgroundLight)) {
+                CommonTopBar()
                 Text(
                     text = "Mensagens",
                     style = MaterialTheme.typography.headlineSmall.copy(
@@ -196,26 +191,33 @@ private fun MessagesListScreen(
                     ),
                     modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
                 )
+            }
+        },
+        containerColor = BackgroundLight,
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues),
+        ) {
+            MessagesSearchBar(
+                query = searchQuery,
+                onQueryChange = { searchQuery = it },
+            )
 
-                MessagesSearchBar(
-                    query = searchQuery,
-                    onQueryChange = { searchQuery = it },
-                )
+            Spacer(modifier = Modifier.height(8.dp))
 
-                Spacer(modifier = Modifier.height(8.dp))
-
-                LazyColumn(modifier = Modifier.fillMaxSize()) {
-                    items(filtered, key = { it.id }) { conversation ->
-                        ConversationItem(
-                            conversation = conversation,
-                            onClick = { onOpenChat(conversation.id) },
-                            onLongClick = { conversationToDelete = conversation }
-                        )
-                        HorizontalDivider(
-                            modifier = Modifier.padding(horizontal = 20.dp),
-                            color = BorderGrey,
-                        )
-                    }
+            LazyColumn(modifier = Modifier.fillMaxSize()) {
+                items(filtered, key = { it.id }) { conversation ->
+                    ConversationItem(
+                        conversation = conversation,
+                        onClick = { onOpenChat(conversation.id) },
+                        onLongClick = { conversationToDelete = conversation }
+                    )
+                    HorizontalDivider(
+                        modifier = Modifier.padding(horizontal = 20.dp),
+                        color = BorderGrey,
+                    )
                 }
             }
         }

@@ -43,6 +43,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -119,42 +120,42 @@ fun OffersAlunoScreen(
 
     var showFilterModal by remember { mutableStateOf(false) }
 
-    LazyColumn(
-        modifier = modifier
-            .fillMaxSize()
-            .background(BackgroundLight),
-        contentPadding = PaddingValues(bottom = 16.dp),
-    ) {
-        item { CommonTopBar() }
-
-        item {
-            Text(
-                text = "Descobre Oportunidades",
-                style = MaterialTheme.typography.headlineSmall.copy(
-                    fontWeight = FontWeight.Bold,
-                    color = DarkBlue,
-                ),
-                modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
-            )
+    Scaffold(
+        modifier = modifier,
+        containerColor = BackgroundLight,
+        topBar = {
+            Column(modifier = Modifier.background(BackgroundLight)) {
+                CommonTopBar()
+                Text(
+                    text = "Descobre Oportunidades",
+                    style = MaterialTheme.typography.headlineSmall.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = DarkBlue,
+                    ),
+                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
+                )
+                SearchBarWithFilter(
+                    query = searchQuery,
+                    onQueryChange = { discoverViewModel.updateSearchQuery(it) },
+                    hasActiveFilters = hasActiveFilters,
+                    onFilterClick = { showFilterModal = true },
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+            }
         }
-
-        item {
-            Spacer(modifier = Modifier.height(12.dp))
-            SearchBarWithFilter(
-                query = searchQuery,
-                onQueryChange = { discoverViewModel.updateSearchQuery(it) },
-                hasActiveFilters = hasActiveFilters,
-                onFilterClick = { showFilterModal = true },
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-        }
-
-
-        items(filteredOffers, key = { it.id }) { offer ->
-            OfferCard(
-                offer = offer,
-                onClick = { onOfferClick(offer.id) },
-            )
+    ) { innerPadding ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding),
+            contentPadding = PaddingValues(bottom = 16.dp),
+        ) {
+            items(filteredOffers, key = { it.id }) { offer ->
+                OfferCard(
+                    offer = offer,
+                    onClick = { onOfferClick(offer.id) },
+                )
+            }
         }
     }
 

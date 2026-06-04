@@ -105,6 +105,25 @@ fun InstitutionsAdminScreen(
     Scaffold(
         modifier = modifier,
         containerColor = BackgroundLight,
+        topBar = {
+            Column(modifier = Modifier.background(BackgroundLight)) {
+                CommonTopBar()
+                Text(
+                    text = "Instituições",
+                    style = MaterialTheme.typography.headlineSmall.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = DarkBlue,
+                    ),
+                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
+                )
+                SearchBarWithFilter(
+                    query = searchQuery,
+                    onQueryChange = { searchQuery = it },
+                    onFilterClick = { showFilterDialog = true },
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+        },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { showAddDialog = true },
@@ -116,45 +135,21 @@ fun InstitutionsAdminScreen(
             }
         },
     ) { innerPadding ->
-        Column(modifier = Modifier.fillMaxSize()) {
-            CommonTopBar()
-            LazyColumn(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(bottom = innerPadding.calculateBottomPadding()),
-            ) {
-                item {
-                    Text(
-                        text = "Instituições",
-                        style = MaterialTheme.typography.headlineSmall.copy(
-                            fontWeight = FontWeight.Bold,
-                            color = DarkBlue,
-                        ),
-                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp),
-                    )
-                }
-
-                item {
-                    Spacer(modifier = Modifier.height(12.dp))
-                    SearchBarWithFilter(
-                        query = searchQuery,
-                        onQueryChange = { searchQuery = it },
-                        onFilterClick = { showFilterDialog = true },
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                }
-
-                items(filtered, key = { it.id }) { institution ->
-                    InstitutionListItem(
-                        institution = institution,
-                        onClick = {
-                            navController.navigate(AdminRoutes.institutionDetail(institution.id))
-                        },
-                    )
-                }
-
-                item { Spacer(modifier = Modifier.height(80.dp)) }
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding),
+        ) {
+            items(filtered, key = { it.id }) { institution ->
+                InstitutionListItem(
+                    institution = institution,
+                    onClick = {
+                        navController.navigate(AdminRoutes.institutionDetail(institution.id))
+                    },
+                )
             }
+
+            item { Spacer(modifier = Modifier.height(80.dp)) }
         }
     }
 }

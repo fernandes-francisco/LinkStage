@@ -17,11 +17,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -46,7 +43,6 @@ import turmaA.grupoB.LinkStage.ui.admin.sampleInstitutions
 import turmaA.grupoB.LinkStage.ui.admin.sampleMentors
 import turmaA.grupoB.LinkStage.ui.admin.sampleStudents
 import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
-import turmaA.grupoB.LinkStage.ui.common.LinkStageLogo
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
@@ -60,20 +56,36 @@ fun HomeAdminScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(BackgroundLight)
-            .verticalScroll(rememberScrollState()),
+            .background(BackgroundLight),
     ) {
         CommonTopBar()
 
-        Column(modifier = Modifier.padding(horizontal = 20.dp)) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 12.dp)
+        ) {
             Text(
                 "Olá, Admin",
-                fontSize = 28.sp,
-                fontWeight = FontWeight.Bold,
-                color = DarkBlue,
+                style = MaterialTheme.typography.headlineLarge.copy(
+                    fontWeight = FontWeight.Bold,
+                    color = DarkBlue,
+                ),
             )
+            Text(
+                "Bem-vindo ao painel de administração.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = DarkGrey
+            )
+        }
 
-            Spacer(modifier = Modifier.height(20.dp))
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 20.dp),
+        ) {
+            Spacer(modifier = Modifier.height(8.dp))
 
             // Novos alunos
             SectionHeader(
@@ -148,7 +160,7 @@ fun HomeAdminScreen(
                 Spacer(modifier = Modifier.height(8.dp))
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }

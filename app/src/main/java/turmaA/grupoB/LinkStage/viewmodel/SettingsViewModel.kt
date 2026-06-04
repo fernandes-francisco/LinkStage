@@ -29,6 +29,9 @@ class SettingsViewModel : ViewModel() {
     private val _notifAvaliacao = MutableStateFlow(true)
     val notifAvaliacao: StateFlow<Boolean> = _notifAvaliacao.asStateFlow()
 
+    private val _notifAtividade = MutableStateFlow(true)
+    val notifAtividade: StateFlow<Boolean> = _notifAtividade.asStateFlow()
+
     private val _user = MutableStateFlow(
         LoggedUser(
             name = "Tomás Silva",
@@ -63,6 +66,10 @@ class SettingsViewModel : ViewModel() {
 
     fun toggleNotifAvaliacao(enabled: Boolean) {
         _notifAvaliacao.value = enabled
+    }
+
+    fun toggleNotifAtividade(enabled: Boolean) {
+        _notifAtividade.value = enabled
     }
 
     fun logout() {

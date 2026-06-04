@@ -27,6 +27,8 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import turmaA.grupoB.LinkStage.ui.aluno.chat.ChatScreen
+import turmaA.grupoB.LinkStage.ui.aluno.chat.Conversation
+import turmaA.grupoB.LinkStage.ui.aluno.chat.sampleContacts
 import turmaA.grupoB.LinkStage.ui.orientador.students.MentorCheckpointDetailScreen
 import turmaA.grupoB.LinkStage.ui.orientador.students.MentorStudentDetailScreen
 import turmaA.grupoB.LinkStage.ui.aluno.chat.sampleConversations
@@ -34,6 +36,7 @@ import turmaA.grupoB.LinkStage.ui.orientador.chat.ChatOrientadorScreen
 import turmaA.grupoB.LinkStage.ui.orientador.internships.MentorInternshipDetailScreen
 import turmaA.grupoB.LinkStage.ui.orientador.home.HomeOrientadorScreen
 import turmaA.grupoB.LinkStage.ui.orientador.internships.InternshipsOrientadorScreen
+import turmaA.grupoB.LinkStage.ui.orientador.notifications.NotificationsOrientadorScreen
 import turmaA.grupoB.LinkStage.ui.orientador.settings.SettingsOrientadorScreen
 import turmaA.grupoB.LinkStage.ui.orientador.students.StudentsOrientadorScreen
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
@@ -45,6 +48,7 @@ object OrientadorRoutes {
     const val INTERNSHIPS = "orientador_internships"
     const val MESSAGES = "orientador_messages"
     const val SETTINGS = "orientador_settings"
+    const val NOTIFICATIONS = "orientador_notifications"
     const val CHAT = "orientador_chat/{conversationId}"
     const val MENTOR_STUDENT_DETAIL = "mentor_student/{studentId}"
     const val MENTOR_CHECKPOINT_DETAIL = "mentor_checkpoint/{checkpointId}"
@@ -137,14 +141,39 @@ fun OrientadorMainScreen(onLogout: () -> Unit = {}) {
                 )
             }
             composable(OrientadorRoutes.SETTINGS) {
-                SettingsOrientadorScreen(onLogout = onLogout)
+                SettingsOrientadorScreen(
+                    onLogout = onLogout,
+                    onNotificationsClick = {
+                        navController.navigate(OrientadorRoutes.NOTIFICATIONS)
+                    }
+                )
+            }
+            composable(OrientadorRoutes.NOTIFICATIONS) {
+                NotificationsOrientadorScreen(
+                    onBack = { navController.popBackStack() }
+                )
             }
             composable(
                 route = OrientadorRoutes.CHAT,
                 arguments = listOf(navArgument("conversationId") { type = NavType.StringType }),
             ) { backStackEntry ->
                 val conversationId = backStackEntry.arguments?.getString("conversationId") ?: return@composable
-                val conversation = sampleConversations.find { it.id == conversationId } ?: return@composable
+                
+                // Primeiro procura nas conversas existentes
+                val existingConversation = sampleConversations.find { it.id == conversationId }
+                
+                // Se não existir, procura nos contactos para criar uma nova conversa
+                val conversation = existingConversation ?: sampleContacts.find { it.id == conversationId }?.let { contact ->
+                    Conversation(
+                        id = contact.id,
+                        name = contact.name,
+                        initials = contact.initials,
+                        lastMessage = "Inicia uma nova conversa.",
+                        time = "Agora",
+                        avatarColorIndex = contact.avatarColorIndex
+                    )
+                } ?: return@composable
+
                 ChatScreen(
                     conversation = conversation,
                     onBack = { navController.popBackStack() },

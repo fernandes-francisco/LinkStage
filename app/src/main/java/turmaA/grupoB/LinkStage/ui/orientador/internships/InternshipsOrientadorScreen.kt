@@ -43,7 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import turmaA.grupoB.LinkStage.ui.common.LinkStageLogo
+import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
 import turmaA.grupoB.LinkStage.ui.orientador.MentorInternship
 import turmaA.grupoB.LinkStage.ui.orientador.OrientadorRoutes
 import turmaA.grupoB.LinkStage.ui.orientador.formatInternshipDate
@@ -53,6 +53,7 @@ import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
+import turmaA.grupoB.LinkStage.ui.theme.MediumBlue
 
 @Composable
 fun InternshipsOrientadorScreen(
@@ -64,7 +65,8 @@ fun InternshipsOrientadorScreen(
     val filtered = if (searchQuery.isEmpty()) sampleMentorInternships
     else sampleMentorInternships.filter {
         it.offerTitle.contains(searchQuery, ignoreCase = true) ||
-            it.institutionName.contains(searchQuery, ignoreCase = true)
+            it.businessInstitutionName.contains(searchQuery, ignoreCase = true) ||
+            it.schoolInstitutionName.contains(searchQuery, ignoreCase = true)
     }
 
     Column(
@@ -72,23 +74,18 @@ fun InternshipsOrientadorScreen(
             .fillMaxSize()
             .background(BackgroundLight),
     ) {
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-            LinkStageLogo()
-        }
-
-        Spacer(modifier = Modifier.height(12.dp))
+        CommonTopBar()
 
         Text(
             text = "Estágios Envolvidos",
-            fontSize = 22.sp,
-            fontWeight = FontWeight.Bold,
-            color = DarkBlue,
-            modifier = Modifier.padding(horizontal = 20.dp),
+            style = MaterialTheme.typography.headlineSmall.copy(
+                fontWeight = FontWeight.Bold,
+                color = DarkBlue,
+            ),
+            modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
         )
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
         OutlinedTextField(
             value = searchQuery,
@@ -180,26 +177,36 @@ private fun InternshipCard(
                     )
                 }
                 Spacer(modifier = Modifier.width(12.dp))
-                Text(
-                    text = internship.institutionName,
-                    color = DarkBlue,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 15.sp,
-                    modifier = Modifier.weight(1f),
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(6.dp))
-                        .background(LightBlue.copy(alpha = 0.15f))
-                        .padding(horizontal = 10.dp, vertical = 4.dp),
-                ) {
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = internship.institutionType,
+                        text = internship.offerTitle,
                         color = DarkBlue,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 11.sp,
+                        fontSize = 15.sp,
                     )
+                    
+                    Text(
+                        text = if (internship.isBusinessInternship) internship.businessInstitutionName else internship.schoolInstitutionName,
+                        color = if (internship.isBusinessInternship) MediumBlue else DarkGrey,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(if (internship.isBusinessInternship) LightBlue.copy(alpha = 0.15f) else DarkGrey.copy(alpha = 0.15f))
+                            .padding(horizontal = 8.dp, vertical = 2.dp),
+                    ) {
+                        Text(
+                            text = if (internship.isBusinessInternship) "Instituição Empresarial" else "Instituição Escolar",
+                            color = if (internship.isBusinessInternship) DarkBlue else DarkGrey,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 10.sp,
+                        )
+                    }
                 }
             }
 
@@ -232,14 +239,6 @@ private fun InternshipCard(
 @Preview(showSystemUi = true)
 @Composable
 private fun InternshipsOrientadorScreenPreview() {
-    MaterialTheme {
-        InternshipsOrientadorScreen(navController = rememberNavController())
-    }
-}
-
-@Preview(showSystemUi = true, device = "spec:width=411dp,height=891dp,orientation=landscape")
-@Composable
-private fun InternshipsOrientadorScreenLandscapePreview() {
     MaterialTheme {
         InternshipsOrientadorScreen(navController = rememberNavController())
     }

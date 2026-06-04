@@ -29,6 +29,7 @@ import turmaA.grupoB.LinkStage.ui.admin.home.HomeAdminScreen
 import turmaA.grupoB.LinkStage.ui.admin.institutions.InstitutionDetailAdminScreen
 import turmaA.grupoB.LinkStage.ui.admin.institutions.InstitutionsAdminScreen
 import turmaA.grupoB.LinkStage.ui.admin.settings.SettingsAdminScreen
+import turmaA.grupoB.LinkStage.ui.admin.students.InternshipDetailAdminScreen
 import turmaA.grupoB.LinkStage.ui.admin.students.MentorDetailAdminScreen
 import turmaA.grupoB.LinkStage.ui.admin.students.StudentDetailAdminScreen
 import turmaA.grupoB.LinkStage.ui.admin.students.StudentsAdminScreen
@@ -42,11 +43,13 @@ object AdminRoutes {
     const val MENTOR_DETAIL = "admin_mentor/{id}"
     const val INSTITUTIONS = "admin_institutions"
     const val INSTITUTION_DETAIL = "admin_institution/{id}"
+    const val INTERNSHIP_DETAIL = "admin_internship/{id}"
     const val SETTINGS = "admin_settings"
 
     fun studentDetail(id: String) = "admin_student/$id"
     fun mentorDetail(id: String) = "admin_mentor/$id"
     fun institutionDetail(id: String) = "admin_institution/$id"
+    fun internshipDetail(id: String) = "admin_internship/$id"
 }
 
 private data class AdminTab(
@@ -57,7 +60,7 @@ private data class AdminTab(
 
 private val adminTabs = listOf(
     AdminTab("Início", Icons.Outlined.Home, AdminRoutes.HOME),
-    AdminTab("Alunos", Icons.Outlined.People, AdminRoutes.STUDENTS),
+    AdminTab("Utilizadores", Icons.Outlined.People, AdminRoutes.STUDENTS),
     AdminTab("Instituições", Icons.Outlined.AccountBalance, AdminRoutes.INSTITUTIONS),
     AdminTab("Definições", Icons.Outlined.Settings, AdminRoutes.SETTINGS),
 )
@@ -126,6 +129,9 @@ fun AdminMainScreen(onLogout: () -> Unit = {}) {
                 StudentDetailAdminScreen(
                     studentId = id,
                     onBack = { navController.popBackStack() },
+                    onViewInternship = { studentId ->
+                        navController.navigate(AdminRoutes.internshipDetail(studentId))
+                    }
                 )
             }
             composable(
@@ -148,6 +154,16 @@ fun AdminMainScreen(onLogout: () -> Unit = {}) {
                 val id = backStackEntry.arguments?.getString("id") ?: return@composable
                 InstitutionDetailAdminScreen(
                     institutionId = id,
+                    onBack = { navController.popBackStack() },
+                )
+            }
+            composable(
+                route = AdminRoutes.INTERNSHIP_DETAIL,
+                arguments = listOf(navArgument("id") { type = NavType.StringType }),
+            ) { backStackEntry ->
+                val id = backStackEntry.arguments?.getString("id") ?: return@composable
+                InternshipDetailAdminScreen(
+                    internshipId = id,
                     onBack = { navController.popBackStack() },
                 )
             }

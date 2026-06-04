@@ -30,6 +30,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -38,7 +39,6 @@ import androidx.compose.ui.unit.sp
 import turmaA.grupoB.LinkStage.ui.admin.sampleInstitutions
 import turmaA.grupoB.LinkStage.ui.admin.sampleMentors
 import turmaA.grupoB.LinkStage.ui.admin.sampleStudents
-import turmaA.grupoB.LinkStage.ui.admin.students.DeleteConfirmDialog
 import turmaA.grupoB.LinkStage.ui.admin.students.MentorListItem
 import turmaA.grupoB.LinkStage.ui.admin.students.StudentListItem
 import turmaA.grupoB.LinkStage.ui.common.ContentSection
@@ -95,6 +95,21 @@ fun InstitutionDetailAdminScreen(
     Scaffold(
         topBar = { SecondaryTopBar(title = "Detalhes da Instituição", onBack = onBack) },
         containerColor = BackgroundLight,
+        bottomBar = {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(BackgroundLight)
+                    .padding(16.dp)
+            ) {
+                LinkStageButton(
+                    text = "Remover Instituição",
+                    onClick = { showDeleteDialog = true },
+                    height = 50.dp,
+                    brush = SolidColor(Red)
+                )
+            }
+        }
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -254,18 +269,7 @@ fun InstitutionDetailAdminScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Remove Button
-            LinkStageButton(
-                text = "Remover Instituição",
-                onClick = { showDeleteDialog = true },
-                modifier = Modifier.padding(horizontal = 16.dp),
-                height = 50.dp,
-                brush = androidx.compose.ui.graphics.SolidColor(Red)
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }

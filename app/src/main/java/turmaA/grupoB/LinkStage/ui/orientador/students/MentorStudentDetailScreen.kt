@@ -48,6 +48,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -71,11 +72,14 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import turmaA.grupoB.LinkStage.ui.admin.AdminStudent
+import turmaA.grupoB.LinkStage.ui.admin.avatarColors
 import turmaA.grupoB.LinkStage.ui.aluno.activity.ActivityLogCard
 import turmaA.grupoB.LinkStage.ui.aluno.activity.ActivityLogStatus
 import turmaA.grupoB.LinkStage.ui.aluno.activity.InternshipHeader
 import turmaA.grupoB.LinkStage.ui.aluno.activity.calculateInternshipProgress
+import turmaA.grupoB.LinkStage.ui.common.LinkStageButton
 import turmaA.grupoB.LinkStage.ui.common.LinkStageTabRow
+import turmaA.grupoB.LinkStage.ui.common.SecondaryTopBar
 import turmaA.grupoB.LinkStage.ui.common.SectionLabel
 import turmaA.grupoB.LinkStage.ui.orientador.InternshipEvaluation
 import turmaA.grupoB.LinkStage.ui.orientador.OrientadorRoutes
@@ -102,65 +106,68 @@ fun MentorStudentDetailScreen(
     val evaluation = sampleEvaluation
     var selectedTab by remember { mutableIntStateOf(0) }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(BackgroundLight),
-    ) {
-        // Header
-        Column(modifier = Modifier.background(Color.White)) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 10.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                IconButton(onClick = { navController.popBackStack() }) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar", tint = DarkBlue)
+    Scaffold(
+        topBar = {
+            Column(modifier = Modifier.background(Color.White)) {
+                SecondaryTopBar(title = "Detalhes do Aluno", onBack = { navController.popBackStack() })
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(52.dp)
+                            .clip(CircleShape)
+                            .background(Fade1),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(student.avatarInitials, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                    }
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column {
+                        Text(student.name, color = DarkBlue, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                        Text(student.institutionCode, color = LightBlue, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                    }
                 }
-                Text(
-                    text = "Lista de Alunos",
-                    color = DarkBlue,
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 15.sp,
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                LinkStageTabRow(
+                    tabs = listOf("Detalhes", "Trabalho", "Avaliar"),
+                    selectedIndex = selectedTab,
+                    onTabSelected = { selectedTab = it },
                 )
             }
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
+        },
+        bottomBar = {
+            if (selectedTab == 0) {
                 Box(
                     modifier = Modifier
-                        .size(52.dp)
-                        .clip(CircleShape)
-                        .background(Fade1),
-                    contentAlignment = Alignment.Center,
+                        .fillMaxWidth()
+                        .background(BackgroundLight)
+                        .padding(16.dp)
                 ) {
-                    Text(student.avatarInitials, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 20.sp)
-                }
-                Spacer(modifier = Modifier.width(12.dp))
-                Column {
-                    Text(student.name, color = DarkBlue, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                    Text(student.institutionCode, color = LightBlue, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                    LinkStageButton(
+                        text = "Enviar mensagem",
+                        onClick = {
+                            navController.navigate(OrientadorRoutes.chatRoute(student.id))
+                        },
+                        height = 50.dp,
+                        brush = Fade2
+                    )
                 }
             }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            LinkStageTabRow(
-                tabs = listOf("Detalhes", "Trabalho\nDesenvolvido", "Avaliar"),
-                selectedIndex = selectedTab,
-                onTabSelected = { selectedTab = it },
-            )
-        }
-
+        },
+        containerColor = BackgroundLight,
+    ) { paddingValues ->
         AnimatedContent(
             targetState = selectedTab,
             transitionSpec = { fadeIn() togetherWith fadeOut() },
             label = "tab_content",
+            modifier = Modifier.padding(paddingValues)
         ) { tab ->
             when (tab) {
                 0 -> StudentDetailsTab(student, navController)
@@ -183,25 +190,6 @@ private fun StudentDetailsTab(
             .fillMaxSize()
             .verticalScroll(rememberScrollState()),
     ) {
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-                .height(48.dp)
-                .clip(RoundedCornerShape(12.dp))
-                .background(Fade2)
-                .clickable { },
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(
-                text = "Enviar mensagem",
-                color = Color.White,
-                fontWeight = FontWeight.SemiBold,
-            )
-        }
-
         Spacer(modifier = Modifier.height(16.dp))
 
         InfoField(label = "Instituição", value = student.institution, trailingBadge = "ipvc")
@@ -658,15 +646,17 @@ fun ExpandableFileRow(file: turmaA.grupoB.LinkStage.ui.aluno.activity.Checkpoint
             )
         }
         AnimatedVisibility(visible = expanded) {
-            Button(
-                onClick = { },
+            Box(
                 modifier = Modifier
                     .padding(bottom = 8.dp)
-                    .height(36.dp),
-                shape = RoundedCornerShape(8.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = DarkBlue),
+                    .height(36.dp)
+                    .width(140.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(Fade2)
+                    .clickable { },
+                contentAlignment = Alignment.Center
             ) {
-                Text("Descarregar", color = Color.White, fontSize = 13.sp)
+                Text("Descarregar", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
             }
         }
         HorizontalDivider(color = BorderGrey)

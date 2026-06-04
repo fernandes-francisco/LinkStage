@@ -16,20 +16,14 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -39,14 +33,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import turmaA.grupoB.LinkStage.ui.admin.AdminStudent
 import turmaA.grupoB.LinkStage.ui.admin.sampleMentors
 import turmaA.grupoB.LinkStage.ui.admin.sampleStudents
 import turmaA.grupoB.LinkStage.ui.common.ContentSection
+import turmaA.grupoB.LinkStage.ui.common.LinkStageButton
+import turmaA.grupoB.LinkStage.ui.common.LinkStageDialog
+import turmaA.grupoB.LinkStage.ui.common.SecondaryTopBar
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
@@ -54,7 +51,6 @@ import turmaA.grupoB.LinkStage.ui.theme.Fade1
 import turmaA.grupoB.LinkStage.ui.theme.MediumBlue
 import turmaA.grupoB.LinkStage.ui.theme.Red
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MentorDetailAdminScreen(
     mentorId: String,
@@ -73,41 +69,43 @@ fun MentorDetailAdminScreen(
     }
 
     if (showDeleteDialog) {
-        DeleteConfirmDialog(
+        LinkStageDialog(
             title = "Remover Orientador",
-            message = "Tens a certeza que queres remover \"${mentor.name}\"? Esta ação não pode ser revertida.",
             onConfirm = {
                 showDeleteDialog = false
                 onBack()
             },
             onDismiss = { showDeleteDialog = false },
+            confirmText = "Remover",
+            dismissText = "Cancelar",
+            content = {
+                Text(
+                    text = "Tens a certeza que queres remover \"${mentor.name}\"? Esta ação não pode ser revertida.",
+                    color = DarkGrey,
+                    lineHeight = 22.sp,
+                )
+            }
         )
     }
 
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        "Detalhes do Orientador",
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 16.sp,
-                        color = DarkBlue,
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Voltar",
-                            tint = DarkBlue,
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White),
-            )
-        },
+        topBar = { SecondaryTopBar(title = "Detalhes do Orientador", onBack = onBack) },
         containerColor = BackgroundLight,
+        bottomBar = {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(BackgroundLight)
+                    .padding(16.dp)
+            ) {
+                LinkStageButton(
+                    text = "Remover Orientador",
+                    onClick = { showDeleteDialog = true },
+                    height = 50.dp,
+                    brush = SolidColor(Red)
+                )
+            }
+        }
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -198,25 +196,7 @@ fun MentorDetailAdminScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Remove Button
-            Button(
-                onClick = { showDeleteDialog = true },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-                    .height(50.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Red,
-                    contentColor = Color.White,
-                ),
-            ) {
-                Text("Remover Orientador", fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }

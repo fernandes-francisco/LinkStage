@@ -1,6 +1,7 @@
 package turmaA.grupoB.LinkStage.ui.orientador.students
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -14,18 +15,13 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -36,8 +32,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import turmaA.grupoB.LinkStage.ui.aluno.activity.ActivityLog
 import turmaA.grupoB.LinkStage.ui.common.ContentSection
+import turmaA.grupoB.LinkStage.ui.common.SecondaryTopBar
 import turmaA.grupoB.LinkStage.ui.orientador.formatCheckpointDateLong
 import turmaA.grupoB.LinkStage.ui.orientador.sampleMentorActivityLogs
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
@@ -45,7 +41,6 @@ import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MentorCheckpointDetailScreen(
     checkpointId: String,
@@ -55,16 +50,9 @@ fun MentorCheckpointDetailScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Text("Aluno", fontWeight = FontWeight.SemiBold, fontSize = 16.sp, color = DarkBlue)
-                },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar", tint = DarkBlue)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White),
+            SecondaryTopBar(
+                title = "Detalhes da Atividade",
+                onBack = { navController.popBackStack() }
             )
         },
         containerColor = BackgroundLight,

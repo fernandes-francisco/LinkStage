@@ -51,7 +51,7 @@ import turmaA.grupoB.LinkStage.ui.admin.AdminStudent
 import turmaA.grupoB.LinkStage.ui.aluno.chat.Conversation
 import turmaA.grupoB.LinkStage.ui.aluno.chat.avatarColors
 import turmaA.grupoB.LinkStage.ui.aluno.chat.sampleConversations
-import turmaA.grupoB.LinkStage.ui.common.LinkStageLogo
+import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
 import turmaA.grupoB.LinkStage.ui.orientador.MentorInternship
 import turmaA.grupoB.LinkStage.ui.orientador.OrientadorRoutes
 import turmaA.grupoB.LinkStage.ui.orientador.sampleMentorInternships
@@ -62,6 +62,7 @@ import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.Fade3
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
+import turmaA.grupoB.LinkStage.ui.theme.MediumBlue
 
 @Composable
 fun HomeOrientadorScreen(
@@ -71,143 +72,153 @@ fun HomeOrientadorScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(BackgroundLight)
-            .verticalScroll(rememberScrollState()),
+            .background(BackgroundLight),
     ) {
-        Spacer(modifier = Modifier.height(16.dp))
+        CommonTopBar()
 
-        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-            LinkStageLogo()
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 8.dp)
+        ) {
+            Text(
+                "Olá, JJ",
+                style = MaterialTheme.typography.headlineLarge.copy(
+                    fontWeight = FontWeight.Bold,
+                    color = DarkBlue,
+                ),
+            )
+            Text(
+                "Bem-vindo de volta ao LinkStage.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = DarkGrey
+            )
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .verticalScroll(rememberScrollState()),
+        ) {
+            Spacer(modifier = Modifier.height(8.dp))
 
-        Text(
-            text = "Olá, JJ",
-            fontSize = 28.sp,
-            fontWeight = FontWeight.Bold,
-            color = DarkBlue,
-            modifier = Modifier.padding(horizontal = 20.dp),
-        )
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        // Section 1 — Os seus estágios
-        SectionHeader(
-            title = "Os seus estágios",
-            onViewAll = {
-                navController.navigate(OrientadorRoutes.INTERNSHIPS) {
-                    popUpTo(navController.graph.findStartDestination().id) {
-                        saveState = true
+            // Section 1 — Os seus estágios
+            SectionHeader(
+                title = "Os seus estágios",
+                onViewAll = {
+                    navController.navigate(OrientadorRoutes.INTERNSHIPS) {
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            saveState = true
+                        }
+                        launchSingleTop = true
+                        restoreState = true
                     }
-                    launchSingleTop = true
-                    restoreState = true
-                }
-            },
-        )
-        Spacer(modifier = Modifier.height(8.dp))
+                },
+            )
+            Spacer(modifier = Modifier.height(8.dp))
 
-        if (sampleMentorInternships.isNotEmpty()) {
-            sampleMentorInternships.take(2).forEach { internship ->
-                MentorInternshipCard(internship = internship)
-                Spacer(modifier = Modifier.height(8.dp))
+            if (sampleMentorInternships.isNotEmpty()) {
+                sampleMentorInternships.take(2).forEach { internship ->
+                    MentorInternshipCard(internship = internship)
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+            } else {
+                EmptyStateCard("Não estás envolvido em nenhum estágio.")
             }
-        } else {
-            EmptyStateCard("Não estás envolvido em nenhum estágio.")
-        }
 
-        Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-        // Section 2 — Alunos orientados
-        SectionHeader(
-            title = "Alunos orientados",
-            onViewAll = {
-                navController.navigate(OrientadorRoutes.STUDENTS) {
-                    popUpTo(navController.graph.findStartDestination().id) {
-                        saveState = true
+            // Section 2 — Alunos orientados
+            SectionHeader(
+                title = "Alunos orientados",
+                onViewAll = {
+                    navController.navigate(OrientadorRoutes.STUDENTS) {
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            saveState = true
+                        }
+                        launchSingleTop = true
+                        restoreState = true
                     }
-                    launchSingleTop = true
-                    restoreState = true
-                }
-            },
-        )
-        Spacer(modifier = Modifier.height(8.dp))
+                },
+            )
+            Spacer(modifier = Modifier.height(8.dp))
 
-        if (sampleMentorStudents.isNotEmpty()) {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                shape = RoundedCornerShape(12.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-            ) {
-                Column(
+            if (sampleMentorStudents.isNotEmpty()) {
+                Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Fade3, RoundedCornerShape(12.dp)),
+                        .padding(horizontal = 16.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.Transparent),
                 ) {
-                    sampleMentorStudents.take(2).forEachIndexed { index, student ->
-                        MentorStudentRow(student = student)
-                        if (index < sampleMentorStudents.take(2).size - 1) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(Fade3, RoundedCornerShape(12.dp)),
+                    ) {
+                        sampleMentorStudents.take(2).forEachIndexed { index, student ->
+                            MentorStudentRow(student = student)
+                            if (index < sampleMentorStudents.take(2).size - 1) {
+                                HorizontalDivider(
+                                    color = Color.White.copy(alpha = 0.2f),
+                                    modifier = Modifier.padding(horizontal = 16.dp),
+                                )
+                            }
+                        }
+                    }
+                }
+            } else {
+                EmptyStateCard("Não estás a orientar nenhum aluno.")
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Section 3 — Mensagens Recentes
+            SectionHeader(
+                title = "Mensagens Recentes",
+                onViewAll = {
+                    navController.navigate(OrientadorRoutes.MESSAGES) {
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            saveState = true
+                        }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                },
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+
+            if (sampleConversations.isNotEmpty()) {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+                ) {
+                    sampleConversations.take(3).forEachIndexed { index, conversation ->
+                        MessageRow(
+                            conversation = conversation,
+                            onClick = {
+                                navController.navigate(OrientadorRoutes.chatRoute(conversation.id))
+                            },
+                        )
+                        if (index < sampleConversations.take(3).size - 1) {
                             HorizontalDivider(
-                                color = Color.White.copy(alpha = 0.2f),
+                                color = BorderGrey,
                                 modifier = Modifier.padding(horizontal = 16.dp),
                             )
                         }
                     }
                 }
+            } else {
+                EmptyStateCard("Nenhuma mensagem ainda.")
             }
-        } else {
-            EmptyStateCard("Não estás a orientar nenhum aluno.")
+
+            Spacer(modifier = Modifier.height(24.dp))
         }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Section 3 — Mensagens Recentes
-        SectionHeader(
-            title = "Mensagens Recentes",
-            onViewAll = {
-                navController.navigate(OrientadorRoutes.MESSAGES) {
-                    popUpTo(navController.graph.findStartDestination().id) {
-                        saveState = true
-                    }
-                    launchSingleTop = true
-                    restoreState = true
-                }
-            },
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-
-        if (sampleConversations.isNotEmpty()) {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
-                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
-            ) {
-                sampleConversations.take(3).forEachIndexed { index, conversation ->
-                    MessageRow(
-                        conversation = conversation,
-                        onClick = {
-                            navController.navigate(OrientadorRoutes.chatRoute(conversation.id))
-                        },
-                    )
-                    if (index < sampleConversations.take(3).size - 1) {
-                        HorizontalDivider(
-                            color = BorderGrey,
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                        )
-                    }
-                }
-            }
-        } else {
-            EmptyStateCard("Nenhuma mensagem ainda.")
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
     }
 }
 
@@ -279,9 +290,15 @@ private fun MentorInternshipCard(internship: MentorInternship) {
                         fontSize = 15.sp,
                     )
                     Text(
-                        text = "${internship.institutionName} · ${internship.institutionType}",
-                        color = DarkGrey,
+                        text = internship.businessInstitutionName,
+                        color = MediumBlue,
                         fontSize = 13.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Text(
+                        text = internship.schoolInstitutionName,
+                        color = DarkGrey,
+                        fontSize = 12.sp,
                     )
                 }
                 IconButton(onClick = { isFav = !isFav }) {
