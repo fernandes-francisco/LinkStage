@@ -440,7 +440,7 @@ private class FakeInternshipRepository : InternshipRepositoryInterface {
     var shouldThrowOnGetActivityLogsByInternship: Boolean = false
     var shouldThrowOnCreateActivityLog: Boolean = false
 
-    override suspend fun getInterships(): List<InternshipModel> {
+    override suspend fun getInternships(): List<InternshipModel> {
         if (shouldThrowOnGetInternships) {
             throw IllegalStateException("Erro ao carregar estágios.")
         }
@@ -475,7 +475,7 @@ private class FakeInternshipRepository : InternshipRepositoryInterface {
         return internships.filter { it.status == status }
     }
 
-    override suspend fun assingSupervisor(
+    override suspend fun assignSupervisor(
         internshipId: String,
         input: AssignSupervisorInput
     ): InternshipModel {

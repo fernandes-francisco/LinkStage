@@ -1,18 +1,14 @@
 package turmaA.grupoB.LinkStage.viewmodel.internships
 
-import android.R.id.input
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import io.ktor.client.utils.EmptyContent.status
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import turmaA.grupoB.LinkStage.data.remote.model.enums.InternshipStatus
-import turmaA.grupoB.LinkStage.data.remote.model.internship.ActivityLogModel
 import turmaA.grupoB.LinkStage.data.remote.model.internship.AssignSupervisorInput
 import turmaA.grupoB.LinkStage.data.remote.model.internship.CreateActivityLogInput
-import turmaA.grupoB.LinkStage.data.remote.model.internship.InternshipModel
 import turmaA.grupoB.LinkStage.data.repository.InternshipRepositoryInterface
 
 class InternshipViewModel(
@@ -24,7 +20,7 @@ class InternshipViewModel(
         viewModelScope.launch {
             _uiState.value = InternshipUiState.Loading
             try {
-                val internships = internshipRepository.getInterships()
+                val internships = internshipRepository.getInternships()
                 _uiState.value = if (internships.isEmpty()){
                     InternshipUiState.Empty
                 }else{
@@ -109,7 +105,7 @@ class InternshipViewModel(
         viewModelScope.launch {
             _uiState.value = InternshipUiState.Loading
             try {
-                val internship = internshipRepository.assingSupervisor(internshipId, input)
+                val internship = internshipRepository.assignSupervisor(internshipId, input)
                 _uiState.value = if (internship != null){
                     InternshipUiState.Success(internship)
                 }else{

@@ -12,7 +12,7 @@ class InternshipRepository : InternshipRepositoryInterface {
 
     private val supabase = SupabaseClientProvider.client
 
-    override suspend fun getInterships(): List<InternshipModel> {
+    override suspend fun getInternships(): List<InternshipModel> {
         return supabase
             .from("internships")
             .select()
@@ -64,7 +64,7 @@ class InternshipRepository : InternshipRepositoryInterface {
             .decodeList<InternshipModel>()
     }
 
-    override suspend fun assingSupervisor(
+    override suspend fun assignSupervisor(
         internshipId: String,
         input: AssignSupervisorInput
     ): InternshipModel {
