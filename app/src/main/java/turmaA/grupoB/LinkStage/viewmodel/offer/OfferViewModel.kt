@@ -86,7 +86,7 @@ class OfferViewModel(
             try {
                 val offer = offerRepository.createOffer(input)
                 _uiState.value = OfferUiState.Success(offer)
-            } catch (e: Error) {
+            } catch (e: Exception) {
                 _uiState.value = OfferUiState.Error(
                     e.message ?: "Erro ao criar oferta."
                 )
