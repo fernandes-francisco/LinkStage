@@ -12,6 +12,7 @@ data class CreateOfferInput(
     val title: String,
     val description: String,
     val area: String,
+    val location: String,
     val salary: Double? = null,
     val modality: String? = null,
     val vacancies: Int = 1,
