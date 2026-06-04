@@ -5,18 +5,18 @@ import turmaA.grupoB.LinkStage.data.remote.model.enums.ReportStatus
 import turmaA.grupoB.LinkStage.data.remote.model.report.FinalReportModel
 import turmaA.grupoB.LinkStage.data.remote.supabase.SupabaseClientProvider
 
-class ReportRepository {
+class ReportRepository : ReportRepositoryInterface {
 
     private val supabase = SupabaseClientProvider.client
 
-    suspend fun getReports(): List<FinalReportModel> {
+    override suspend fun getReports(): List<FinalReportModel> {
         return supabase
             .from("final_reports")
             .select()
             .decodeList<FinalReportModel>()
     }
 
-    suspend fun getReportById(reportId: String): FinalReportModel? {
+    override suspend fun getReportById(reportId: String): FinalReportModel? {
         return supabase
             .from("final_reports")
             .select {
@@ -28,7 +28,7 @@ class ReportRepository {
             .firstOrNull()
     }
 
-    suspend fun getReportByInternship(internshipId: String): FinalReportModel? {
+    override suspend fun getReportByInternship(internshipId: String): FinalReportModel? {
         return supabase
             .from("final_reports")
             .select {
@@ -40,7 +40,7 @@ class ReportRepository {
             .firstOrNull()
     }
 
-    suspend fun getReportsByStudent(studentId: String): List<FinalReportModel> {
+    override suspend fun getReportsByStudent(studentId: String): List<FinalReportModel> {
         return supabase
             .from("final:reports")
             .select {
@@ -51,7 +51,7 @@ class ReportRepository {
             .decodeList<FinalReportModel>()
     }
 
-    suspend fun getReportsByStatus(status: ReportStatus): List<FinalReportModel> {
+    override suspend fun getReportsByStatus(status: ReportStatus): List<FinalReportModel> {
         return supabase
             .from("final_reports")
             .select {
