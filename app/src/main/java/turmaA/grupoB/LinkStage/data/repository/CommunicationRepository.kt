@@ -40,19 +40,15 @@ class CommunicationRepository : CommunicationRepositoryInterface {
             "is_read" to true
         )
 
-        return try {
-            supabase
-                .from("notifications")
-                .update(updateData) {
-                    select()
-                    filter {
-                        eq("id", notificationId)
-                    }
+        return supabase
+            .from("notifications")
+            .update(updateData) {
+                select()
+                filter {
+                    eq("id", notificationId)
                 }
-                .decodeSingle<NotificationModel>()
-        } catch (_: Exception) {
-            null
-        }
+            }.decodeSingle<NotificationModel>()
+
     }
 
     override suspend fun getThreadById(threadId: String): MessageThreadModel? {
@@ -112,16 +108,12 @@ class CommunicationRepository : CommunicationRepositoryInterface {
     }
 
     override suspend fun sendMessage(input: SendMessageInput): MessageModel? {
-        return try {
-            supabase
-                .from("messages")
-                .insert(input) {
-                    select()
-                }
-                .decodeSingle<MessageModel>()
-        } catch (_: Exception) {
-            null
+        return supabase
+        .from("messages")
+        .insert(input) {
+            select()
         }
+        .decodeSingle<MessageModel>()
     }
 
     override suspend fun markMessageAsRead(messageId: String): MessageModel? {
@@ -129,19 +121,15 @@ class CommunicationRepository : CommunicationRepositoryInterface {
             "is_read" to true
         )
 
-        return try {
-            supabase
-                .from("messages")
-                .update(updateData) {
-                    select()
-                    filter {
+        return supabase
+            .from("messages")
+            .update(updateData) {
+                select()
+                filter {
 
-                        eq("id", messageId)
-                    }
+                    eq("id", messageId)
                 }
-                .decodeSingle<MessageModel>()
-        } catch (_: Exception) {
-            null
-        }
+            }
+            .decodeSingle<MessageModel>()
     }
 }
