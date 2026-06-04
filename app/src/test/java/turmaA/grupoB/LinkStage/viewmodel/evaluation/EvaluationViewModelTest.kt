@@ -120,7 +120,7 @@ class EvaluationViewModelTest {
 
         viewModel.loadEvaluationByInternshipAndType(
             internshipId = testInternshipId,
-            evaluationType = EvaluationType.INSTITUITION
+            evaluationType = EvaluationType.INSTITUTION
         )
 
         advanceUntilIdle()
@@ -137,7 +137,7 @@ class EvaluationViewModelTest {
 
         viewModel.loadEvaluationByInternshipAndType(
             internshipId = testInternshipId,
-            evaluationType = EvaluationType.INSTITUITION
+            evaluationType = EvaluationType.INSTITUTION
         )
 
         advanceUntilIdle()
@@ -214,7 +214,7 @@ class EvaluationViewModelTest {
             id = "00000000-0000-0000-0000-000000000001",
             internshipId = testInternshipId,
             evaluatorUserId = testEvaluatorUserId,
-            evaluatorType = EvaluationType.INSTITUITION,
+            evaluatorType = EvaluationType.INSTITUTION,
             grade = 17.5,
             comment = "Bom desempenho.",
             createdAt = "2026-01-01T00:00:00Z",
@@ -232,7 +232,7 @@ class EvaluationViewModelTest {
         val testCreateEvaluationInput = CreateEvaluationInput(
             internshipId = testInternshipId,
             evaluatorUserId = testEvaluatorUserId,
-            evaluatorType = EvaluationType.INSTITUITION,
+            evaluatorType = EvaluationType.INSTITUTION,
             grade = testEvaluation.grade,
             comment = testEvaluation.comment
         )
