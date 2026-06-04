@@ -1,6 +1,5 @@
 package turmaA.grupoB.LinkStage.data.repository
 
-import android.os.Message
 import io.github.jan.supabase.postgrest.from
 import turmaA.grupoB.LinkStage.data.remote.model.communication.MessageModel
 import turmaA.grupoB.LinkStage.data.remote.model.communication.MessageThreadModel
