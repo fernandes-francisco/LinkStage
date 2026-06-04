@@ -16,8 +16,9 @@ data class CreateInternshipInput(
     val institutionId: String,
     @SerialName("supervisor_id")
     val supervisorId: String? = null,
+    val title: String,
     @SerialName("company_supervisor_name")
-    val companySuperVisorName: String? = null,
+    val companySupervisorName: String? = null,
     @SerialName("start_date")
     val startDate: String? = null,
     @SerialName("end_date")
