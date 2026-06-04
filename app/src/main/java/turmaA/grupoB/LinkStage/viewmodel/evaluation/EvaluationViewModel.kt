@@ -8,7 +8,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import turmaA.grupoB.LinkStage.data.remote.model.enums.EvaluationType
 import turmaA.grupoB.LinkStage.data.remote.model.evaluation.CreateEvaluationInput
-import turmaA.grupoB.LinkStage.data.repository.EvaluationRepository
 import turmaA.grupoB.LinkStage.data.repository.EvaluationRepositoryInterface
 
 class EvaluationViewModel(
@@ -100,12 +99,12 @@ class EvaluationViewModel(
         }
     }
 
-    fun loadGradingByInternship(intershipId: String) {
+    fun loadGradingByInternship(internshipId: String) {
         viewModelScope.launch {
             _uiState.value = EvaluationUiState.Loading
 
             try {
-                val grading = evaluationRepository.getFinalGradeByInternship(intershipId)
+                val grading = evaluationRepository.getFinalGradeByInternship(internshipId)
 
                 _uiState.value = if(grading != null) {
                     EvaluationUiState.FinalGradeSuccess(grading)
