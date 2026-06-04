@@ -95,7 +95,7 @@ class CommunicationRepository : CommunicationRepositoryInterface {
             .from("message_thread_participants")
             .select {
                 filter {
-                    eq("thread:id", threadId)
+                    eq("thread_id", threadId)
                 }
             }
             .decodeList<MessageThreadParticipantModel>()
