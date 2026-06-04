@@ -11,7 +11,7 @@ import turmaA.grupoB.LinkStage.data.repository.CommunicationRepositoryInterface
 
 class CommunicationViewModel(private val messageRepository: CommunicationRepositoryInterface) : ViewModel() {
     private val _uiState = MutableStateFlow<CommunicationUiState>(CommunicationUiState.Idle)
-    val uiState: StateFlow<CommunicationUiState> =_uiState.asStateFlow()
+    val uiState: StateFlow<CommunicationUiState> = _uiState.asStateFlow()
     
     fun getNotificationsByUser(userId: String){
         viewModelScope.launch { 

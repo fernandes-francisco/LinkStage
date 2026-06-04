@@ -152,4 +152,8 @@ class InternshipViewModel(
             }
         }
     }
+
+    fun resetState() {
+        _uiState.value = InternshipUiState.Idle
+    }
 }

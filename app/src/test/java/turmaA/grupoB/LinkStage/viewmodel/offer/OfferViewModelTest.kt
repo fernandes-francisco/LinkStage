@@ -118,7 +118,7 @@ class OfferViewModelTest {
     fun loadOffersById_whenOfferExists_setsSuccessState() = runTest {
         fakeRepository.offers = listOf(testOffer)
 
-        viewModel.loadOffersById(testOffer.id)
+        viewModel.loadOfferById(testOffer.id)
 
         advanceUntilIdle()
 
@@ -132,7 +132,7 @@ class OfferViewModelTest {
     fun loadOffersId_whenOfferDoesNotExist_setsEmptyState() = runTest {
         fakeRepository.offers = emptyList()
 
-        viewModel.loadOffersById("unknow-offer-id")
+        viewModel.loadOfferById("unknow-offer-id")
 
         advanceUntilIdle()
 
