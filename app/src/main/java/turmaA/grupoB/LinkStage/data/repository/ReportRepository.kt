@@ -42,7 +42,7 @@ class ReportRepository : ReportRepositoryInterface {
 
     override suspend fun getReportsByStudent(studentId: String): List<FinalReportModel> {
         return supabase
-            .from("final:reports")
+            .from("final_reports")
             .select {
                 filter {
                     eq("student_id", studentId)
