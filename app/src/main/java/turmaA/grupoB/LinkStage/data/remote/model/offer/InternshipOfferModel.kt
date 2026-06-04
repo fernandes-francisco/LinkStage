@@ -7,6 +7,7 @@ import turmaA.grupoB.LinkStage.data.remote.model.enums.OfferStatus
 @Serializable
 data class InternshipOfferModel(
     val id: String,
+    val institutionId: String,
     val title: String,
     val description: String,
     val area: String,

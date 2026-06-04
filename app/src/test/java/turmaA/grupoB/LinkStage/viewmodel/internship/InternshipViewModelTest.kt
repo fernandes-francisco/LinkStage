@@ -317,7 +317,7 @@ class InternshipViewModelTest {
 
         viewModel.createActivityLog(
             CreateActivityLogInput(
-                intershipId = testInternship.id,
+                internshipId = testInternship.id,
                 studentId = testInternship.studentId,
                 description = "Worked on feature X",
                 activityDate = "2026-01-15",
@@ -339,7 +339,7 @@ class InternshipViewModelTest {
 
         viewModel.createActivityLog(
             CreateActivityLogInput(
-                intershipId = testInternship.id,
+                internshipId = testInternship.id,
                 studentId = testInternship.studentId,
                 description = "Worked on feature X",
                 activityDate = "2026-01-15"
@@ -498,7 +498,7 @@ private class FakeInternshipRepository : InternshipRepositoryInterface {
         }
         return ActivityLogModel(
             id = "00000000-0000-0000-0000-000000000010",
-            internshipId = input.intershipId,
+            internshipId = input.internshipId,
             studentId = input.studentId,
             description = input.description,
             activityDate = input.activityDate,

@@ -17,7 +17,7 @@ data class InternshipModel(
     @SerialName("student_id")
     val studentId: String,
 
-    @SerialName("instituition_id")
+    @SerialName("institution_id")
     val instituitionId: String,
 
     @SerialName("supervisor_id")
@@ -32,7 +32,7 @@ data class InternshipModel(
     val startDate: String? = null,
 
     @SerialName("end_date")
-    val EndDate: String? = null,
+    val endDate: String? = null,
 
     val status: InternshipStatus = InternshipStatus.PENDING_SUPERVISOR,
 

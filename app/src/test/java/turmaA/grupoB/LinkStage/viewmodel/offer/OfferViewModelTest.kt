@@ -222,6 +222,7 @@ class OfferViewModelTest {
 
         val testOffer = InternshipOfferModel(
             id = "00000000-0000-0000-0000-000000000001",
+            institutionId = testInstitutionId,
             title = "Android Developer Internship",
             description = "Estágio em desenvolvimento Android.",
             area = "Mobile Development",
@@ -254,6 +255,7 @@ class OfferViewModelTest {
             title = testOffer.title,
             description = testOffer.description,
             area = testOffer.area,
+            location = testOffer.location,
             salary = testOffer.salary,
             modality = testOffer.modality,
             vacancies = testOffer.vacancies,
