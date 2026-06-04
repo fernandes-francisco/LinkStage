@@ -7,12 +7,12 @@ import turmaA.grupoB.LinkStage.data.remote.model.internship.CreateActivityLogInp
 import turmaA.grupoB.LinkStage.data.remote.model.internship.InternshipModel
 
 interface InternshipRepositoryInterface {
-    suspend fun getInterships(): List<InternshipModel>
+    suspend fun getInternships(): List<InternshipModel>
     suspend fun getInternshipById(internshipId: String): InternshipModel?
     suspend fun getInternshipsByStudent(studentId: String): List<InternshipModel>
     suspend fun getInternshipsByInstitution(institutionId: String): List<InternshipModel>
     suspend fun getInternshipsByStatus(status: InternshipStatus): List<InternshipModel>
-    suspend fun assingSupervisor(internshipId: String, input: AssignSupervisorInput): InternshipModel
+    suspend fun assignSupervisor(internshipId: String, input: AssignSupervisorInput): InternshipModel
     suspend fun getActivityLogsByInternship(internshipId: String): List<ActivityLogModel>
     suspend fun createActivityLog(input: CreateActivityLogInput): ActivityLogModel
 }

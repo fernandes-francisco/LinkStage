@@ -8,18 +8,18 @@ import turmaA.grupoB.LinkStage.data.remote.model.internship.CreateActivityLogInp
 import turmaA.grupoB.LinkStage.data.remote.model.internship.InternshipModel
 import turmaA.grupoB.LinkStage.data.remote.supabase.SupabaseClientProvider
 
-class InternshipRepository {
+class InternshipRepository : InternshipRepositoryInterface {
 
     private val supabase = SupabaseClientProvider.client
 
-    suspend fun getInterships(): List<InternshipModel> {
+    override suspend fun getInternships(): List<InternshipModel> {
         return supabase
             .from("internships")
             .select()
             .decodeList<InternshipModel>()
     }
 
-    suspend fun getInternshipById(internshipId: String): InternshipModel? {
+    override suspend fun getInternshipById(internshipId: String): InternshipModel? {
         return supabase
             .from("internships")
             .select {
@@ -31,7 +31,7 @@ class InternshipRepository {
             .firstOrNull()
     }
 
-    suspend fun getInternshipsByStudent(studentId: String): List<InternshipModel> {
+    override suspend fun getInternshipsByStudent(studentId: String): List<InternshipModel> {
         return supabase
             .from("internships")
             .select {
@@ -42,7 +42,7 @@ class InternshipRepository {
             .decodeList<InternshipModel>()
     }
 
-    suspend fun getInternshipsByInstitution(institutionId: String): List<InternshipModel> {
+    override suspend fun getInternshipsByInstitution(institutionId: String): List<InternshipModel> {
         return supabase
             .from("internships")
             .select {
@@ -53,9 +53,9 @@ class InternshipRepository {
             .decodeList<InternshipModel>()
     }
 
-    suspend fun getInternshipsByStatus(status: InternshipStatus): List<InternshipModel> {
+    override suspend fun getInternshipsByStatus(status: InternshipStatus): List<InternshipModel> {
         return supabase
-            .from("interships")
+            .from("internships")
             .select {
                 filter {
                     eq("status", status.name)
@@ -64,7 +64,7 @@ class InternshipRepository {
             .decodeList<InternshipModel>()
     }
 
-    suspend fun assingSupervisor(
+    override suspend fun assignSupervisor(
         internshipId: String,
         input: AssignSupervisorInput
     ): InternshipModel {
@@ -79,7 +79,7 @@ class InternshipRepository {
             .decodeSingle<InternshipModel>()
     }
 
-    suspend fun getActivityLogsByInternship(internshipId: String): List<ActivityLogModel> {
+    override suspend fun getActivityLogsByInternship(internshipId: String): List<ActivityLogModel> {
         return supabase
             .from("activity_logs")
             .select {
@@ -90,7 +90,7 @@ class InternshipRepository {
             .decodeList<ActivityLogModel>()
     }
 
-    suspend fun createActivityLog(input: CreateActivityLogInput): ActivityLogModel {
+    override suspend fun createActivityLog(input: CreateActivityLogInput): ActivityLogModel {
         return supabase
             .from("activity_logs")
             .insert(input) {

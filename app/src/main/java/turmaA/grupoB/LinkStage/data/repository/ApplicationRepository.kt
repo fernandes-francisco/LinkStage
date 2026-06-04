@@ -1,8 +1,6 @@
 package turmaA.grupoB.LinkStage.data.repository
 
-import android.R.id.input
 import io.github.jan.supabase.postgrest.from
-import io.ktor.client.utils.EmptyContent.status
 import turmaA.grupoB.LinkStage.data.remote.model.application.ApplicationModel
 import turmaA.grupoB.LinkStage.data.remote.model.application.CreateApplicationInput
 import turmaA.grupoB.LinkStage.data.remote.model.application.UpdateApplicationDecisionInput
