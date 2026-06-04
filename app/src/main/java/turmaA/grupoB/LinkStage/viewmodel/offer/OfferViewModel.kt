@@ -58,7 +58,7 @@ class OfferViewModel(
         }
     }
 
-    fun loadOffersById(offerId: String) {
+    fun loadOfferById(offerId: String) {
         viewModelScope.launch {
             _uiState.value = OfferUiState.Loading
 
