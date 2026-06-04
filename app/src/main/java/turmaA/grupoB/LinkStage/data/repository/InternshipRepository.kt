@@ -55,7 +55,7 @@ class InternshipRepository : InternshipRepositoryInterface {
 
     override suspend fun getInternshipsByStatus(status: InternshipStatus): List<InternshipModel> {
         return supabase
-            .from("interships")
+            .from("internships")
             .select {
                 filter {
                     eq("status", status.name)
