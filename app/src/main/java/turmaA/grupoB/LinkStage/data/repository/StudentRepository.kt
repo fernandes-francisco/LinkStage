@@ -4,18 +4,18 @@ import io.github.jan.supabase.postgrest.from
 import turmaA.grupoB.LinkStage.data.remote.model.user.StudentModel
 import turmaA.grupoB.LinkStage.data.remote.supabase.SupabaseClientProvider
 
-class StudentRepository {
+class StudentRepository : StudentRepositoryInterface {
 
     private val supabase = SupabaseClientProvider.client
 
-    suspend fun getStudents(): List<StudentModel> {
+    override suspend fun getStudents(): List<StudentModel> {
         return supabase
             .from("students")
             .select()
             .decodeList<StudentModel>()
     }
 
-    suspend fun getStudentById(studentId: String): StudentModel? {
+    override suspend fun getStudentById(studentId: String): StudentModel? {
         return supabase
             .from("students")
             .select {
@@ -27,7 +27,7 @@ class StudentRepository {
             .firstOrNull()
     }
 
-    suspend fun getStudentByUserId(userId: String): StudentModel? {
+    override suspend fun getStudentByUserId(userId: String): StudentModel? {
         return supabase
             .from("students")
             .select {
@@ -39,7 +39,7 @@ class StudentRepository {
             .firstOrNull()
     }
 
-    suspend fun getStudentByNumber(studentNumber: String): StudentModel? {
+    override suspend fun getStudentByNumber(studentNumber: String): StudentModel? {
         return supabase
             .from("students")
             .select {
@@ -51,7 +51,7 @@ class StudentRepository {
             .firstOrNull()
     }
 
-    suspend fun getStudentByCourse(course: String): List<StudentModel> {
+    override suspend fun getStudentsByCourse(course: String): List<StudentModel> {
         return supabase
             .from("students")
             .select {
