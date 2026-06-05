@@ -185,7 +185,7 @@ class InternshipViewModelTest {
     fun getInternshipsByInstitution_whenInternshipsExist_setsSuccessListState() = runTest {
         fakeRepository.internships = listOf(testInternship)
 
-        viewModel.getInternshipsByInstitution(testInternship.instituitionId)
+        viewModel.getInternshipsByInstitution(testInternship.institutionId)
 
         advanceUntilIdle()
 
@@ -199,7 +199,7 @@ class InternshipViewModelTest {
     fun getInternshipsByInstitution_whenInternshipsDoNotExist_setsEmptyState() = runTest {
         fakeRepository.internships = emptyList()
 
-        viewModel.getInternshipsByInstitution(testInternship.instituitionId)
+        viewModel.getInternshipsByInstitution(testInternship.institutionId)
 
         advanceUntilIdle()
 
@@ -213,7 +213,7 @@ class InternshipViewModelTest {
     fun getInternshipsByInstitution_whenRepositoryThrows_setsErrorState() = runTest {
         fakeRepository.shouldThrowOnGetInternshipsByInstitution = true
 
-        viewModel.getInternshipsByInstitution(testInternship.instituitionId)
+        viewModel.getInternshipsByInstitution(testInternship.institutionId)
 
         advanceUntilIdle()
 
@@ -423,7 +423,7 @@ class InternshipViewModelTest {
             applicationId = input.applicationId,
             offerId = input.offerId,
             studentId = input.studentId,
-            instituitionId = input.institutionId,
+            institutionId = input.institutionId,
             supervisorId = input.supervisorId,
             title = input.title,
             companySupervisorName = input.companySupervisorName,
@@ -452,7 +452,7 @@ class InternshipViewModelTest {
             applicationId = "00000000-0000-0000-0000-000000000001",
             offerId = "00000000-0000-0000-0000-000000000001",
             studentId = "00000000-0000-0000-0000-000000000001",
-            instituitionId = "00000000-0000-0000-0000-000000000001",
+            institutionId = "00000000-0000-0000-0000-000000000001",
             supervisorId = null,
             title = "Test Internship",
             status = InternshipStatus.PENDING_SUPERVISOR,
@@ -512,7 +512,7 @@ private class FakeInternshipRepository : InternshipRepositoryInterface {
         if (shouldThrowOnGetInternshipsByInstitution) {
             throw IllegalStateException("Erro ao carregar estágios.")
         }
-        return internships.filter { it.instituitionId == institutionId }
+        return internships.filter { it.institutionId == institutionId }
     }
 
     override suspend fun getInternshipsByStatus(status: InternshipStatus): List<InternshipModel> {
@@ -532,7 +532,7 @@ private class FakeInternshipRepository : InternshipRepositoryInterface {
             applicationId = input.applicationId,
             offerId = input.offerId,
             studentId = input.studentId,
-            instituitionId = input.institutionId,
+            institutionId = input.institutionId,
             supervisorId = input.supervisorId,
             title = input.title,
             companySupervisorName = input.companySupervisorName,
