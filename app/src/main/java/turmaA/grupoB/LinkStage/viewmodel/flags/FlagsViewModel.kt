@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import turmaA.grupoB.LinkStage.data.repository.FlagsRepositoryInterface
+import turmaA.grupoB.LinkStage.data.repository.flags.FlagsRepositoryInterface
 
 class FlagsViewModel (
     private val flagsRepository: FlagsRepositoryInterface

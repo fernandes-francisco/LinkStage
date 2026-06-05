@@ -1,4 +1,4 @@
-package turmaA.grupoB.LinkStage.data.repository
+package turmaA.grupoB.LinkStage.data.repository.flags
 
 import turmaA.grupoB.LinkStage.data.remote.RetrofitInstance
 import turmaA.grupoB.LinkStage.data.remote.model.Imgs

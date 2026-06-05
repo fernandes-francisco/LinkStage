@@ -18,7 +18,7 @@ import org.mockito.Mock
 import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.whenever
 import turmaA.grupoB.LinkStage.data.remote.model.Imgs
-import turmaA.grupoB.LinkStage.data.repository.FlagsRepository
+import turmaA.grupoB.LinkStage.data.repository.flags.FlagsRepository
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class FlagsViewModelTest {

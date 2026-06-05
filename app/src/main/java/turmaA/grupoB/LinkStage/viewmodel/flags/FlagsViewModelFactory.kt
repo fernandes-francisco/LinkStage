@@ -2,7 +2,7 @@ package turmaA.grupoB.LinkStage.viewmodel.flags
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import turmaA.grupoB.LinkStage.data.repository.FlagsRepository
+import turmaA.grupoB.LinkStage.data.repository.flags.FlagsRepository
 
 class FlagsViewModelFactory(
     private val flagsRepository: FlagsRepository
