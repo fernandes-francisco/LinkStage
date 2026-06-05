@@ -4,7 +4,6 @@ import io.github.jan.supabase.postgrest.from
 import turmaA.grupoB.LinkStage.data.remote.model.user.CreateStudentInput
 import turmaA.grupoB.LinkStage.data.remote.model.user.StudentModel
 import turmaA.grupoB.LinkStage.data.remote.supabase.SupabaseClientProvider
-import java.time.Instant
 
 
 class StudentRepository : StudentRepositoryInterface {
@@ -66,23 +65,9 @@ class StudentRepository : StudentRepositoryInterface {
     }
 
     override suspend fun createStudent(input: CreateStudentInput): StudentModel {
-        val now = Instant.now().toString()
-
-        val student = StudentModel(
-            id = input.id,
-            userId = input.userId,
-            studentNumber = input.studentNumber,
-            course = input.course,
-            academicYear = input.academicYear,
-            averageGrade = input.averageGrade,
-            cvData = input.cvData,
-            createdAt = now,
-            updatedAt = now
-        )
-
         return supabase
             .from("students")
-            .insert(student) {
+            .insert(input) {
                 select()
             }
             .decodeSingle<StudentModel>()

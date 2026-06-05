@@ -4,8 +4,6 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.json.JsonObject
 
 data class CreateStudentInput(
-    val id: String,
-
     @SerialName("user_id")
     val userId: String,
     @SerialName("student_number")
