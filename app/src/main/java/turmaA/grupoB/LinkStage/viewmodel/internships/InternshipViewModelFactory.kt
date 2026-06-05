@@ -2,7 +2,7 @@ package turmaA.grupoB.LinkStage.viewmodel.internships
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import turmaA.grupoB.LinkStage.data.repository.InternshipRepositoryInterface
+import turmaA.grupoB.LinkStage.data.repository.internship.InternshipRepositoryInterface
 
 class InternshipViewModelFactory(
     private val internshipRepository: InternshipRepositoryInterface

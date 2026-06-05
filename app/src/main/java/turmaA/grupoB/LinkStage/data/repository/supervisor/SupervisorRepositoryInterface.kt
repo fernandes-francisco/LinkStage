@@ -1,4 +1,4 @@
-package turmaA.grupoB.LinkStage.data.repository
+package turmaA.grupoB.LinkStage.data.repository.supervisor
 
 import turmaA.grupoB.LinkStage.data.remote.model.user.SupervisorModel
 import turmaA.grupoB.LinkStage.data.remote.model.user.SupervisorSkillModel

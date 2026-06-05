@@ -20,7 +20,7 @@ import turmaA.grupoB.LinkStage.data.remote.model.internship.AssignSupervisorInpu
 import turmaA.grupoB.LinkStage.data.remote.model.internship.CreateActivityLogInput
 import turmaA.grupoB.LinkStage.data.remote.model.internship.CreateInternshipInput
 import turmaA.grupoB.LinkStage.data.remote.model.internship.InternshipModel
-import turmaA.grupoB.LinkStage.data.repository.InternshipRepositoryInterface
+import turmaA.grupoB.LinkStage.data.repository.internship.InternshipRepositoryInterface
 import turmaA.grupoB.LinkStage.viewmodel.internships.InternshipUiState
 import turmaA.grupoB.LinkStage.viewmodel.internships.InternshipViewModel
 

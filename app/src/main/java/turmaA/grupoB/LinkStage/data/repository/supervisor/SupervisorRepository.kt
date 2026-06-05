@@ -1,4 +1,4 @@
-package turmaA.grupoB.LinkStage.data.repository
+package turmaA.grupoB.LinkStage.data.repository.supervisor
 
 import io.github.jan.supabase.postgrest.from
 import turmaA.grupoB.LinkStage.data.remote.model.user.SupervisorModel

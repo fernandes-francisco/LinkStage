@@ -1,4 +1,4 @@
-package turmaA.grupoB.LinkStage.data.repository
+package turmaA.grupoB.LinkStage.data.repository.auth
 
 import turmaA.grupoB.LinkStage.data.remote.model.auth.SignInInput
 import turmaA.grupoB.LinkStage.data.remote.model.auth.SignUpInput

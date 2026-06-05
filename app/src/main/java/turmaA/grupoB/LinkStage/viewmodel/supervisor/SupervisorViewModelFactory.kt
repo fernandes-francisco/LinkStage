@@ -2,7 +2,7 @@ package turmaA.grupoB.LinkStage.viewmodel.supervisor
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import turmaA.grupoB.LinkStage.data.repository.SupervisorRepositoryInterface
+import turmaA.grupoB.LinkStage.data.repository.supervisor.SupervisorRepositoryInterface
 
 class SupervisorViewModelFactory(
     private val supervisorRepository: SupervisorRepositoryInterface

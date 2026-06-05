@@ -19,7 +19,7 @@ import turmaA.grupoB.LinkStage.data.remote.model.communication.MessageThreadMode
 import turmaA.grupoB.LinkStage.data.remote.model.communication.MessageThreadParticipantModel
 import turmaA.grupoB.LinkStage.data.remote.model.communication.NotificationModel
 import turmaA.grupoB.LinkStage.data.remote.model.communication.SendMessageInput
-import turmaA.grupoB.LinkStage.data.repository.CommunicationRepositoryInterface
+import turmaA.grupoB.LinkStage.data.repository.communication.CommunicationRepositoryInterface
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class CommunicationViewModelTest {

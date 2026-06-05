@@ -1,4 +1,4 @@
-package turmaA.grupoB.LinkStage.data.repository
+package turmaA.grupoB.LinkStage.data.repository.institution
 
 import turmaA.grupoB.LinkStage.data.remote.model.institution.InstitutionModel
 

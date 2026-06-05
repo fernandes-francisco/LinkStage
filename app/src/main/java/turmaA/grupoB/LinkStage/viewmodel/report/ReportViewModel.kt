@@ -9,7 +9,7 @@ import kotlinx.coroutines.launch
 import turmaA.grupoB.LinkStage.data.remote.model.enums.ReportStatus
 import turmaA.grupoB.LinkStage.data.remote.model.report.CreateFinalReportInput
 import turmaA.grupoB.LinkStage.data.remote.model.report.UpdateFinalReportInput
-import turmaA.grupoB.LinkStage.data.repository.ReportRepositoryInterface
+import turmaA.grupoB.LinkStage.data.repository.report.ReportRepositoryInterface
 
 class ReportViewModel(
     private val reportRepository: ReportRepositoryInterface

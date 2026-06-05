@@ -9,7 +9,7 @@ import kotlinx.coroutines.launch
 import turmaA.grupoB.LinkStage.data.remote.model.application.CreateApplicationInput
 import turmaA.grupoB.LinkStage.data.remote.model.application.UpdateApplicationDecisionInput
 import turmaA.grupoB.LinkStage.data.remote.model.enums.ApplicationStatus
-import turmaA.grupoB.LinkStage.data.repository.ApplicationRepositoryInterface
+import turmaA.grupoB.LinkStage.data.repository.application.ApplicationRepositoryInterface
 
 class ApplicationViewModel(
     private val applicationRepository: ApplicationRepositoryInterface

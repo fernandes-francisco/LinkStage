@@ -1,4 +1,4 @@
-package turmaA.grupoB.LinkStage.data.repository
+package turmaA.grupoB.LinkStage.data.repository.offer
 
 import io.github.jan.supabase.postgrest.from
 import kotlinx.serialization.json.JsonObject

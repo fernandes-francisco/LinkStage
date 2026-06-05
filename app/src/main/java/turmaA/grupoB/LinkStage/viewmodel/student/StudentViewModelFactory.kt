@@ -2,7 +2,7 @@ package turmaA.grupoB.LinkStage.viewmodel.student
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import turmaA.grupoB.LinkStage.data.repository.StudentRepositoryInterface
+import turmaA.grupoB.LinkStage.data.repository.student.StudentRepositoryInterface
 
 class StudentViewModelFactory(
     private val studentRepository: StudentRepositoryInterface

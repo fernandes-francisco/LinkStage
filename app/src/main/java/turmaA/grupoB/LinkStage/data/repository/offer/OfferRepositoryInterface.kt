@@ -1,4 +1,4 @@
-package turmaA.grupoB.LinkStage.data.repository
+package turmaA.grupoB.LinkStage.data.repository.offer
 
 import turmaA.grupoB.LinkStage.data.remote.model.offer.CreateOfferInput
 import turmaA.grupoB.LinkStage.data.remote.model.offer.InternshipOfferModel

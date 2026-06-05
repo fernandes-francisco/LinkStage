@@ -2,7 +2,7 @@ package turmaA.grupoB.LinkStage.viewmodel.communication
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import turmaA.grupoB.LinkStage.data.repository.CommunicationRepositoryInterface
+import turmaA.grupoB.LinkStage.data.repository.communication.CommunicationRepositoryInterface
 
 class CommunicationViewModelFactory(
     private val communicationRepository: CommunicationRepositoryInterface

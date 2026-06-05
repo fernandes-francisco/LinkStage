@@ -2,7 +2,7 @@ package turmaA.grupoB.LinkStage.viewmodel.evaluation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import turmaA.grupoB.LinkStage.data.repository.EvaluationRepositoryInterface
+import turmaA.grupoB.LinkStage.data.repository.evaluation.EvaluationRepositoryInterface
 
 class EvaluationViewModelFactory(
     private val evaluationRepository: EvaluationRepositoryInterface

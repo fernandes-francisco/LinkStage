@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import turmaA.grupoB.LinkStage.data.repository.StudentRepositoryInterface
+import turmaA.grupoB.LinkStage.data.repository.student.StudentRepositoryInterface
 
 class StudentViewModel(
     private val studentRepository: StudentRepositoryInterface

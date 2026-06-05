@@ -18,7 +18,7 @@ import turmaA.grupoB.LinkStage.data.remote.model.enums.EvaluationType
 import turmaA.grupoB.LinkStage.data.remote.model.evaluation.CreateEvaluationInput
 import turmaA.grupoB.LinkStage.data.remote.model.evaluation.EvaluationModel
 import turmaA.grupoB.LinkStage.data.remote.model.evaluation.FinalGradeModel
-import turmaA.grupoB.LinkStage.data.repository.EvaluationRepositoryInterface
+import turmaA.grupoB.LinkStage.data.repository.evaluation.EvaluationRepositoryInterface
 import turmaA.grupoB.LinkStage.viewmodel.application.MainDispatcherRule
 
 @OptIn(ExperimentalCoroutinesApi::class)

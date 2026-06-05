@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import turmaA.grupoB.LinkStage.data.remote.model.offer.CreateOfferInput
 import turmaA.grupoB.LinkStage.data.remote.model.offer.UpdateOfferInput
-import turmaA.grupoB.LinkStage.data.repository.OfferRepositoryInterface
+import turmaA.grupoB.LinkStage.data.repository.offer.OfferRepositoryInterface
 
 class OfferViewModel(
     private val offerRepository: OfferRepositoryInterface

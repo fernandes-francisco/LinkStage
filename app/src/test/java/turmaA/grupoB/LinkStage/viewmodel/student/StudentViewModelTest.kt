@@ -15,7 +15,7 @@ import org.junit.Test
 import org.junit.rules.TestWatcher
 import org.junit.runner.Description
 import turmaA.grupoB.LinkStage.data.remote.model.user.StudentModel
-import turmaA.grupoB.LinkStage.data.repository.StudentRepositoryInterface
+import turmaA.grupoB.LinkStage.data.repository.student.StudentRepositoryInterface
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class StudentViewModelTest {

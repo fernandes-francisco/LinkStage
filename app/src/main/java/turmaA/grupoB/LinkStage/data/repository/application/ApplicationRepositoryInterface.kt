@@ -1,4 +1,4 @@
-package turmaA.grupoB.LinkStage.data.repository
+package turmaA.grupoB.LinkStage.data.repository.application
 
 import turmaA.grupoB.LinkStage.data.remote.model.application.ApplicationModel
 import turmaA.grupoB.LinkStage.data.remote.model.application.CreateApplicationInput
