@@ -10,7 +10,7 @@ import turmaA.grupoB.LinkStage.data.remote.model.enums.InternshipStatus
 import turmaA.grupoB.LinkStage.data.remote.model.internship.AssignSupervisorInput
 import turmaA.grupoB.LinkStage.data.remote.model.internship.CreateActivityLogInput
 import turmaA.grupoB.LinkStage.data.remote.model.internship.CreateInternshipInput
-import turmaA.grupoB.LinkStage.data.repository.InternshipRepositoryInterface
+import turmaA.grupoB.LinkStage.data.repository.internship.InternshipRepositoryInterface
 
 class InternshipViewModel(
     private val internshipRepository: InternshipRepositoryInterface
