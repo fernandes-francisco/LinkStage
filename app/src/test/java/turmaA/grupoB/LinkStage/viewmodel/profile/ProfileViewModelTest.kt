@@ -16,7 +16,7 @@ import org.junit.Test
 import org.junit.rules.TestWatcher
 import turmaA.grupoB.LinkStage.data.remote.model.enums.UserRole
 import turmaA.grupoB.LinkStage.data.remote.model.user.ProfileModel
-import turmaA.grupoB.LinkStage.data.repository.ProfileRepositoryInterface
+import turmaA.grupoB.LinkStage.data.repository.profile.ProfileRepositoryInterface
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ProfileViewModelTest {

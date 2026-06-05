@@ -1,4 +1,4 @@
-package turmaA.grupoB.LinkStage.data.repository
+package turmaA.grupoB.LinkStage.data.repository.profile
 
 import turmaA.grupoB.LinkStage.data.remote.model.user.ProfileModel
 

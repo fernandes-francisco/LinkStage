@@ -2,7 +2,7 @@ package turmaA.grupoB.LinkStage.viewmodel.profile
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import turmaA.grupoB.LinkStage.data.repository.ProfileRepositoryInterface
+import turmaA.grupoB.LinkStage.data.repository.profile.ProfileRepositoryInterface
 
 class ProfileViewModelFactory(
     private val profileViewModelRepository: ProfileRepositoryInterface
