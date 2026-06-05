@@ -2,10 +2,10 @@ package turmaA.grupoB.LinkStage.viewmodel.flags
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import turmaA.grupoB.LinkStage.data.repository.flags.FlagsRepository
+import turmaA.grupoB.LinkStage.data.repository.flags.FlagsRepositoryInterface
 
 class FlagsViewModelFactory(
-    private val flagsRepository: FlagsRepository
+    private val flagsRepository: FlagsRepositoryInterface
 ) : ViewModelProvider.Factory {
 
     @Suppress("UNCHECKED_CAST")
