@@ -1,6 +1,7 @@
 package turmaA.grupoB.LinkStage.data.repository.student
 
 import io.github.jan.supabase.postgrest.from
+import turmaA.grupoB.LinkStage.data.remote.model.user.CreateStudentInput
 import turmaA.grupoB.LinkStage.data.remote.model.user.StudentModel
 import turmaA.grupoB.LinkStage.data.remote.supabase.SupabaseClientProvider
 import java.time.Instant

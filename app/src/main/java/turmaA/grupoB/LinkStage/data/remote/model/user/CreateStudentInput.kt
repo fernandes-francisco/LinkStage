@@ -1,4 +1,4 @@
-package turmaA.grupoB.LinkStage.data.repository.student
+package turmaA.grupoB.LinkStage.data.remote.model.user
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.json.JsonObject
