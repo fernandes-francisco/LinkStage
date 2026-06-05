@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import turmaA.grupoB.LinkStage.data.remote.model.communication.SendMessageInput
-import turmaA.grupoB.LinkStage.data.repository.CommunicationRepositoryInterface
+import turmaA.grupoB.LinkStage.data.repository.communication.CommunicationRepositoryInterface
 
 class CommunicationViewModel(private val messageRepository: CommunicationRepositoryInterface) : ViewModel() {
     private val _uiState = MutableStateFlow<CommunicationUiState>(CommunicationUiState.Idle)

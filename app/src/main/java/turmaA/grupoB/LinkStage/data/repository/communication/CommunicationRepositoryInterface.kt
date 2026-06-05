@@ -1,4 +1,4 @@
-package turmaA.grupoB.LinkStage.data.repository
+package turmaA.grupoB.LinkStage.data.repository.communication
 
 import turmaA.grupoB.LinkStage.data.remote.model.communication.MessageModel
 import turmaA.grupoB.LinkStage.data.remote.model.communication.MessageThreadModel
