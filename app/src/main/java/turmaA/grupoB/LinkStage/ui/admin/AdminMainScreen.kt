@@ -29,7 +29,7 @@ import turmaA.grupoB.LinkStage.ui.admin.home.HomeAdminScreen
 import turmaA.grupoB.LinkStage.ui.admin.institutions.InstitutionDetailAdminScreen
 import turmaA.grupoB.LinkStage.ui.admin.institutions.InstitutionsAdminScreen
 import turmaA.grupoB.LinkStage.ui.admin.settings.SettingsAdminScreen
-import turmaA.grupoB.LinkStage.ui.admin.students.InternshipDetailAdminScreen
+//import turmaA.grupoB.LinkStage.ui.admin.students.InternshipDetailAdminScreen
 import turmaA.grupoB.LinkStage.ui.admin.students.MentorDetailAdminScreen
 import turmaA.grupoB.LinkStage.ui.admin.students.StudentDetailAdminScreen
 import turmaA.grupoB.LinkStage.ui.admin.students.StudentsAdminScreen
@@ -157,19 +157,19 @@ fun AdminMainScreen(onLogout: () -> Unit = {}) {
                     onBack = { navController.popBackStack() },
                 )
             }
-            composable(
-                route = AdminRoutes.INTERNSHIP_DETAIL,
-                arguments = listOf(navArgument("id") { type = NavType.StringType }),
-            ) { backStackEntry ->
-                val id = backStackEntry.arguments?.getString("id") ?: return@composable
-                InternshipDetailAdminScreen(
-                    internshipId = id,
-                    onBack = { navController.popBackStack() },
-                )
-            }
-            composable(AdminRoutes.SETTINGS) {
-                SettingsAdminScreen(onLogout = onLogout)
-            }
+//            composable(
+//                route = AdminRoutes.INTERNSHIP_DETAIL,
+//                arguments = listOf(navArgument("id") { type = NavType.StringType }),
+//            ) { backStackEntry ->
+//                val id = backStackEntry.arguments?.getString("id") ?: return@composable
+//                InternshipDetailAdminScreen(
+//                    internshipId = id,
+//                    onBack = { navController.popBackStack() },
+//                )
+//            }
+//            composable(AdminRoutes.SETTINGS) {
+//                SettingsAdminScreen(onLogout = onLogout)
+//            }
         }
     }
 }

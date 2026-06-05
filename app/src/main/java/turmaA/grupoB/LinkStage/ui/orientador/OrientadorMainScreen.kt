@@ -36,7 +36,7 @@ import turmaA.grupoB.LinkStage.ui.orientador.chat.ChatOrientadorScreen
 import turmaA.grupoB.LinkStage.ui.orientador.internships.MentorInternshipDetailScreen
 import turmaA.grupoB.LinkStage.ui.orientador.home.HomeOrientadorScreen
 import turmaA.grupoB.LinkStage.ui.orientador.internships.InternshipsOrientadorScreen
-import turmaA.grupoB.LinkStage.ui.orientador.notifications.NotificationsOrientadorScreen
+//import turmaA.grupoB.LinkStage.ui.orientador.notifications.NotificationsOrientadorScreen
 import turmaA.grupoB.LinkStage.ui.orientador.settings.SettingsOrientadorScreen
 import turmaA.grupoB.LinkStage.ui.orientador.students.StudentsOrientadorScreen
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
@@ -148,11 +148,11 @@ fun OrientadorMainScreen(onLogout: () -> Unit = {}) {
                     }
                 )
             }
-            composable(OrientadorRoutes.NOTIFICATIONS) {
-                NotificationsOrientadorScreen(
-                    onBack = { navController.popBackStack() }
-                )
-            }
+//            composable(OrientadorRoutes.NOTIFICATIONS) {
+//                NotificationsOrientadorScreen(
+//                    onBack = { navController.popBackStack() }
+//                )
+//            }
             composable(
                 route = OrientadorRoutes.CHAT,
                 arguments = listOf(navArgument("conversationId") { type = NavType.StringType }),
