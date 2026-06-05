@@ -2,7 +2,7 @@ package turmaA.grupoB.LinkStage.viewmodel.Institution
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import turmaA.grupoB.LinkStage.data.repository.InstitutionRepositoryInterface
+import turmaA.grupoB.LinkStage.data.repository.institution.InstitutionRepositoryInterface
 
 class InstitutionViewModelFactory(
     private val institutionRepository: InstitutionRepositoryInterface

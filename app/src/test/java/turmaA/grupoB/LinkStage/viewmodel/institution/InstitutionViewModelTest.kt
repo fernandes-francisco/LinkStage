@@ -15,7 +15,7 @@ import org.junit.Test
 import org.junit.rules.TestWatcher
 import org.junit.runner.Description
 import turmaA.grupoB.LinkStage.data.remote.model.institution.InstitutionModel
-import turmaA.grupoB.LinkStage.data.repository.InstitutionRepositoryInterface
+import turmaA.grupoB.LinkStage.data.repository.institution.InstitutionRepositoryInterface
 import turmaA.grupoB.LinkStage.viewmodel.Institution.InstitutionUiState
 import turmaA.grupoB.LinkStage.viewmodel.Institution.InstitutionViewModel
 

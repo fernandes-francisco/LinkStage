@@ -10,6 +10,7 @@ import org.junit.Assert.assertThrows
 import turmaA.grupoB.LinkStage.data.repository.application.ApplicationRepository
 import turmaA.grupoB.LinkStage.data.repository.communication.CommunicationRepository
 import turmaA.grupoB.LinkStage.data.repository.evaluation.EvaluationRepository
+import turmaA.grupoB.LinkStage.data.repository.institution.InstitutionRepository
 
 @RunWith(AndroidJUnit4::class)
 class RepositoryIntegrationTest {
