@@ -16,7 +16,7 @@ import org.junit.Test
 import org.junit.rules.TestWatcher
 import turmaA.grupoB.LinkStage.data.remote.model.enums.ReportStatus
 import turmaA.grupoB.LinkStage.data.remote.model.report.FinalReportModel
-import turmaA.grupoB.LinkStage.data.repository.ReportRepositoryInterface
+import turmaA.grupoB.LinkStage.data.repository.report.ReportRepositoryInterface
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ReportViewModelTest {

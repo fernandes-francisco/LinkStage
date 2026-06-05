@@ -2,7 +2,7 @@ package turmaA.grupoB.LinkStage.viewmodel.report
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import turmaA.grupoB.LinkStage.data.repository.ReportRepositoryInterface
+import turmaA.grupoB.LinkStage.data.repository.report.ReportRepositoryInterface
 
 class ReportViewModelFactory(
     private val reportRepository: ReportRepositoryInterface
