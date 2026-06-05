@@ -14,9 +14,5 @@ data class CreateFinalReportInput(
     val content: String? = null,
     @SerialName("file_url")
     val fileUrl: String? = null,
-    val status: ReportStatus = ReportStatus.DRAFT,
-    @SerialName("created_at")
-    val createdAt: String,
-    @SerialName("updated_at")
-    val updatedAt: String
+    val status: ReportStatus = ReportStatus.DRAFT
 )

@@ -1,6 +1,9 @@
 package turmaA.grupoB.LinkStage.data.repository.report
 
+import android.provider.SyncStateContract.Helpers.insert
 import io.github.jan.supabase.postgrest.from
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import turmaA.grupoB.LinkStage.data.remote.model.enums.ReportStatus
 import turmaA.grupoB.LinkStage.data.remote.model.report.CreateFinalReportInput
 import turmaA.grupoB.LinkStage.data.remote.model.report.FinalReportModel
@@ -66,6 +69,19 @@ class ReportRepository : ReportRepositoryInterface {
     }
 
     override suspend fun createReport(input: CreateFinalReportInput): FinalReportModel {
+        val now = Instant.now().toString()
+
+        val newReport = CreateFinalReportPayload(
+            internshipId = input.internshipId,
+            studentId = input.studentId,
+            title = input.title,
+            content = input.content,
+            fileUrl = input.fileUrl,
+            status = input.status,
+            createAt = now,
+            updatedAt = now
+        )
+
         return supabase
             .from("final_reports")
             .insert(input) {
@@ -103,3 +119,21 @@ class ReportRepository : ReportRepositoryInterface {
         )
     }
 }
+
+@Serializable
+private data class CreateFinalReportPayload(
+    @SerialName("internship_id")
+    val internshipId: String,
+    @SerialName("student_id")
+    val studentId: String,
+    val title: String,
+    val content: String? = null,
+    @SerialName("file_url")
+    val fileUrl: String? = null,
+    val status: ReportStatus = ReportStatus.DRAFT,
+    @SerialName("created_at")
+    val createAt: String,
+    @SerialName("updated_at")
+    val updatedAt: String
+
+)

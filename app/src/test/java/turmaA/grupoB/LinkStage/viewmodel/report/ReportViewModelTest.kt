@@ -357,8 +357,6 @@ class ReportViewModelTest {
             content = testReport.content,
             fileUrl = testReport.fileUrl,
             status = testReport.status,
-            createdAt = testReport.createdAt,
-            updatedAt = testReport.updatedAt
         )
 
         val testUpdateFinalReportInput = UpdateFinalReportInput(
