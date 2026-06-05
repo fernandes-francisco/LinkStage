@@ -7,6 +7,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import turmaA.grupoB.LinkStage.data.remote.model.enums.ReportStatus
+import turmaA.grupoB.LinkStage.data.remote.model.report.CreateFinalReportInput
+import turmaA.grupoB.LinkStage.data.remote.model.report.UpdateFinalReportInput
 import turmaA.grupoB.LinkStage.data.repository.report.ReportRepositoryInterface
 
 class ReportViewModel(
@@ -111,6 +113,51 @@ class ReportViewModel(
             } catch (e: Exception) {
                 _uiState.value = ReportUiState.Error(
                     e.message ?: "Erro ao carregar relatórios por estado."
+                )
+            }
+        }
+    }
+
+    fun createReport(input: CreateFinalReportInput) {
+        viewModelScope.launch {
+            _uiState.value = ReportUiState.Loading
+
+            try {
+                val report = reportRepository.createReport(input)
+                _uiState.value = ReportUiState.Success(report)
+            } catch (e: Exception) {
+                _uiState.value = ReportUiState.Error(
+                    e.message ?: "Erro ao criar relatório."
+                )
+            }
+        }
+    }
+
+    fun updateReport(reportId: String, input: UpdateFinalReportInput) {
+        viewModelScope.launch {
+            _uiState.value = ReportUiState.Loading
+
+            try {
+                val report = reportRepository.updateReport(reportId, input)
+                _uiState.value = ReportUiState.Success(report)
+            } catch (e: Exception) {
+                _uiState.value = ReportUiState.Error(
+                    e.message ?: "Erro ao atualizar relatório."
+                )
+            }
+        }
+    }
+
+    fun submitReport(reportId: String) {
+        viewModelScope.launch {
+            _uiState.value = ReportUiState.Loading
+
+            try {
+                val report = reportRepository.submitReport(reportId)
+                _uiState.value = ReportUiState.Success(report)
+            } catch (e: Exception) {
+                _uiState.value = ReportUiState.Error(
+                    e.message ?: "Erro ao submeter relatório."
                 )
             }
         }
