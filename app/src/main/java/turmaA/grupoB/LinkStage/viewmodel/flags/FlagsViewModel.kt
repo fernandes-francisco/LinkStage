@@ -6,10 +6,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import turmaA.grupoB.LinkStage.data.repository.Flagsrepository
+import turmaA.grupoB.LinkStage.data.repository.FlagsRepository
 
 class FlagsViewModel (
-    private val flagsrepository: Flagsrepository
+    private val flagsrepository: FlagsRepository
 ): ViewModel(){
     private val _uiState = MutableStateFlow<FlagsUIState>(FlagsUIState.Idle)
     val uiState: StateFlow<FlagsUIState> = _uiState.asStateFlow()
