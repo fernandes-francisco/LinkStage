@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import turmaA.grupoB.LinkStage.data.repository.SupervisorRepositoryInterface
+import turmaA.grupoB.LinkStage.data.repository.supervisor.SupervisorRepositoryInterface
 
 class SupervisorViewModel(
     private val supervisorRepository: SupervisorRepositoryInterface

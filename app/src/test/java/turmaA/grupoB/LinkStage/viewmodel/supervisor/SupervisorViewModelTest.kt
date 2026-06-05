@@ -2,7 +2,6 @@ package turmaA.grupoB.LinkStage.viewmodel.supervisor
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -17,7 +16,7 @@ import org.junit.rules.TestWatcher
 import org.junit.runner.Description
 import turmaA.grupoB.LinkStage.data.remote.model.user.SupervisorModel
 import turmaA.grupoB.LinkStage.data.remote.model.user.SupervisorSkillModel
-import turmaA.grupoB.LinkStage.data.repository.SupervisorRepositoryInterface
+import turmaA.grupoB.LinkStage.data.repository.supervisor.SupervisorRepositoryInterface
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SupervisorViewModelTest {

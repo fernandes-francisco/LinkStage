@@ -16,6 +16,7 @@ import turmaA.grupoB.LinkStage.data.repository.offer.OfferRepository
 import turmaA.grupoB.LinkStage.data.repository.profile.ProfileRepository
 import turmaA.grupoB.LinkStage.data.repository.report.ReportRepository
 import turmaA.grupoB.LinkStage.data.repository.student.StudentRepository
+import turmaA.grupoB.LinkStage.data.repository.supervisor.SupervisorRepository
 
 @RunWith(AndroidJUnit4::class)
 class RepositoryIntegrationTest {
