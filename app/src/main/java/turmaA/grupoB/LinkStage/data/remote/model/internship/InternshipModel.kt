@@ -18,7 +18,7 @@ data class InternshipModel(
     val studentId: String,
 
     @SerialName("institution_id")
-    val instituitionId: String,
+    val institutionId: String,
 
     @SerialName("supervisor_id")
     val supervisorId: String? = null,
