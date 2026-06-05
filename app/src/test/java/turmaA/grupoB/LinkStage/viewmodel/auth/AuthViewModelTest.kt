@@ -20,7 +20,7 @@ import turmaA.grupoB.LinkStage.data.remote.model.auth.SignUpInput
 import turmaA.grupoB.LinkStage.data.remote.model.enums.UserRole
 import turmaA.grupoB.LinkStage.data.remote.model.user.ProfileModel
 import turmaA.grupoB.LinkStage.data.remote.model.user.UpdateProfileInput
-import turmaA.grupoB.LinkStage.data.repository.AuthRepositoryInterface
+import turmaA.grupoB.LinkStage.data.repository.auth.AuthRepositoryInterface
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class AuthViewModelTest {

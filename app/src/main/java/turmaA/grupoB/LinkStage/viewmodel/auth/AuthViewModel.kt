@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import turmaA.grupoB.LinkStage.data.remote.model.auth.SignInInput
 import turmaA.grupoB.LinkStage.data.remote.model.auth.SignUpInput
-import turmaA.grupoB.LinkStage.data.repository.AuthRepositoryInterface
+import turmaA.grupoB.LinkStage.data.repository.auth.AuthRepositoryInterface
 
 
 class AuthViewModel(

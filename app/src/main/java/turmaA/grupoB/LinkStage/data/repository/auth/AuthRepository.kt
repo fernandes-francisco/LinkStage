@@ -1,4 +1,4 @@
-package turmaA.grupoB.LinkStage.data.repository
+package turmaA.grupoB.LinkStage.data.repository.auth
 
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.status.SessionStatus

@@ -11,6 +11,7 @@ import org.junit.runner.RunWith
 import turmaA.grupoB.LinkStage.data.remote.model.auth.SignInInput
 import turmaA.grupoB.LinkStage.data.remote.model.auth.SignUpInput
 import turmaA.grupoB.LinkStage.data.remote.model.enums.UserRole
+import turmaA.grupoB.LinkStage.data.repository.auth.AuthRepository
 
 @RunWith(AndroidJUnit4::class)
 class AuthRepositoryIntegrationTest {
