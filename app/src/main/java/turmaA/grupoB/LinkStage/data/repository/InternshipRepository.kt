@@ -5,6 +5,7 @@ import turmaA.grupoB.LinkStage.data.remote.model.enums.InternshipStatus
 import turmaA.grupoB.LinkStage.data.remote.model.internship.ActivityLogModel
 import turmaA.grupoB.LinkStage.data.remote.model.internship.AssignSupervisorInput
 import turmaA.grupoB.LinkStage.data.remote.model.internship.CreateActivityLogInput
+import turmaA.grupoB.LinkStage.data.remote.model.internship.CreateInternshipInput
 import turmaA.grupoB.LinkStage.data.remote.model.internship.InternshipModel
 import turmaA.grupoB.LinkStage.data.remote.supabase.SupabaseClientProvider
 
@@ -62,6 +63,15 @@ class InternshipRepository : InternshipRepositoryInterface {
                 }
             }
             .decodeList<InternshipModel>()
+    }
+
+    override suspend fun createInternship(input: CreateInternshipInput): InternshipModel {
+        return supabase
+            .from("internships")
+            .insert(input) {
+                select()
+            }
+            .decodeSingle<InternshipModel>()
     }
 
     override suspend fun assignSupervisor(

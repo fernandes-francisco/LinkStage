@@ -18,6 +18,7 @@ import turmaA.grupoB.LinkStage.data.remote.model.enums.InternshipStatus
 import turmaA.grupoB.LinkStage.data.remote.model.internship.ActivityLogModel
 import turmaA.grupoB.LinkStage.data.remote.model.internship.AssignSupervisorInput
 import turmaA.grupoB.LinkStage.data.remote.model.internship.CreateActivityLogInput
+import turmaA.grupoB.LinkStage.data.remote.model.internship.CreateInternshipInput
 import turmaA.grupoB.LinkStage.data.remote.model.internship.InternshipModel
 import turmaA.grupoB.LinkStage.data.repository.InternshipRepositoryInterface
 import turmaA.grupoB.LinkStage.viewmodel.internships.InternshipUiState
@@ -400,6 +401,51 @@ class InternshipViewModelTest {
         )
     }
 
+    @Test
+    fun createInternship_whenInternshipCreated_setsSuccessState() = runTest {
+        val input = CreateInternshipInput(
+            applicationId = "application-id",
+            offerId = "offer-id",
+            studentId = "student-id",
+            institutionId = "institution-id",
+            supervisorId = "supervisor-id",
+            title = "Estágio Android",
+            companySupervisorName = "Supervisor Empresa",
+            startDate = "2025-01-01",
+            endDate = "2025-06-30",
+            status = InternshipStatus.PENDING_SUPERVISOR,
+            workPlan = "Plano de trabalho",
+            objectives = "Objetivos do estágio"
+        )
+
+        val expectedInternship = InternshipModel(
+            id = "internship-id",
+            applicationId = input.applicationId,
+            offerId = input.offerId,
+            studentId = input.studentId,
+            instituitionId = input.institutionId,
+            supervisorId = input.supervisorId,
+            title = input.title,
+            companySupervisorName = input.companySupervisorName,
+            startDate = input.startDate,
+            endDate = input.endDate,
+            status = input.status,
+            workPlan = input.workPlan,
+            objectives = input.objectives,
+            createdAt = "2025-01-01T00:00:00Z",
+            updatedAt = "2025-01-01T00:00:00Z"
+        )
+
+        viewModel.createInternship(input)
+        advanceUntilIdle()
+
+        assertEquals(
+            InternshipUiState.Success(expectedInternship),
+            viewModel.uiState.value
+        )
+    }
+
+
     private companion object {
         val testInternship = InternshipModel(
             id = "00000000-0000-0000-0000-000000000001",
@@ -436,6 +482,7 @@ private class FakeInternshipRepository : InternshipRepositoryInterface {
     var shouldThrowOnGetInternshipsByStudent: Boolean = false
     var shouldThrowOnGetInternshipsByInstitution: Boolean = false
     var shouldThrowOnGetInternshipsByStatus: Boolean = false
+    var shouldThrowOnCreateInternship: Boolean = false
     var shouldThrowOnAssignSupervisor: Boolean = false
     var shouldThrowOnGetActivityLogsByInternship: Boolean = false
     var shouldThrowOnCreateActivityLog: Boolean = false
@@ -473,6 +520,30 @@ private class FakeInternshipRepository : InternshipRepositoryInterface {
             throw IllegalStateException("Erro ao carregar estágios.")
         }
         return internships.filter { it.status == status }
+    }
+
+    override suspend fun createInternship(input: CreateInternshipInput): InternshipModel {
+        if (shouldThrowOnGetInternships) {
+            throw IllegalStateException("Erro ao criar estágio.")
+        }
+
+        return InternshipModel(
+            id = "internship-id",
+            applicationId = input.applicationId,
+            offerId = input.offerId,
+            studentId = input.studentId,
+            instituitionId = input.institutionId,
+            supervisorId = input.supervisorId,
+            title = input.title,
+            companySupervisorName = input.companySupervisorName,
+            startDate = input.startDate,
+            endDate = input.endDate,
+            status = input.status,
+            workPlan = input.workPlan,
+            objectives = input.objectives,
+            createdAt = "2025-01-01T00:00:00Z",
+            updatedAt = "2025-01-01T00:00:00Z"
+        )
     }
 
     override suspend fun assignSupervisor(

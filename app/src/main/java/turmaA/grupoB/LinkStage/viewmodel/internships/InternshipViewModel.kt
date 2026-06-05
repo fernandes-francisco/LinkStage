@@ -9,6 +9,7 @@ import kotlinx.coroutines.launch
 import turmaA.grupoB.LinkStage.data.remote.model.enums.InternshipStatus
 import turmaA.grupoB.LinkStage.data.remote.model.internship.AssignSupervisorInput
 import turmaA.grupoB.LinkStage.data.remote.model.internship.CreateActivityLogInput
+import turmaA.grupoB.LinkStage.data.remote.model.internship.CreateInternshipInput
 import turmaA.grupoB.LinkStage.data.repository.InternshipRepositoryInterface
 
 class InternshipViewModel(
@@ -97,6 +98,22 @@ class InternshipViewModel(
             }catch (e: Exception){
                 _uiState.value = InternshipUiState.Error(
                     e.message ?: "Erro ao carregar estágios"
+                )
+            }
+        }
+    }
+
+    fun createInternship(input: CreateInternshipInput) {
+        viewModelScope.launch {
+            _uiState.value = InternshipUiState.Loading
+
+            try {
+                val internship = internshipRepository.createInternship(input)
+
+                _uiState.value = InternshipUiState.Success(internship)
+            } catch (e: Exception) {
+                _uiState.value = InternshipUiState.Error(
+                    e.message ?: "Erro ao criar estágio."
                 )
             }
         }
