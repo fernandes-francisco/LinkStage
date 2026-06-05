@@ -2,7 +2,7 @@ package turmaA.grupoB.LinkStage.viewmodel.application
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import turmaA.grupoB.LinkStage.data.repository.ApplicationRepositoryInterface
+import turmaA.grupoB.LinkStage.data.repository.application.ApplicationRepositoryInterface
 
 class ApplicationViewModelFactory(
     private val applicationRepository: ApplicationRepositoryInterface
