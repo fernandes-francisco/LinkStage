@@ -15,7 +15,9 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestWatcher
 import turmaA.grupoB.LinkStage.data.remote.model.enums.ReportStatus
+import turmaA.grupoB.LinkStage.data.remote.model.report.CreateFinalReportInput
 import turmaA.grupoB.LinkStage.data.remote.model.report.FinalReportModel
+import turmaA.grupoB.LinkStage.data.remote.model.report.UpdateFinalReportInput
 import turmaA.grupoB.LinkStage.data.repository.ReportRepositoryInterface
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -261,6 +263,51 @@ class ReportViewModelTest {
         )
     }
 
+    @Test
+    fun createReport_withValidData_setsSuccessState() = runTest {
+        fakeRepository.reportToReturn = testReport
+
+        viewModel.createReport(testCreateFinalReportModel)
+
+        advanceUntilIdle()
+
+        assertEquals(
+            ReportUiState.Success(testReport),
+            viewModel.uiState.value
+        )
+    }
+
+    @Test
+    fun updateReport_withValidData_setsSuccessState() = runTest {
+        fakeRepository.reportToReturn = updatedReport
+
+        viewModel.updateReport(
+            reportId = testReport.id,
+            input = testUpdateFinalReportInput
+        )
+
+        advanceUntilIdle()
+
+        assertEquals(
+            ReportUiState.Success(updatedReport),
+            viewModel.uiState.value
+        )
+    }
+
+    @Test
+    fun submitReport_setsSuccessState() = runTest {
+        fakeRepository.reportToReturn = submittedReport
+
+        viewModel.submitReport(testReport.id)
+
+        advanceUntilIdle()
+
+        assertEquals(
+            ReportUiState.Success(submittedReport),
+            viewModel.uiState.value
+        )
+    }
+
     // --- resetState ---
 
     @Test
@@ -291,6 +338,37 @@ class ReportViewModelTest {
             createdAt = "2026-01-01T00:00:00Z",
             updatedAt = "2026-01-01T00:00:00Z"
         )
+
+        val updatedReport = testReport.copy(
+            title = "Updated Test Report",
+            content = "updated report content",
+            updatedAt = "2026-01-02T00:00:00Z"
+        )
+
+        val submittedReport = testReport.copy(
+            status = ReportStatus.SUBMITTED,
+            updatedAt = "2026-01-02T00:00:00Z"
+        )
+
+        val testCreateFinalReportModel = CreateFinalReportInput(
+            internshipId = testReport.internshipId,
+            studentId = testReport.studentId,
+            title = testReport.title,
+            content = testReport.content,
+            fileUrl = testReport.fileUrl,
+            status = testReport.status,
+            createdAt = testReport.createdAt,
+            updatedAt = testReport.updatedAt
+        )
+
+        val testUpdateFinalReportInput = UpdateFinalReportInput(
+            title = updatedReport.title,
+            content = updatedReport.content,
+            fileUrl = updatedReport.fileUrl,
+            status = updatedReport.status,
+            updatedAt = updatedReport.updatedAt
+        )
+
     }
 }
 
@@ -301,12 +379,19 @@ private class FakeReportRepository : ReportRepositoryInterface {
     var reportByInternship: FinalReportModel? = null
     var reportsByStudent: List<FinalReportModel> = emptyList()
     var reportsByStatus: List<FinalReportModel> = emptyList()
+    var createdReport: FinalReportModel? = null
+    var updatedReport: FinalReportModel? = null
+    var submittedReport: FinalReportModel? = null
 
+    var reportToReturn: FinalReportModel? = null
     var shouldThrowOnGetReports: Boolean = false
     var shouldThrowOnGetReportById: Boolean = false
     var shouldThrowOnGetReportByInternship: Boolean = false
     var shouldThrowOnGetReportsByStudent: Boolean = false
     var shouldThrowOnGetReportsByStatus: Boolean = false
+    var shouldThrowOnCreateReport: Boolean = false
+    var shouldThrowOnUpdateReport: Boolean = false
+    var shouldThrowOnSubmitReport: Boolean = false
 
     override suspend fun getReports(): List<FinalReportModel> {
         if (shouldThrowOnGetReports) {
@@ -341,6 +426,31 @@ private class FakeReportRepository : ReportRepositoryInterface {
             throw IllegalStateException("Erro ao carregar relatórios por estado.")
         }
         return reportsByStatus
+    }
+
+    override suspend fun createReport(input: CreateFinalReportInput) : FinalReportModel {
+        if (shouldThrowOnCreateReport) {
+            throw IllegalStateException("Erro ao criar relatório.")
+        }
+
+        return reportToReturn ?: throw IllegalStateException("Relatório não encontrado.")
+    }
+
+    override suspend fun updateReport(
+        reportId: String,
+        input: UpdateFinalReportInput
+    ): FinalReportModel {
+        if (shouldThrowOnUpdateReport) {
+            throw IllegalStateException("Erro ao atualizar relatório.")
+        }
+        return reportToReturn ?: throw IllegalStateException("Relatório não encontrado.")
+    }
+
+    override suspend fun submitReport(reportId: String): FinalReportModel {
+        if (shouldThrowOnUpdateReport) {
+            throw IllegalStateException("Erro ao submeter relatório.")
+        }
+        return reportToReturn ?: throw IllegalStateException("Relatório não encontrado.")
     }
 }
 
