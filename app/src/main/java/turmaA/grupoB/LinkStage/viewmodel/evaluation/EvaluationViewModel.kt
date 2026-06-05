@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import turmaA.grupoB.LinkStage.data.remote.model.enums.EvaluationType
 import turmaA.grupoB.LinkStage.data.remote.model.evaluation.CreateEvaluationInput
-import turmaA.grupoB.LinkStage.data.repository.EvaluationRepositoryInterface
+import turmaA.grupoB.LinkStage.data.repository.evaluation.EvaluationRepositoryInterface
 
 class EvaluationViewModel(
     private val evaluationRepository: EvaluationRepositoryInterface
