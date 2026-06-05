@@ -2,7 +2,7 @@ package turmaA.grupoB.LinkStage.viewmodel.offer
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import turmaA.grupoB.LinkStage.data.repository.OfferRepository
+import turmaA.grupoB.LinkStage.data.repository.offer.OfferRepository
 
 class OfferViewModelFactory(
     private val offerRepository: OfferRepository

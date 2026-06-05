@@ -12,6 +12,7 @@ import turmaA.grupoB.LinkStage.data.repository.communication.CommunicationReposi
 import turmaA.grupoB.LinkStage.data.repository.evaluation.EvaluationRepository
 import turmaA.grupoB.LinkStage.data.repository.institution.InstitutionRepository
 import turmaA.grupoB.LinkStage.data.repository.internship.InternshipRepository
+import turmaA.grupoB.LinkStage.data.repository.offer.OfferRepository
 
 @RunWith(AndroidJUnit4::class)
 class RepositoryIntegrationTest {

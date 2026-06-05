@@ -18,7 +18,7 @@ import turmaA.grupoB.LinkStage.data.remote.model.enums.OfferStatus
 import turmaA.grupoB.LinkStage.data.remote.model.offer.CreateOfferInput
 import turmaA.grupoB.LinkStage.data.remote.model.offer.InternshipOfferModel
 import turmaA.grupoB.LinkStage.data.remote.model.offer.UpdateOfferInput
-import turmaA.grupoB.LinkStage.data.repository.OfferRepositoryInterface
+import turmaA.grupoB.LinkStage.data.repository.offer.OfferRepositoryInterface
 import turmaA.grupoB.LinkStage.viewmodel.auth.MainDispatcherRule
 
 @OptIn(ExperimentalCoroutinesApi::class)
