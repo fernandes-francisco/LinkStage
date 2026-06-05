@@ -17,6 +17,6 @@ enum class InternshipStatus {
     @SerialName("EVALUATED")
     EVALUATED,
 
-    @SerialName("CANCELED")
+    @SerialName("CANCELLED")
     CANCELED
 }
