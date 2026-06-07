@@ -268,7 +268,7 @@ private fun ChatTopBar(
             modifier = Modifier
                 .fillMaxWidth()
                 .statusBarsPadding()
-                .padding(horizontal = 8.dp, vertical = 10.dp),
+                .padding(start = 8.dp, end = 8.dp, top = 2.dp, bottom = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             IconButton(onClick = onBack) {

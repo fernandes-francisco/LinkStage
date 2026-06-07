@@ -40,6 +40,7 @@ import turmaA.grupoB.LinkStage.ui.instituicao.offers.OfferDetailInstituicaoScree
 import turmaA.grupoB.LinkStage.ui.instituicao.offers.OfferFormInstituicaoScreen
 import turmaA.grupoB.LinkStage.ui.instituicao.offers.OfferSuccessInstituicaoScreen
 import turmaA.grupoB.LinkStage.ui.instituicao.offers.OffersInstituicaoScreen
+import turmaA.grupoB.LinkStage.ui.instituicao.settings.NotificationsInstituicaoScreen
 import turmaA.grupoB.LinkStage.ui.instituicao.settings.SettingsInstituicaoScreen
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
@@ -50,6 +51,7 @@ object InstituicaoRoutes {
     const val ACTIVITY = "instituicao_activity"
     const val MESSAGES = "instituicao_messages"
     const val SETTINGS = "instituicao_settings"
+    const val NOTIFICATIONS = "instituicao_notifications"
     const val CHAT = "instituicao_chat/{conversationId}"
     const val OFFER_FORM = "instituicao_offer_form/{offerId}"
     const val OFFER_DETAIL = "instituicao_offer_detail/{offerId}"
@@ -151,7 +153,17 @@ fun InstituicaoMainScreen(onLogout: () -> Unit = {}) {
                 )
             }
             composable(InstituicaoRoutes.SETTINGS) {
-                SettingsInstituicaoScreen(onLogout = onLogout)
+                SettingsInstituicaoScreen(
+                    onLogout = onLogout,
+                    onNotificationsClick = {
+                        navController.navigate(InstituicaoRoutes.NOTIFICATIONS)
+                    }
+                )
+            }
+            composable(InstituicaoRoutes.NOTIFICATIONS) {
+                NotificationsInstituicaoScreen(
+                    onBack = { navController.popBackStack() }
+                )
             }
             composable(
                 route = InstituicaoRoutes.CHAT,

@@ -269,7 +269,7 @@ fun CommonTopBar(modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .padding(vertical = 12.dp),
+            .padding(top = 4.dp, bottom = 12.dp),
         contentAlignment = Alignment.Center,
     ) {
         LinkStageLogo()

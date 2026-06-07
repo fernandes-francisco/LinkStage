@@ -137,28 +137,23 @@ fun OffersInstituicaoScreen(
             }
         },
         containerColor = BackgroundLight,
-    ) { paddingValues ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues),
-            contentPadding = PaddingValues(bottom = 16.dp),
-        ) {
-            item { CommonTopBar() }
-
-            item {
-                Text(
-                    text = "Gestão de Ofertas",
-                    style = MaterialTheme.typography.headlineSmall.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = DarkBlue,
-                    ),
-                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp),
-                )
-            }
-
-            item {
-                Spacer(modifier = Modifier.height(12.dp))
+        topBar = {
+            Column(modifier = Modifier.background(BackgroundLight)) {
+                CommonTopBar()
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp, vertical = 8.dp),
+                    horizontalAlignment = Alignment.Start,
+                ) {
+                    Text(
+                        text = "Gestão de Ofertas",
+                        style = MaterialTheme.typography.headlineSmall.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = DarkBlue,
+                        ),
+                    )
+                }
                 SearchBarWithFilter(
                     query = searchQuery,
                     onQueryChange = { searchQuery = it },
@@ -166,7 +161,14 @@ fun OffersInstituicaoScreen(
                 )
                 Spacer(modifier = Modifier.height(12.dp))
             }
-
+        }
+    ) { paddingValues ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues),
+            contentPadding = PaddingValues(bottom = 16.dp),
+        ) {
             items(filteredOffers, key = { it.id }) { offer ->
                 InstitutionOfferCard(
                     offer = offer,

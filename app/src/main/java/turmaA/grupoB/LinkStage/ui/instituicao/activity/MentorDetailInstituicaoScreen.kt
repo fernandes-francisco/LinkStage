@@ -42,6 +42,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -85,65 +86,68 @@ fun MentorDetailInstituicaoScreen(
     val mentor = sampleMentors.find { it.id == mentorId } ?: sampleMentors.first()
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .background(BackgroundLight),
-    ) {
-        // Header
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Color.White)
-                .padding(bottom = 12.dp),
-        ) {
-            Row(
-                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                IconButton(onClick = { navController.popBackStack() }) {
-                    Icon(
-                        Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Voltar",
-                        tint = DarkBlue,
-                        modifier = Modifier.size(22.dp),
+    Scaffold(
+        modifier = modifier.fillMaxSize(),
+        containerColor = BackgroundLight,
+        topBar = {
+            Column(modifier = Modifier.background(Color.White)) {
+                // Top Row: Back + Title
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 8.dp, end = 20.dp, top = 8.dp, bottom = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Voltar",
+                            tint = DarkBlue
+                        )
+                    }
+                    Text(
+                        text = "Orientadores",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = DarkBlue,
+                            fontSize = 20.sp
+                        )
                     )
                 }
-                Text("Orientadores", color = DarkBlue, fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
-            }
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(BackgroundLight)
-                    .padding(12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Box(
+                Row(
                     modifier = Modifier
-                        .size(44.dp)
-                        .clip(CircleShape)
-                        .background(Fade1),
-                    contentAlignment = Alignment.Center,
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(BackgroundLight)
+                        .padding(12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text(mentor.avatarInitials, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Box(
+                        modifier = Modifier
+                            .size(44.dp)
+                            .clip(CircleShape)
+                            .background(Fade1),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(mentor.avatarInitials, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    }
+                    Column(modifier = Modifier.padding(start = 12.dp)) {
+                        Text(mentor.name, color = DarkBlue, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                        Text(mentor.institution, color = LightBlue, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+                    }
                 }
-                Column(modifier = Modifier.padding(start = 12.dp)) {
-                    Text(mentor.name, color = DarkBlue, fontWeight = FontWeight.Bold, fontSize = 15.sp)
-                    Text(mentor.institution, color = LightBlue, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
-                }
+
+                LinkStageTabRow(
+                    tabs = listOf("Detalhes", "Competências", "Gerir"),
+                    selectedIndex = selectedTab,
+                    onTabSelected = { selectedTab = it },
+                )
             }
         }
-
-        LinkStageTabRow(
-            tabs = listOf("Detalhes", "Competências", "Gerir"),
-            selectedIndex = selectedTab,
-            onTabSelected = { selectedTab = it },
-        )
-
-        Box(modifier = Modifier.weight(1f)) {
+    ) { paddingValues ->
+        Box(modifier = Modifier.padding(paddingValues)) {
             when (selectedTab) {
                 0 -> DetailsTab(mentor = mentor)
                 1 -> SkillsTab(mentor = mentor)

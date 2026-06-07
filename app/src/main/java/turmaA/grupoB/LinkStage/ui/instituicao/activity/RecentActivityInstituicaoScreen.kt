@@ -132,22 +132,27 @@ fun ActivityInstituicaoScreen(
             }
         },
         containerColor = BackgroundLight,
+        topBar = { CommonTopBar() }
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues),
         ) {
-            CommonTopBar()
-
-            Text(
-                text = "Atividade Recente",
-                style = MaterialTheme.typography.headlineSmall.copy(
-                    fontWeight = FontWeight.Bold,
-                    color = DarkBlue,
-                ),
-                modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp),
-            )
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 8.dp),
+                horizontalAlignment = Alignment.Start,
+            ) {
+                Text(
+                    text = "Atividade Recente",
+                    style = MaterialTheme.typography.headlineSmall.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = DarkBlue,
+                    ),
+                )
+            }
 
             Spacer(modifier = Modifier.height(12.dp))
 

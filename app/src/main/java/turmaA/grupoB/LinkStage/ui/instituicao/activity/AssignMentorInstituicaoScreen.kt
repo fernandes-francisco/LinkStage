@@ -18,12 +18,17 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -44,7 +49,6 @@ import turmaA.grupoB.LinkStage.ui.admin.AdminMentor
 import turmaA.grupoB.LinkStage.ui.admin.sampleMentors
 import turmaA.grupoB.LinkStage.ui.aluno.chat.avatarColors
 import turmaA.grupoB.LinkStage.ui.common.ConfirmationDialog
-import turmaA.grupoB.LinkStage.ui.common.SecondaryTopBar
 import turmaA.grupoB.LinkStage.ui.instituicao.InstituicaoRoutes
 import turmaA.grupoB.LinkStage.ui.instituicao.sampleInstitutionInternships
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
@@ -79,90 +83,117 @@ fun AssignMentorInstituicaoScreen(
         )
     }
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .background(BackgroundLight),
-    ) {
-        SecondaryTopBar(
-            title = "Atribuir orientador",
-            onBack = { navController.popBackStack() },
-        )
-
-        // Selected internship/student card
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            shape = RoundedCornerShape(12.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
-            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
-        ) {
-            Row(
-                modifier = Modifier.padding(14.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Box(
+    Scaffold(
+        modifier = modifier.fillMaxSize(),
+        containerColor = BackgroundLight,
+        topBar = {
+            Column(modifier = Modifier.background(Color.White)) {
+                // Top Row: Back + Title
+                Row(
                     modifier = Modifier
-                        .size(44.dp)
-                        .clip(CircleShape)
-                        .background(Fade1),
-                    contentAlignment = Alignment.Center,
+                        .fillMaxWidth()
+                        .padding(start = 8.dp, end = 20.dp, top = 8.dp, bottom = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Voltar",
+                            tint = DarkBlue
+                        )
+                    }
                     Text(
-                        internship.studentAvatarInitials,
-                        color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp,
+                        text = "Atribuir orientador",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = DarkBlue,
+                            fontSize = 20.sp
+                        )
                     )
                 }
-                Spacer(modifier = Modifier.width(10.dp))
-                Column {
-                    Text(internship.studentName, color = DarkBlue, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                    Text(internship.offerTitle, color = DarkGrey, fontSize = 13.sp)
-                }
             }
         }
-
-        Text(
-            text = "Orientadores disponíveis",
-            color = DarkBlue, fontWeight = FontWeight.Bold, fontSize = 15.sp,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-        )
-
-        LazyColumn(
-            modifier = Modifier.weight(1f),
-            contentPadding = PaddingValues(bottom = 8.dp),
-        ) {
-            items(sampleMentors, key = { it.id }) { mentor ->
-                MentorSelectionCard(
-                    mentor = mentor,
-                    isSelected = selectedMentor?.id == mentor.id,
-                    onSelect = {
-                        selectedMentor = if (selectedMentor?.id == mentor.id) null else mentor
-                    },
-                )
-            }
-        }
-
-        // Bottom button
+    ) { paddingValues ->
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .background(Color.White)
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+                .fillMaxSize()
+                .padding(paddingValues),
         ) {
-            Button(
-                onClick = { showConfirmDialog = true },
+            // Selected internship/student card
+            Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(50.dp),
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
                 shape = RoundedCornerShape(12.dp),
-                enabled = selectedMentor != null,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = DarkBlue,
-                    disabledContainerColor = DarkGrey,
-                ),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
             ) {
-                Text("Atribuir", fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                Row(
+                    modifier = Modifier.padding(14.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(44.dp)
+                            .clip(CircleShape)
+                            .background(Fade1),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(
+                            internship.studentAvatarInitials,
+                            color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp,
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Column {
+                        Text(internship.studentName, color = DarkBlue, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                        Text(internship.offerTitle, color = DarkGrey, fontSize = 13.sp)
+                    }
+                }
+            }
+
+            Text(
+                text = "Orientadores disponíveis",
+                color = DarkBlue, fontWeight = FontWeight.Bold, fontSize = 15.sp,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            )
+
+            LazyColumn(
+                modifier = Modifier.weight(1f),
+                contentPadding = PaddingValues(bottom = 8.dp),
+            ) {
+                items(sampleMentors, key = { it.id }) { mentor ->
+                    MentorSelectionCard(
+                        mentor = mentor,
+                        isSelected = selectedMentor?.id == mentor.id,
+                        onSelect = {
+                            selectedMentor = if (selectedMentor?.id == mentor.id) null else mentor
+                        },
+                    )
+                }
+            }
+
+            // Bottom button
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.White)
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+            ) {
+                Button(
+                    onClick = { showConfirmDialog = true },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    enabled = selectedMentor != null,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = DarkBlue,
+                        disabledContainerColor = DarkGrey,
+                    ),
+                ) {
+                    Text("Atribuir", fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                }
             }
         }
     }

@@ -18,7 +18,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.automirrored.outlined.ArrowForward
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.ChevronRight
@@ -30,7 +29,6 @@ import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.Work
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -60,7 +58,7 @@ import turmaA.grupoB.LinkStage.ui.aluno.chat.Conversation
 import turmaA.grupoB.LinkStage.ui.aluno.chat.avatarColors
 import turmaA.grupoB.LinkStage.ui.aluno.chat.sampleConversations
 import turmaA.grupoB.LinkStage.ui.aluno.offers.OfferItem
-import turmaA.grupoB.LinkStage.ui.common.LinkStageLogo
+import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
 import turmaA.grupoB.LinkStage.ui.instituicao.InstituicaoRoutes
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
@@ -94,17 +92,31 @@ fun HomeInstituicaoScreen(
 
     Scaffold(
         modifier = modifier,
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { navController.navigate(InstituicaoRoutes.offerFormRoute("new")) },
-                containerColor = LightBlue,
-                contentColor = Color.White,
-                shape = RoundedCornerShape(16.dp),
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Criar oferta")
-            }
-        },
         containerColor = BackgroundLight,
+        topBar = {
+            Column(modifier = Modifier.background(BackgroundLight)) {
+                CommonTopBar()
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp, vertical = 8.dp),
+                    horizontalAlignment = Alignment.Start,
+                ) {
+                    Text(
+                        text = "Olá, ESTG-IPVC.",
+                        style = MaterialTheme.typography.headlineMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = DarkBlue,
+                        ),
+                    )
+                    Text(
+                        text = "Bem-vindo ao seu painel de gestão.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = DarkGrey,
+                    )
+                }
+            }
+        }
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -112,24 +124,7 @@ fun HomeInstituicaoScreen(
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState()),
         ) {
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                LinkStageLogo()
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                text = "Olá, ESTG-IPVC.",
-                fontSize = 28.sp,
-                fontWeight = FontWeight.Bold,
-                color = DarkBlue,
-                modifier = Modifier.padding(horizontal = 20.dp),
-                maxLines = 2,
-            )
-
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             // Section 1 — Resumo (stat cards 2x2)
             SectionTitle("Resumo")

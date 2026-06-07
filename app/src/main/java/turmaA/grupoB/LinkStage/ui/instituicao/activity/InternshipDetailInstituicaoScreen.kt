@@ -18,6 +18,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.RateReview
 import androidx.compose.material3.Button
@@ -26,9 +27,11 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -48,7 +51,6 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import turmaA.grupoB.LinkStage.ui.aluno.chat.avatarColors
 import turmaA.grupoB.LinkStage.ui.common.ConfirmationDialog
-import turmaA.grupoB.LinkStage.ui.common.SecondaryTopBar
 import turmaA.grupoB.LinkStage.ui.instituicao.InstitutionInternship
 import turmaA.grupoB.LinkStage.ui.instituicao.InternshipOrigin
 import turmaA.grupoB.LinkStage.ui.instituicao.InternshipStatus
@@ -71,36 +73,43 @@ fun InternshipDetailInstituicaoScreen(
     val internship = sampleInstitutionInternships.find { it.id == internshipId }
         ?: sampleInstitutionInternships.first()
 
-    var showEvaluateDialog by remember { mutableStateOf(false) }
-
-    if (showEvaluateDialog) {
-        ConfirmationDialog(
-            title = "Estágio não concluído",
-            body = "O estágio ainda está em progresso. Tem a certeza que pretende iniciar a avaliação?",
-            confirmLabel = "Continuar",
-            onConfirm = {
-                showEvaluateDialog = false
-            },
-            onDismiss = { showEvaluateDialog = false },
-        )
-    }
-
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .background(BackgroundLight),
-    ) {
-        SecondaryTopBar(
-            title = "Detalhes de estágio",
-            onBack = { navController.popBackStack() },
-        )
-
+    Scaffold(
+        modifier = modifier.fillMaxSize(),
+        containerColor = BackgroundLight,
+        topBar = {
+            Column(modifier = Modifier.background(Color.White)) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 8.dp, end = 20.dp, top = 8.dp, bottom = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Voltar",
+                            tint = DarkBlue
+                        )
+                    }
+                    Text(
+                        text = "Detalhes de estágio",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = DarkBlue,
+                            fontSize = 20.sp
+                        )
+                    )
+                }
+            }
+        }
+    ) { paddingValues ->
         Column(
             modifier = Modifier
-                .weight(1f)
+                .fillMaxSize()
+                .padding(paddingValues)
                 .verticalScroll(rememberScrollState()),
         ) {
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             InternshipInfoCard(internship = internship)
 
@@ -119,48 +128,38 @@ fun InternshipDetailInstituicaoScreen(
             ActivityPlaceholderCard("Apresentação de progresso", "Agendado", DarkGrey)
 
             Spacer(modifier = Modifier.height(16.dp))
+
+            // Bottom action buttons (placed inside scrollable content or fixed? Original was fixed)
+            // Let's place them fixed at the bottom as per standard Detail screens.
         }
 
-        // Bottom action bar
-        Surface(color = Color.White, shadowElevation = 8.dp) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .navigationBarsPadding()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+        // Action Buttons at the bottom (Fixed)
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
+            Surface(
+                color = Color.White,
+                shadowElevation = 8.dp,
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Button(
-                    onClick = { },
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(48.dp)
-                        .background(Fade2, RoundedCornerShape(10.dp)),
-                    shape = RoundedCornerShape(10.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                        .navigationBarsPadding()
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    Icon(Icons.Outlined.CalendarMonth, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Ver atividades", fontWeight = FontWeight.SemiBold)
-                }
-
-                OutlinedButton(
-                    onClick = {
-                        if (internship.status != InternshipStatus.COMPLETED) {
-                            showEvaluateDialog = true
-                        }
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(48.dp),
-                    shape = RoundedCornerShape(10.dp),
-                    border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(
-                        brush = androidx.compose.ui.graphics.SolidColor(DarkBlue),
-                    ),
-                ) {
-                    Icon(Icons.Outlined.RateReview, contentDescription = null, tint = DarkBlue, modifier = Modifier.size(18.dp))
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Avaliar estágio", color = DarkBlue, fontWeight = FontWeight.SemiBold)
+                    Button(
+                        onClick = { },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp)
+                            .background(Fade2, RoundedCornerShape(10.dp)),
+                        shape = RoundedCornerShape(10.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                    ) {
+                        Icon(Icons.Outlined.CalendarMonth, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Ver atividades", fontWeight = FontWeight.SemiBold)
+                    }
                 }
             }
         }

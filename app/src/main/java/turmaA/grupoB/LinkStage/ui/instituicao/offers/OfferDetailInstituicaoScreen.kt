@@ -27,7 +27,10 @@ import androidx.compose.material.icons.outlined.Cancel
 import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.LocationOn
+import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.Work
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -40,6 +43,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -52,6 +56,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -67,6 +73,8 @@ import turmaA.grupoB.LinkStage.ui.common.CheckItem
 import turmaA.grupoB.LinkStage.ui.common.ContentSection
 import turmaA.grupoB.LinkStage.ui.common.ContentSectionColored
 import turmaA.grupoB.LinkStage.ui.common.ConfirmationDialog
+import turmaA.grupoB.LinkStage.ui.common.LinkStageButton
+import turmaA.grupoB.LinkStage.ui.common.LinkStageOutlinedButton
 import turmaA.grupoB.LinkStage.ui.common.LinkStageTabRow
 import turmaA.grupoB.LinkStage.ui.instituicao.InstituicaoRoutes
 import turmaA.grupoB.LinkStage.ui.instituicao.InstitutionApplication
@@ -141,63 +149,75 @@ fun OfferDetailInstituicaoScreen(
         )
     }
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .background(BackgroundLight),
-    ) {
-        // Fixed header
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Color.White)
-                .padding(bottom = 12.dp),
-        ) {
-            Row(
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                IconButton(onClick = { navController.popBackStack() }, modifier = Modifier.size(40.dp)) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar", tint = DarkBlue)
-                }
-                Spacer(modifier = Modifier.width(4.dp))
-                Text("Ofertas", color = DarkBlue, fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
-            }
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(BackgroundLight)
-                    .padding(12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Box(
+    Scaffold(
+        modifier = modifier.fillMaxSize(),
+        containerColor = BackgroundLight,
+        topBar = {
+            Column(modifier = Modifier.background(Color.White)) {
+                // Top Row: Back + Title
+                Row(
                     modifier = Modifier
-                        .size(44.dp)
-                        .clip(RoundedCornerShape(10.dp))
-                        .background(offer.logoColor),
-                    contentAlignment = Alignment.Center,
+                        .fillMaxWidth()
+                        .padding(start = 8.dp, end = 20.dp, top = 8.dp, bottom = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(offer.logoInitial, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Voltar",
+                            tint = DarkBlue
+                        )
+                    }
+                    Text(
+                        text = "Detalhes da Oferta",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = DarkBlue,
+                            fontSize = 20.sp
+                        )
+                    )
                 }
-                Spacer(modifier = Modifier.width(12.dp))
-                Column {
-                    Text(offer.title, color = DarkBlue, fontWeight = FontWeight.Bold, fontSize = 15.sp)
-                    Text(offer.company, color = LightBlue, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+
+                // Small Header with Offer Info
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(BackgroundLight)
+                        .padding(12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(44.dp)
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(offer.logoColor),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(offer.logoInitial, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                    }
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column {
+                        Text(offer.title, color = DarkBlue, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                        Text(offer.company, color = LightBlue, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+                    }
                 }
+
+                LinkStageTabRow(
+                    tabs = listOf("Detalhes", "Candidaturas", "Gerir"),
+                    selectedIndex = selectedTab,
+                    onTabSelected = { selectedTab = it },
+                )
             }
         }
-
-        LinkStageTabRow(
-            tabs = listOf("Detalhes", "Candidaturas", "Gerir"),
-            selectedIndex = selectedTab,
-            onTabSelected = { selectedTab = it },
-        )
-
+    ) { paddingValues ->
         // Content
-        Box(modifier = Modifier.weight(1f)) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        ) {
             when (selectedTab) {
                 0 -> DetailsTab(offer = offer)
                 1 -> ApplicationsTab(navController = navController)
@@ -259,14 +279,19 @@ private fun OfferMetaChips(offer: OfferDetail) {
             .padding(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        MetaChipSmall(label = "Localização", value = offer.location, modifier = Modifier.weight(1f))
-        MetaChipSmall(label = "Duração", value = offer.duration, modifier = Modifier.weight(1f))
-        MetaChipSmall(label = "Tipo", value = offer.type, modifier = Modifier.weight(1f))
+        MetaChipSmall(icon = Icons.Outlined.LocationOn, label = "Localização", value = offer.location, modifier = Modifier.weight(1f))
+        MetaChipSmall(icon = Icons.Outlined.Schedule, label = "Duração", value = offer.duration, modifier = Modifier.weight(1f))
+        MetaChipSmall(icon = Icons.Outlined.Work, label = "Tipo", value = offer.type, modifier = Modifier.weight(1f))
     }
 }
 
 @Composable
-private fun MetaChipSmall(label: String, value: String, modifier: Modifier = Modifier) {
+private fun MetaChipSmall(
+    icon: ImageVector,
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier
+) {
     Card(
         modifier = modifier,
         shape = RoundedCornerShape(10.dp),
@@ -278,6 +303,12 @@ private fun MetaChipSmall(label: String, value: String, modifier: Modifier = Mod
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = LightBlue,
+                modifier = Modifier.size(20.dp),
+            )
             Text(label, fontSize = 11.sp, color = DarkGrey, textAlign = TextAlign.Center)
             Text(value, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = DarkBlue, textAlign = TextAlign.Center)
         }
@@ -474,42 +505,24 @@ private fun ManageTab(
             .padding(horizontal = 16.dp, vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Button(
+        LinkStageButton(
+            text = "Editar oferta",
             onClick = onEdit,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(48.dp)
-                .background(Fade2, RoundedCornerShape(10.dp)),
-            shape = RoundedCornerShape(10.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-        ) {
-            Icon(Icons.Outlined.Edit, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("Editar oferta", fontWeight = FontWeight.SemiBold)
-        }
+            height = 48.dp
+        )
 
-        OutlinedButton(
+        LinkStageOutlinedButton(
+            text = "Fechar oferta",
             onClick = onClose,
-            modifier = Modifier.fillMaxWidth().height(48.dp),
-            shape = RoundedCornerShape(10.dp),
-            border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(brush = androidx.compose.ui.graphics.SolidColor(DarkGrey)),
-        ) {
-            Icon(Icons.Outlined.Cancel, contentDescription = null, tint = DarkGrey, modifier = Modifier.size(18.dp))
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("Fechar oferta", color = DarkGrey, fontWeight = FontWeight.SemiBold)
-        }
+            height = 48.dp
+        )
 
-        Button(
+        LinkStageButton(
+            text = "Remover oferta",
             onClick = onDelete,
-            modifier = Modifier.fillMaxWidth().height(48.dp),
-            shape = RoundedCornerShape(10.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Red.copy(alpha = 0.12f)),
-            border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(brush = androidx.compose.ui.graphics.SolidColor(Red)),
-        ) {
-            Icon(Icons.Outlined.Delete, contentDescription = null, tint = Red, modifier = Modifier.size(18.dp))
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("Remover oferta", color = Red, fontWeight = FontWeight.SemiBold)
-        }
+            height = 48.dp,
+            brush = SolidColor(Red)
+        )
     }
 }
 
