@@ -28,6 +28,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import turmaA.grupoB.LinkStage.ui.auth.updatepassword.UpdatePasswordScreen
+import turmaA.grupoB.LinkStage.ui.common.PrivacyPolicyScreen
 import turmaA.grupoB.LinkStage.ui.aluno.activity.InternshipResultScreen
 import turmaA.grupoB.LinkStage.ui.aluno.activity.RecentActivityAlunoScreen
 import turmaA.grupoB.LinkStage.ui.aluno.chat.ChatAlunoScreen
@@ -41,7 +42,7 @@ import turmaA.grupoB.LinkStage.ui.aluno.activity.ActivityDetailAlunoScreen
 import turmaA.grupoB.LinkStage.ui.aluno.activity.ReportSuccessScreen
 import turmaA.grupoB.LinkStage.ui.aluno.apply.ApplyScreen
 import turmaA.grupoB.LinkStage.ui.aluno.apply.ApplySuccessScreen
-import turmaA.grupoB.LinkStage.ui.aluno.apply.EditCvScreen
+import turmaA.grupoB.LinkStage.ui.aluno.apply.EditSkillsScreen
 import turmaA.grupoB.LinkStage.ui.aluno.offers.OfferDetailAlunoScreen
 import turmaA.grupoB.LinkStage.ui.aluno.offers.OffersAlunoScreen
 import turmaA.grupoB.LinkStage.ui.aluno.settings.SettingsAlunoScreen
@@ -61,12 +62,13 @@ object AlunoRoutes {
     const val CHAT = "chat/{conversationId}"
     const val OFFER_DETAIL = "offer_detail/{offerId}"
     const val APPLY = "apply/{offerId}"
-    const val EDIT_CV = "edit_cv"
+    const val EDIT_SKILLS = "edit_skills"
     const val APPLY_SUCCESS = "apply_success/{offerId}"
     const val ACTIVITY_DETAIL = "activity_detail/{checkpointId}"
     const val UPDATE_PASSWORD = "update_password"
     const val INTERNSHIP_RESULT = "internship_result/{internshipId}"
     const val REPORT_SUCCESS = "report_success"
+    const val PRIVACY_POLICY = "privacy_policy"
 
     fun chatRoute(conversationId: String) = "chat/$conversationId"
     fun internshipResultRoute(internshipId: String) = "internship_result/$internshipId"
@@ -174,7 +176,7 @@ fun AlunoMainScreen(onLogout: () -> Unit = {}) {
                     offerId = offerId,
                     viewModel = applyViewModel,
                     onBack = { navController.popBackStack() },
-                    onNavigateToEditCv = { navController.navigate(AlunoRoutes.EDIT_CV) },
+                    onNavigateToEditSkills = { navController.navigate(AlunoRoutes.EDIT_SKILLS) },
                     onSubmitSuccess = {
                         navController.navigate(AlunoRoutes.applySuccessRoute(offerId)) {
                             popUpTo(AlunoRoutes.applyRoute(offerId)) { inclusive = true }
@@ -182,12 +184,12 @@ fun AlunoMainScreen(onLogout: () -> Unit = {}) {
                     },
                 )
             }
-            composable(AlunoRoutes.EDIT_CV) {
+            composable(AlunoRoutes.EDIT_SKILLS) {
                 val applyEntry = remember(it) {
                     navController.getBackStackEntry(AlunoRoutes.APPLY)
                 }
                 val applyViewModel: ApplyViewModel = viewModel(applyEntry)
-                EditCvScreen(
+                EditSkillsScreen(
                     viewModel = applyViewModel,
                     onBack = { navController.popBackStack() },
                 )
@@ -252,7 +254,15 @@ fun AlunoMainScreen(onLogout: () -> Unit = {}) {
                     onLogout = onLogout,
                     onNotificationsClick = {
                         navController.navigate(AlunoRoutes.NOTIFICATIONS)
+                    },
+                    onPrivacyPolicyClick = {
+                        navController.navigate(AlunoRoutes.PRIVACY_POLICY)
                     }
+                )
+            }
+            composable(AlunoRoutes.PRIVACY_POLICY) {
+                PrivacyPolicyScreen(
+                    onBack = { navController.popBackStack() }
                 )
             }
             composable(AlunoRoutes.NOTIFICATIONS) {

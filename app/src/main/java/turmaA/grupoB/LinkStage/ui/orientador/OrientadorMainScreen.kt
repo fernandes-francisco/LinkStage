@@ -29,6 +29,7 @@ import androidx.navigation.navArgument
 import turmaA.grupoB.LinkStage.ui.aluno.chat.ChatScreen
 import turmaA.grupoB.LinkStage.ui.aluno.chat.Conversation
 import turmaA.grupoB.LinkStage.ui.aluno.chat.sampleContacts
+import turmaA.grupoB.LinkStage.ui.common.PrivacyPolicyScreen
 import turmaA.grupoB.LinkStage.ui.orientador.students.MentorCheckpointDetailScreen
 import turmaA.grupoB.LinkStage.ui.orientador.students.MentorStudentDetailScreen
 import turmaA.grupoB.LinkStage.ui.aluno.chat.sampleConversations
@@ -53,6 +54,7 @@ object OrientadorRoutes {
     const val MENTOR_STUDENT_DETAIL = "mentor_student/{studentId}"
     const val MENTOR_CHECKPOINT_DETAIL = "mentor_checkpoint/{checkpointId}"
     const val MENTOR_INTERNSHIP_DETAIL = "mentor_internship/{internshipId}"
+    const val PRIVACY_POLICY = "orientador_privacy_policy"
 
     fun chatRoute(conversationId: String) = "orientador_chat/$conversationId"
     fun mentorStudentDetail(studentId: String) = "mentor_student/$studentId"
@@ -145,7 +147,15 @@ fun OrientadorMainScreen(onLogout: () -> Unit = {}) {
                     onLogout = onLogout,
                     onNotificationsClick = {
                         navController.navigate(OrientadorRoutes.NOTIFICATIONS)
+                    },
+                    onPrivacyPolicyClick = {
+                        navController.navigate(OrientadorRoutes.PRIVACY_POLICY)
                     }
+                )
+            }
+            composable(OrientadorRoutes.PRIVACY_POLICY) {
+                PrivacyPolicyScreen(
+                    onBack = { navController.popBackStack() }
                 )
             }
             composable(OrientadorRoutes.NOTIFICATIONS) {
@@ -158,10 +168,10 @@ fun OrientadorMainScreen(onLogout: () -> Unit = {}) {
                 arguments = listOf(navArgument("conversationId") { type = NavType.StringType }),
             ) { backStackEntry ->
                 val conversationId = backStackEntry.arguments?.getString("conversationId") ?: return@composable
-                
+
                 // Primeiro procura nas conversas existentes
                 val existingConversation = sampleConversations.find { it.id == conversationId }
-                
+
                 // Se não existir, procura nos contactos para criar uma nova conversa
                 val conversation = existingConversation ?: sampleContacts.find { it.id == conversationId }?.let { contact ->
                     Conversation(

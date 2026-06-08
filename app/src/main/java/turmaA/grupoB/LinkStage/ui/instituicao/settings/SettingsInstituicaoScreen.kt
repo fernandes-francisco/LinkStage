@@ -45,7 +45,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -69,13 +68,13 @@ import turmaA.grupoB.LinkStage.viewmodel.SettingsViewModel
 fun SettingsInstituicaoScreen(
     onLogout: () -> Unit = {},
     onNotificationsClick: () -> Unit = {},
+    onPrivacyPolicyClick: () -> Unit = {},
     settingsViewModel: SettingsViewModel = viewModel(),
 ) {
     val currentLanguage by settingsViewModel.currentLanguage.collectAsState()
 
     var showLogoutDialog by remember { mutableStateOf(false) }
     var showPasswordDialog by remember { mutableStateOf(false) }
-    val uriHandler = LocalUriHandler.current
 
     if (showLogoutDialog) {
         LogoutConfirmDialog(
@@ -157,9 +156,7 @@ fun SettingsInstituicaoScreen(
 
                 SettingsRowItem(
                     label = "Políticas de Privacidade",
-                    onClick = {
-                        uriHandler.openUri("https://www.google.com")
-                    },
+                    onClick = onPrivacyPolicyClick,
                 )
             }
 

@@ -63,7 +63,7 @@ val skillCategories = mapOf(
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun EditCvScreen(
+fun EditSkillsScreen(
     viewModel: ApplyViewModel,
     onBack: () -> Unit,
 ) {
@@ -115,7 +115,7 @@ fun EditCvScreen(
     Scaffold(
         topBar = {
             SecondaryTopBar(
-                title = "Editar CV",
+                title = "Editar Skills",
                 onBack = onBack
             )
         },
@@ -277,8 +277,8 @@ fun EditCvScreen(
 
 @Preview(showSystemUi = true)
 @Composable
-private fun EditCvScreenPreview() {
+private fun EditSkillsScreenPreview() {
     MaterialTheme {
-        EditCvScreen(viewModel = ApplyViewModel(), onBack = {})
+        EditSkillsScreen(viewModel = ApplyViewModel(), onBack = {})
     }
 }

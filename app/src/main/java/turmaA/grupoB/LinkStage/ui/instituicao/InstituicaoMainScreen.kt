@@ -26,7 +26,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import turmaA.grupoB.LinkStage.ui.common.PrivacyPolicyScreen
 import turmaA.grupoB.LinkStage.ui.aluno.chat.ChatScreen
+import turmaA.grupoB.LinkStage.ui.aluno.chat.Conversation
+import turmaA.grupoB.LinkStage.ui.aluno.chat.sampleContacts
 import turmaA.grupoB.LinkStage.ui.aluno.chat.sampleConversations
 import turmaA.grupoB.LinkStage.ui.instituicao.activity.ActivityInstituicaoScreen
 import turmaA.grupoB.LinkStage.ui.instituicao.activity.AssignMentorInstituicaoScreen
@@ -61,6 +64,7 @@ object InstituicaoRoutes {
     const val ASSIGN_MENTOR = "assign_mentor/{mentorId}"
     const val MENTOR_ASSIGNED_SUCCESS = "mentor_assigned_success"
     const val INTERNSHIP_DETAIL = "instituicao_internship_detail/{internshipId}"
+    const val PRIVACY_POLICY = "instituicao_privacy_policy"
 
     fun chatRoute(conversationId: String) = "instituicao_chat/$conversationId"
     fun offerFormRoute(offerId: String) = "instituicao_offer_form/$offerId"
@@ -157,7 +161,15 @@ fun InstituicaoMainScreen(onLogout: () -> Unit = {}) {
                     onLogout = onLogout,
                     onNotificationsClick = {
                         navController.navigate(InstituicaoRoutes.NOTIFICATIONS)
+                    },
+                    onPrivacyPolicyClick = {
+                        navController.navigate(InstituicaoRoutes.PRIVACY_POLICY)
                     }
+                )
+            }
+            composable(InstituicaoRoutes.PRIVACY_POLICY) {
+                PrivacyPolicyScreen(
+                    onBack = { navController.popBackStack() }
                 )
             }
             composable(InstituicaoRoutes.NOTIFICATIONS) {
@@ -170,7 +182,22 @@ fun InstituicaoMainScreen(onLogout: () -> Unit = {}) {
                 arguments = listOf(navArgument("conversationId") { type = NavType.StringType }),
             ) { backStackEntry ->
                 val conversationId = backStackEntry.arguments?.getString("conversationId") ?: return@composable
-                val conversation = sampleConversations.find { it.id == conversationId } ?: return@composable
+
+                // Primeiro procura nas conversas existentes
+                val existingConversation = sampleConversations.find { it.id == conversationId }
+
+                // Se não existir, procura nos contactos para criar uma nova conversa
+                val conversation = existingConversation ?: sampleContacts.find { it.id == conversationId }?.let { contact ->
+                    Conversation(
+                        id = contact.id,
+                        name = contact.name,
+                        initials = contact.initials,
+                        lastMessage = "Inicia uma nova conversa.",
+                        time = "Agora",
+                        avatarColorIndex = contact.avatarColorIndex
+                    )
+                } ?: return@composable
+
                 ChatScreen(
                     conversation = conversation,
                     onBack = { navController.popBackStack() },

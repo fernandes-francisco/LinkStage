@@ -94,7 +94,7 @@ fun ApplyScreen(
     offerLogoColor: Color = Color(0xFF212121),
     viewModel: ApplyViewModel,
     onBack: () -> Unit,
-    onNavigateToEditCv: () -> Unit,
+    onNavigateToEditSkills: () -> Unit,
     onSubmitSuccess: () -> Unit,
 ) {
     val currentStep = viewModel.currentStep
@@ -178,7 +178,7 @@ fun ApplyScreen(
                 )
                 1 -> StepEssentialInfo(
                     viewModel = viewModel,
-                    onEditCv = onNavigateToEditCv,
+                    onEditSkills = onNavigateToEditSkills,
                 )
                 2 -> StepReview(viewModel = viewModel)
             }
@@ -446,7 +446,7 @@ private fun ApplyTextField(
 @Composable
 private fun StepEssentialInfo(
     viewModel: ApplyViewModel,
-    onEditCv: () -> Unit,
+    onEditSkills: () -> Unit,
 ) {
     val filePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent(),
@@ -488,22 +488,22 @@ private fun StepEssentialInfo(
             )
         }
 
-        // Edit CV
+        // Edit Skills
         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            SectionLabel("Editar CV")
+            SectionLabel("Editar Skills")
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .border(1.dp, BorderGrey, RoundedCornerShape(10.dp))
                     .clip(RoundedCornerShape(10.dp))
                     .background(Color.White)
-                    .clickable { onEditCv() }
+                    .clickable { onEditSkills() }
                     .padding(16.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Column {
-                    Text("Editar CV", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = DarkBlue)
+                    Text("Editar Skills", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = DarkBlue)
                     Text(
                         "${viewModel.userSkills.size} skills adicionadas",
                         fontSize = 12.sp,
@@ -661,7 +661,7 @@ private fun ApplyScreenPreview() {
             offerId = "2",
             viewModel = ApplyViewModel(),
             onBack = {},
-            onNavigateToEditCv = {},
+            onNavigateToEditSkills = {},
             onSubmitSuccess = {},
         )
     }

@@ -127,7 +127,7 @@ fun RegisterScreen(
             Spacer(modifier = Modifier.height(12.dp))
 
             ProfileCard(
-                title = "Empresa",
+                title = "Instituição",
                 description = listOf(
                     "Publicar vagas",
                     "Gestão de candidatos",
@@ -136,8 +136,8 @@ fun RegisterScreen(
                 ),
                 icon = Icons.Outlined.BusinessCenter,
                 color = CompanyGreen,
-                isSelected = selectedProfile == "Empresa",
-                onClick = { selectedProfile = "Empresa" }
+                isSelected = selectedProfile == "Instituição",
+                onClick = { selectedProfile = "Instituição" }
             )
 
             Spacer(modifier = Modifier.weight(1f))

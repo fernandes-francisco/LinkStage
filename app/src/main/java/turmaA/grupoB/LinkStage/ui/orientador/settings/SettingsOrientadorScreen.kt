@@ -40,7 +40,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -64,6 +63,7 @@ import turmaA.grupoB.LinkStage.viewmodel.SettingsViewModel
 fun SettingsOrientadorScreen(
     onLogout: () -> Unit = {},
     onNotificationsClick: () -> Unit = {},
+    onPrivacyPolicyClick: () -> Unit = {},
     settingsViewModel: SettingsViewModel = viewModel(),
     modifier: Modifier = Modifier,
 ) {
@@ -72,7 +72,6 @@ fun SettingsOrientadorScreen(
 
     var showLogoutDialog by remember { mutableStateOf(false) }
     var showPasswordDialog by remember { mutableStateOf(false) }
-    val uriHandler = LocalUriHandler.current
 
     if (showLogoutDialog) {
         LogoutConfirmDialog(
@@ -155,9 +154,7 @@ fun SettingsOrientadorScreen(
 
                 SettingsRowItem(
                     label = "Políticas de Privacidade",
-                    onClick = {
-                        uriHandler.openUri("https://www.google.com") // Substituir pelo link real
-                    },
+                    onClick = onPrivacyPolicyClick,
                 )
             }
 
