@@ -59,7 +59,12 @@ import turmaA.grupoB.LinkStage.ui.aluno.chat.avatarColors
 import turmaA.grupoB.LinkStage.ui.aluno.chat.sampleConversations
 import turmaA.grupoB.LinkStage.ui.aluno.offers.OfferItem
 import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
+import turmaA.grupoB.LinkStage.ui.common.EvaluationNotificationModal
+import turmaA.grupoB.LinkStage.ui.common.EvaluationPendingCard
 import turmaA.grupoB.LinkStage.ui.instituicao.InstituicaoRoutes
+import turmaA.grupoB.LinkStage.ui.orientador.EvaluationState
+import turmaA.grupoB.LinkStage.ui.orientador.InternshipEvaluation
+import turmaA.grupoB.LinkStage.ui.orientador.InternshipType
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
@@ -88,6 +93,35 @@ fun HomeInstituicaoScreen(
     }
     val noMentorCount = internships.count {
         it.status == turmaA.grupoB.LinkStage.ui.instituicao.InternshipStatus.NO_MENTOR || !it.hasMentor
+    }
+
+    val evaluation: InternshipEvaluation? = remember {
+        InternshipEvaluation(
+            internshipId = "int3",
+            internshipType = InternshipType.SCHOOL_ONLY,
+            state = EvaluationState.PENDING,
+            institutionName = "ESTG-IPVC",
+            schoolMentorName = "Prof. Tiago Alex.",
+            hasSeenNotification = false,
+        )
+    }
+    var showEvaluationModal by remember {
+        mutableStateOf(evaluation?.state == EvaluationState.PENDING && evaluation.hasSeenNotification == false)
+    }
+
+    if (showEvaluationModal && evaluation?.state == EvaluationState.PENDING) {
+        EvaluationNotificationModal(
+            title = "Estágio Concluído",
+            message = "O estágio foi concluído. A avaliação institucional encontra-se pendente. " +
+                "Por favor, submeta a sua avaliação para que o processo possa avançar.",
+            actionLabel = "Submeter avaliação",
+            onAction = {
+                navController.navigate(
+                    InstituicaoRoutes.internshipDetailRoute(evaluation.internshipId)
+                )
+            },
+            onDismiss = { showEvaluationModal = false },
+        )
     }
 
     Scaffold(
@@ -124,7 +158,20 @@ fun HomeInstituicaoScreen(
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState()),
         ) {
-            Spacer(modifier = Modifier.height(12.dp))
+            if (evaluation?.state == EvaluationState.PENDING) {
+                EvaluationPendingCard(
+                    title = "Avaliação pendente",
+                    message = "O estágio foi concluído e aguarda a avaliação institucional.",
+                    actionLabel = "Submeter avaliação",
+                    isDanger = false,
+                    onClick = {
+                        navController.navigate(
+                            InstituicaoRoutes.internshipDetailRoute(evaluation.internshipId)
+                        )
+                    },
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+            }
 
             // Section 1 — Resumo (stat cards 2x2)
             SectionTitle("Resumo")

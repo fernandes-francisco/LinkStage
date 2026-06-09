@@ -1,5 +1,6 @@
 package turmaA.grupoB.LinkStage.ui.instituicao.activity
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -14,15 +15,24 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.outlined.ChevronRight
+import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.FilterList
+import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.automirrored.outlined.MenuBook
 import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenuItem
@@ -31,9 +41,11 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
@@ -53,12 +65,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import turmaA.grupoB.LinkStage.ui.aluno.chat.avatarColors
 import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
+import turmaA.grupoB.LinkStage.ui.common.ConfirmationDialog
 import turmaA.grupoB.LinkStage.ui.common.LinkStageDialog
 import turmaA.grupoB.LinkStage.ui.common.LinkStageTabRow
+import turmaA.grupoB.LinkStage.ui.common.PasswordField
 import turmaA.grupoB.LinkStage.ui.common.SectionLabel
 import turmaA.grupoB.LinkStage.ui.instituicao.InstituicaoRoutes
 import turmaA.grupoB.LinkStage.ui.instituicao.InstitutionInternship
@@ -76,6 +92,7 @@ import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
+import turmaA.grupoB.LinkStage.ui.theme.Red
 
 @Composable
 fun ActivityInstituicaoScreen(
@@ -85,6 +102,7 @@ fun ActivityInstituicaoScreen(
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
     var searchQuery by rememberSaveable { mutableStateOf("") }
     var showFilterDialog by remember { mutableStateOf(false) }
+    var showCreateMentorDialog by remember { mutableStateOf(false) }
 
     // Internship filters
     var filterInternshipStatus by rememberSaveable { mutableStateOf("") }
@@ -93,6 +111,13 @@ fun ActivityInstituicaoScreen(
     // Mentor filters
     var filterMentorStatus by rememberSaveable { mutableStateOf("") }
     var filterMentorInstitution by rememberSaveable { mutableStateOf("") }
+
+    if (showCreateMentorDialog) {
+        CreateMentorDialog(
+            onSave = { showCreateMentorDialog = false },
+            onDismiss = { showCreateMentorDialog = false },
+        )
+    }
 
     if (showFilterDialog) {
         when (selectedTab) {
@@ -123,7 +148,11 @@ fun ActivityInstituicaoScreen(
         modifier = modifier,
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { },
+                onClick = {
+                    if (selectedTab == 1) {
+                        showCreateMentorDialog = true
+                    }
+                },
                 containerColor = LightBlue,
                 contentColor = Color.White,
                 shape = RoundedCornerShape(16.dp),
@@ -651,6 +680,258 @@ private fun StatusBadge(label: String, color: Color) {
         )
     }
 }
+
+// region Create Mentor Dialog
+
+@Composable
+private fun CreateMentorDialog(
+    onSave: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var name by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
+    var department by remember { mutableStateOf("") }
+    var initialPassword by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
+
+    var nameError by remember { mutableStateOf<String?>(null) }
+    var emailError by remember { mutableStateOf<String?>(null) }
+    var initialPasswordError by remember { mutableStateOf<String?>(null) }
+    var confirmPasswordError by remember { mutableStateOf<String?>(null) }
+
+    var showConfirmDialog by remember { mutableStateOf(false) }
+
+    if (showConfirmDialog) {
+        ConfirmationDialog(
+            title = "Criar conta de orientador?",
+            body = "Será criada uma conta para $name com acesso à plataforma. " +
+                "O orientador será obrigado a alterar a password no primeiro acesso.",
+            confirmLabel = "Criar",
+            isDanger = false,
+            onConfirm = {
+                showConfirmDialog = false
+                onSave()
+            },
+            onDismiss = { showConfirmDialog = false },
+        )
+    }
+
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false),
+    ) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth(0.95f)
+                .wrapContentHeight(),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White),
+            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+        ) {
+            Column(
+                modifier = Modifier
+                    .verticalScroll(rememberScrollState())
+                    .padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp),
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = "Adicionar Orientador",
+                        color = DarkBlue,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 17.sp,
+                    )
+                    IconButton(onClick = onDismiss) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = "Fechar",
+                            tint = DarkBlue,
+                        )
+                    }
+                }
+
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    SectionLabel("Nome completo")
+                    OutlinedTextField(
+                        value = name,
+                        onValueChange = {
+                            name = it
+                            nameError = null
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(10.dp),
+                        singleLine = true,
+                        placeholder = { Text("Ex: Prof. João Silva", color = DarkGrey, fontSize = 14.sp) },
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = if (nameError != null) Red else LightBlue,
+                            unfocusedBorderColor = if (nameError != null) Red else BorderGrey,
+                            focusedContainerColor = Color.White,
+                            unfocusedContainerColor = Color.White,
+                        ),
+                        isError = nameError != null,
+                    )
+                    if (nameError != null) {
+                        Text(nameError!!, color = Red, fontSize = 12.sp)
+                    }
+                }
+
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    SectionLabel("Email institucional")
+                    OutlinedTextField(
+                        value = email,
+                        onValueChange = {
+                            email = it
+                            emailError = null
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(10.dp),
+                        singleLine = true,
+                        placeholder = { Text("Ex: joao.silva@ipvc.pt", color = DarkGrey, fontSize = 14.sp) },
+                        leadingIcon = {
+                            Icon(Icons.Outlined.Email, contentDescription = null, tint = DarkGrey)
+                        },
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = if (emailError != null) Red else LightBlue,
+                            unfocusedBorderColor = if (emailError != null) Red else BorderGrey,
+                            focusedContainerColor = Color.White,
+                            unfocusedContainerColor = Color.White,
+                        ),
+                        isError = emailError != null,
+                    )
+                    if (emailError != null) {
+                        Text(emailError!!, color = Red, fontSize = 12.sp)
+                    }
+                }
+
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    SectionLabel("Departamento / Área")
+                    OutlinedTextField(
+                        value = department,
+                        onValueChange = { department = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(10.dp),
+                        singleLine = true,
+                        placeholder = { Text("Ex: Informática", color = DarkGrey, fontSize = 14.sp) },
+                        leadingIcon = {
+                            Icon(Icons.AutoMirrored.Outlined.MenuBook, contentDescription = null, tint = DarkGrey)
+                        },
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = LightBlue,
+                            unfocusedBorderColor = BorderGrey,
+                            focusedContainerColor = Color.White,
+                            unfocusedContainerColor = Color.White,
+                        ),
+                    )
+                }
+
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    SectionLabel("Password inicial")
+                    PasswordField(
+                        label = "",
+                        value = initialPassword,
+                        onValueChange = {
+                            initialPassword = it
+                            initialPasswordError = null
+                        },
+                        error = initialPasswordError,
+                    )
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(8.dp),
+                        colors = CardDefaults.cardColors(containerColor = LightBlue.copy(alpha = 0.08f)),
+                        border = BorderStroke(1.dp, LightBlue.copy(alpha = 0.3f)),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(10.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Info,
+                                contentDescription = null,
+                                tint = LightBlue,
+                                modifier = Modifier.size(16.dp),
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "O orientador será obrigado a alterar esta password no primeiro acesso.",
+                                color = DarkGrey,
+                                fontSize = 11.sp,
+                                lineHeight = 16.sp,
+                            )
+                        }
+                    }
+                }
+
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    SectionLabel("Confirmar password")
+                    PasswordField(
+                        label = "",
+                        value = confirmPassword,
+                        onValueChange = {
+                            confirmPassword = it
+                            confirmPasswordError = null
+                        },
+                        error = confirmPasswordError,
+                    )
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    OutlinedButton(
+                        onClick = onDismiss,
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(48.dp),
+                        shape = RoundedCornerShape(10.dp),
+                        border = BorderStroke(1.dp, DarkBlue),
+                    ) {
+                        Text("Cancelar", color = DarkBlue, fontWeight = FontWeight.SemiBold)
+                    }
+                    Button(
+                        onClick = {
+                            var isValid = true
+                            if (name.isBlank()) {
+                                nameError = "Campo obrigatório."
+                                isValid = false
+                            }
+                            if (!email.contains("@")) {
+                                emailError = "Email inválido."
+                                isValid = false
+                            }
+                            if (initialPassword.length < 8) {
+                                initialPasswordError = "Mínimo 8 caracteres."
+                                isValid = false
+                            }
+                            if (initialPassword != confirmPassword) {
+                                confirmPasswordError = "As passwords não coincidem."
+                                isValid = false
+                            }
+                            if (isValid) {
+                                showConfirmDialog = true
+                            }
+                        },
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(48.dp),
+                        shape = RoundedCornerShape(10.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = DarkBlue),
+                    ) {
+                        Text("Criar conta", color = Color.White, fontWeight = FontWeight.SemiBold)
+                    }
+                }
+            }
+        }
+    }
+}
+
+// endregion
 
 @Preview(showSystemUi = true)
 @Composable

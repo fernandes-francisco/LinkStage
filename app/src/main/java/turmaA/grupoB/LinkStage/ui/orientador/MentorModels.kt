@@ -28,17 +28,56 @@ data class MentorInternship(
     val isBusinessInternship: Boolean = true,
 )
 
+enum class InternshipType { COMPANY_SCHOOL, SCHOOL_ONLY }
+
+enum class EvaluationState {
+    PENDING,
+    PARTIAL,
+    READY_FOR_FINAL,
+    COMPLETED,
+}
+
 data class InternshipEvaluation(
     val internshipId: String,
-    val schoolMentorName: String,
-    val schoolMentorObservation: String = "",
-    val schoolMentorGrade: String = "",
+    val internshipType: InternshipType = InternshipType.COMPANY_SCHOOL,
+    val state: EvaluationState = EvaluationState.PENDING,
+
+    val companyResponsibleGrade: Float? = null,
+    val companyResponsibleObservation: String? = null,
+    val companyResponsibleName: String = "",
+
+    val companyMentorGrade: Float? = null,
+    val companyMentorObservation: String? = null,
     val companyMentorName: String = "",
-    val companyMentorObservation: String = "",
-    val companyMentorGrade: String = "",
-    val finalGrade: Float? = null,
-    val isCompleted: Boolean = false,
+
+    val institutionGrade: Float? = null,
+    val institutionObservation: String? = null,
+    val institutionName: String = "",
+
+    val schoolMentorGrade: Float? = null,
+    val schoolMentorObservation: String? = null,
+    val schoolMentorName: String = "",
+
+    val hasSeenNotification: Boolean = false,
 )
+
+fun calculateEvaluationState(eval: InternshipEvaluation): EvaluationState {
+    return when (eval.internshipType) {
+        InternshipType.COMPANY_SCHOOL -> when {
+            eval.schoolMentorGrade != null -> EvaluationState.COMPLETED
+            eval.companyResponsibleGrade != null && eval.companyMentorGrade != null
+                -> EvaluationState.READY_FOR_FINAL
+            eval.companyResponsibleGrade != null || eval.companyMentorGrade != null
+                -> EvaluationState.PARTIAL
+            else -> EvaluationState.PENDING
+        }
+        InternshipType.SCHOOL_ONLY -> when {
+            eval.schoolMentorGrade != null -> EvaluationState.COMPLETED
+            eval.institutionGrade != null -> EvaluationState.READY_FOR_FINAL
+            else -> EvaluationState.PENDING
+        }
+    }
+}
 
 // region Sample data
 
@@ -145,9 +184,16 @@ val sampleStudentInternship = ActiveInternship(
 
 val sampleEvaluation = InternshipEvaluation(
     internshipId = "int1",
+    internshipType = InternshipType.COMPANY_SCHOOL,
+    state = EvaluationState.READY_FOR_FINAL,
+    companyResponsibleGrade = 16.5f,
+    companyResponsibleObservation = "Excelente desempenho técnico.",
+    companyResponsibleName = "Ana Costa",
+    companyMentorGrade = 15.0f,
+    companyMentorObservation = "Bom trabalho em equipa.",
+    companyMentorName = "Prof. Tiago Alexandre",
     schoolMentorName = "Prof. Carvalho",
-    companyMentorName = "Ana Costa",
-    isCompleted = false,
+    hasSeenNotification = false,
 )
 
 // endregion

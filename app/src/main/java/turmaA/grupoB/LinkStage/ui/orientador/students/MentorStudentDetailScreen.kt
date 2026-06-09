@@ -81,7 +81,13 @@ import turmaA.grupoB.LinkStage.ui.common.LinkStageButton
 import turmaA.grupoB.LinkStage.ui.common.LinkStageTabRow
 import turmaA.grupoB.LinkStage.ui.common.SecondaryTopBar
 import turmaA.grupoB.LinkStage.ui.common.SectionLabel
+import turmaA.grupoB.LinkStage.ui.common.ConfirmationDialog
+import turmaA.grupoB.LinkStage.ui.common.EvaluationReadOnlyCard
+import turmaA.grupoB.LinkStage.ui.common.formatGrade
+import turmaA.grupoB.LinkStage.ui.common.validateGrade
+import turmaA.grupoB.LinkStage.ui.orientador.EvaluationState
 import turmaA.grupoB.LinkStage.ui.orientador.InternshipEvaluation
+import turmaA.grupoB.LinkStage.ui.orientador.InternshipType
 import turmaA.grupoB.LinkStage.ui.orientador.OrientadorRoutes
 import turmaA.grupoB.LinkStage.ui.orientador.formatCheckpointDate
 import turmaA.grupoB.LinkStage.ui.orientador.sampleEvaluation
@@ -93,6 +99,7 @@ import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.Fade1
 import turmaA.grupoB.LinkStage.ui.theme.Fade2
+import turmaA.grupoB.LinkStage.ui.theme.Green
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.ui.theme.MediumBlue
 import turmaA.grupoB.LinkStage.ui.theme.Red
@@ -364,10 +371,11 @@ private fun StudentEvaluateTab(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        if (!evaluation.isCompleted) {
-            NotCompletedCard()
-        } else {
-            CompletedEvaluationContent(student, evaluation)
+        when (evaluation.state) {
+            EvaluationState.PENDING -> PendingStateCard()
+            EvaluationState.PARTIAL -> PartialStateContent(evaluation)
+            EvaluationState.READY_FOR_FINAL -> ReadyForFinalContent(student, evaluation)
+            EvaluationState.COMPLETED -> CompletedStateContent(evaluation)
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -375,13 +383,13 @@ private fun StudentEvaluateTab(
 }
 
 @Composable
-private fun NotCompletedCard() {
+private fun PendingStateCard() {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = BackgroundLight),
+        colors = CardDefaults.cardColors(containerColor = LightBlue.copy(alpha = 0.08f)),
     ) {
         Column(
             modifier = Modifier.padding(24.dp),
@@ -390,7 +398,7 @@ private fun NotCompletedCard() {
             Icon(
                 Icons.Outlined.Info,
                 contentDescription = null,
-                tint = DarkGrey,
+                tint = LightBlue,
                 modifier = Modifier.size(32.dp),
             )
             Spacer(modifier = Modifier.height(12.dp))
@@ -403,7 +411,7 @@ private fun NotCompletedCard() {
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "O aluno ainda não concluiu o estágio. A avaliação ficará disponível quando o estágio terminar.",
+                text = "O estágio ainda não foi concluído. A avaliação ficará disponível quando o estágio terminar.",
                 color = DarkGrey,
                 fontSize = 13.sp,
                 textAlign = TextAlign.Center,
@@ -414,117 +422,145 @@ private fun NotCompletedCard() {
 }
 
 @Composable
-private fun CompletedEvaluationContent(
-    student: AdminStudent,
-    evaluation: InternshipEvaluation,
-) {
-    val internship = sampleStudentInternship
-    var observation by remember { mutableStateOf(evaluation.schoolMentorObservation) }
-    var gradeText by remember { mutableStateOf(evaluation.schoolMentorGrade) }
-    var gradeError by remember { mutableStateOf(false) }
-    var showConfirmDialog by remember { mutableStateOf(false) }
-
-    if (showConfirmDialog) {
-        AlertDialog(
-            onDismissRequest = { showConfirmDialog = false },
-            title = {
-                Text("Confirmar Avaliação", fontWeight = FontWeight.Bold, color = DarkBlue)
-            },
-            text = {
-                Text(
-                    "Tens a certeza que queres submeter a avaliação de ${student.name}?",
-                    color = DarkGrey,
-                )
-            },
-            confirmButton = {
-                Button(
-                    onClick = { showConfirmDialog = false },
-                    colors = ButtonDefaults.buttonColors(containerColor = DarkBlue),
-                ) {
-                    Text("Submeter", color = Color.White)
-                }
-            },
-            dismissButton = {
-                OutlinedButton(onClick = { showConfirmDialog = false }) {
-                    Text("Cancelar", color = DarkBlue)
-                }
-            },
-            containerColor = Color.White,
-            shape = RoundedCornerShape(16.dp),
-        )
-    }
-
-    // Submitted files
-    Text(
-        text = "Anexos entregues",
-        color = DarkBlue,
-        fontWeight = FontWeight.Bold,
-        fontSize = 16.sp,
-        modifier = Modifier.padding(horizontal = 16.dp),
-    )
-    Spacer(modifier = Modifier.height(8.dp))
-
-    internship.activityLogs.filter { it.hasSubmitted }.forEach { activityLog ->
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 4.dp),
-            shape = RoundedCornerShape(10.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
-            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+private fun PartialStateContent(evaluation: InternshipEvaluation) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFF5C518).copy(alpha = 0.08f)),
+        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFF5C518).copy(alpha = 0.5f)),
+    ) {
+        Row(
+            modifier = Modifier.padding(14.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
+            Icon(
+                Icons.Outlined.Info,
+                contentDescription = null,
+                tint = Color(0xFFF5C518),
+                modifier = Modifier.size(24.dp),
+            )
+            Spacer(modifier = Modifier.width(10.dp))
             Column {
-                Row(
-                    modifier = Modifier.padding(12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Icon(
-                        Icons.Default.Check,
-                        contentDescription = null,
-                        tint = LightBlue,
-                        modifier = Modifier.size(20.dp),
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = activityLog.title,
-                        color = DarkBlue,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 14.sp,
-                        modifier = Modifier.weight(1f),
-                    )
-                    Text(
-                        text = formatCheckpointDate(activityLog.date),
-                        color = DarkGrey,
-                        fontSize = 12.sp,
-                    )
-                }
-                activityLog.submittedFiles.forEach { file ->
-                    ExpandableFileRow(file = file)
-                }
+                Text(
+                    text = "Avaliação em progresso",
+                    color = DarkBlue,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp,
+                )
+                Text(
+                    text = "Aguarda-se a submissão de todas as avaliações da empresa.",
+                    color = DarkGrey,
+                    fontSize = 12.sp,
+                    lineHeight = 18.sp,
+                )
             }
         }
     }
 
-    Spacer(modifier = Modifier.height(20.dp))
-
-    // Evaluation form
-    Text(
-        text = "Avaliação",
-        color = DarkBlue,
-        fontWeight = FontWeight.Bold,
-        fontSize = 16.sp,
-        modifier = Modifier.padding(horizontal = 16.dp),
-    )
     Spacer(modifier = Modifier.height(12.dp))
 
-    Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-        SectionLabel("Breve observação")
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = "Faça uma breve observação sobre o desempenho do aluno.",
-            color = DarkGrey,
-            fontSize = 12.sp,
+    if (evaluation.companyResponsibleGrade != null) {
+        EvaluationReadOnlyCard(
+            role = "Responsável da Empresa",
+            name = evaluation.companyResponsibleName,
+            grade = evaluation.companyResponsibleGrade,
+            observation = evaluation.companyResponsibleObservation,
         )
+    }
+    if (evaluation.companyMentorGrade != null) {
+        EvaluationReadOnlyCard(
+            role = "Orientador de Empresa",
+            name = evaluation.companyMentorName,
+            grade = evaluation.companyMentorGrade,
+            observation = evaluation.companyMentorObservation,
+        )
+    }
+}
+
+@Composable
+private fun ReadyForFinalContent(
+    student: AdminStudent,
+    evaluation: InternshipEvaluation,
+) {
+    var observation by remember { mutableStateOf("") }
+    var gradeText by remember { mutableStateOf("") }
+    var gradeError by remember { mutableStateOf(false) }
+    var showConfirmDialog by remember { mutableStateOf(false) }
+
+    val parsedGrade = validateGrade(gradeText)
+
+    if (showConfirmDialog && parsedGrade != null) {
+        ConfirmationDialog(
+            title = "Atribuir nota final?",
+            body = "Ao atribuir a nota final de ${formatGrade(parsedGrade)} valores ao aluno, esta ação não poderá ser revertida. Tem a certeza que pretende continuar?",
+            confirmLabel = "Atribuir",
+            isDanger = false,
+            onConfirm = { showConfirmDialog = false },
+            onDismiss = { showConfirmDialog = false },
+        )
+    }
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = Green.copy(alpha = 0.08f)),
+        border = androidx.compose.foundation.BorderStroke(1.dp, Green.copy(alpha = 0.5f)),
+    ) {
+        Row(
+            modifier = Modifier.padding(14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                Icons.Default.Check,
+                contentDescription = null,
+                tint = Green,
+                modifier = Modifier.size(24.dp),
+            )
+            Spacer(modifier = Modifier.width(10.dp))
+            Text(
+                text = "Todas as avaliações foram submetidas. Pode agora atribuir a nota final.",
+                color = DarkBlue,
+                fontSize = 13.sp,
+                lineHeight = 19.sp,
+            )
+        }
+    }
+
+    Spacer(modifier = Modifier.height(12.dp))
+
+    when (evaluation.internshipType) {
+        InternshipType.COMPANY_SCHOOL -> {
+            EvaluationReadOnlyCard(
+                role = "Responsável da Empresa",
+                name = evaluation.companyResponsibleName,
+                grade = evaluation.companyResponsibleGrade!!,
+                observation = evaluation.companyResponsibleObservation,
+            )
+            EvaluationReadOnlyCard(
+                role = "Orientador de Empresa",
+                name = evaluation.companyMentorName,
+                grade = evaluation.companyMentorGrade!!,
+                observation = evaluation.companyMentorObservation,
+            )
+        }
+        InternshipType.SCHOOL_ONLY -> {
+            EvaluationReadOnlyCard(
+                role = "Instituição Escolar",
+                name = evaluation.institutionName,
+                grade = evaluation.institutionGrade!!,
+                observation = evaluation.institutionObservation,
+            )
+        }
+    }
+
+    Spacer(modifier = Modifier.height(16.dp))
+
+    Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+        SectionLabel("Observação final")
         Spacer(modifier = Modifier.height(8.dp))
         OutlinedTextField(
             value = observation,
@@ -546,7 +582,7 @@ private fun CompletedEvaluationContent(
     Spacer(modifier = Modifier.height(16.dp))
 
     Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-        SectionLabel("Avaliação do Aluno")
+        SectionLabel("Nota final (0-20)")
         Spacer(modifier = Modifier.height(8.dp))
         OutlinedTextField(
             value = gradeText,
@@ -555,7 +591,7 @@ private fun CompletedEvaluationContent(
                 gradeError = false
             },
             modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("Insira a nota (0-20)", color = DarkGrey) },
+            placeholder = { Text("Ex: 14,5", color = DarkGrey) },
             shape = RoundedCornerShape(10.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = if (gradeError) Red else LightBlue,
@@ -569,44 +605,102 @@ private fun CompletedEvaluationContent(
         )
         if (gradeError) {
             Spacer(modifier = Modifier.height(4.dp))
-            Text("Introduz um valor entre 0 e 20", color = Red, fontSize = 12.sp)
+            Text(
+                text = "Introduza um valor entre 0,0 e 20,0 com no máximo uma casa decimal.",
+                color = Red,
+                fontSize = 12.sp,
+            )
         }
     }
 
     Spacer(modifier = Modifier.height(20.dp))
 
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-            .height(48.dp)
-            .clip(RoundedCornerShape(12.dp))
-            .background(Fade2)
-            .clickable {
-                val grade = gradeText.toFloatOrNull()
-                if (grade == null || grade < 0f || grade > 20f) {
-                    gradeError = true
-                } else {
-                    showConfirmDialog = true
-                }
-            },
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            text = "Continuar",
-            color = Color.White,
-            fontWeight = FontWeight.SemiBold,
-        )
-    }
+    LinkStageButton(
+        text = "Atribuir nota final",
+        onClick = {
+            if (validateGrade(gradeText) == null) {
+                gradeError = true
+            } else {
+                showConfirmDialog = true
+            }
+        },
+        modifier = Modifier.padding(horizontal = 16.dp),
+        height = 48.dp,
+        brush = Fade1,
+    )
 
     Spacer(modifier = Modifier.height(8.dp))
+}
 
-    TextButton(
-        onClick = { },
-        modifier = Modifier.fillMaxWidth(),
+@Composable
+private fun CompletedStateContent(evaluation: InternshipEvaluation) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = Green.copy(alpha = 0.08f)),
+        border = androidx.compose.foundation.BorderStroke(1.dp, Green.copy(alpha = 0.5f)),
     ) {
-        Text("Voltar", color = DarkGrey)
+        Row(
+            modifier = Modifier.padding(14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                Icons.Default.Check,
+                contentDescription = null,
+                tint = Green,
+                modifier = Modifier.size(24.dp),
+            )
+            Spacer(modifier = Modifier.width(10.dp))
+            Text(
+                text = "Avaliação concluída — A nota final de ${formatGrade(evaluation.schoolMentorGrade!!)} valores foi atribuída com sucesso.",
+                color = DarkBlue,
+                fontSize = 13.sp,
+                lineHeight = 19.sp,
+            )
+        }
     }
+
+    Spacer(modifier = Modifier.height(12.dp))
+
+    when (evaluation.internshipType) {
+        InternshipType.COMPANY_SCHOOL -> {
+            if (evaluation.companyResponsibleGrade != null) {
+                EvaluationReadOnlyCard(
+                    role = "Responsável da Empresa",
+                    name = evaluation.companyResponsibleName,
+                    grade = evaluation.companyResponsibleGrade,
+                    observation = evaluation.companyResponsibleObservation,
+                )
+            }
+            if (evaluation.companyMentorGrade != null) {
+                EvaluationReadOnlyCard(
+                    role = "Orientador de Empresa",
+                    name = evaluation.companyMentorName,
+                    grade = evaluation.companyMentorGrade,
+                    observation = evaluation.companyMentorObservation,
+                )
+            }
+        }
+        InternshipType.SCHOOL_ONLY -> {
+            if (evaluation.institutionGrade != null) {
+                EvaluationReadOnlyCard(
+                    role = "Instituição Escolar",
+                    name = evaluation.institutionName,
+                    grade = evaluation.institutionGrade,
+                    observation = evaluation.institutionObservation,
+                )
+            }
+        }
+    }
+
+    EvaluationReadOnlyCard(
+        role = "Orientador Escolar (Nota Final)",
+        name = evaluation.schoolMentorName,
+        grade = evaluation.schoolMentorGrade!!,
+        observation = evaluation.schoolMentorObservation,
+    )
 }
 
 // endregion

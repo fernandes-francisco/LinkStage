@@ -51,7 +51,12 @@ import turmaA.grupoB.LinkStage.ui.aluno.activity.InternshipHeader
 import turmaA.grupoB.LinkStage.ui.aluno.activity.calculateInternshipProgress
 import turmaA.grupoB.LinkStage.ui.aluno.chat.ConversationItem
 import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
+import turmaA.grupoB.LinkStage.ui.common.EvaluationNotificationModal
+import turmaA.grupoB.LinkStage.ui.common.EvaluationPendingCard
 import turmaA.grupoB.LinkStage.ui.common.LinkStageLogo
+import turmaA.grupoB.LinkStage.ui.orientador.EvaluationState
+import turmaA.grupoB.LinkStage.ui.orientador.InternshipEvaluation
+import turmaA.grupoB.LinkStage.ui.orientador.InternshipType
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
@@ -96,6 +101,40 @@ fun HomeAlunoScreen(
     val recentApplications by homeViewModel.recentApplications.collectAsState()
     val recentConversations by homeViewModel.recentConversations.collectAsState()
 
+    // Evaluation sample data for demo
+    val evaluation: InternshipEvaluation? = remember {
+        InternshipEvaluation(
+            internshipId = "int1",
+            internshipType = InternshipType.COMPANY_SCHOOL,
+            state = EvaluationState.COMPLETED,
+            companyResponsibleGrade = 16.5f,
+            companyResponsibleObservation = "Excelente desempenho técnico.",
+            companyResponsibleName = "Ana Costa",
+            companyMentorGrade = 15.0f,
+            companyMentorObservation = "Bom trabalho em equipa.",
+            companyMentorName = "Prof. Tiago Alexandre",
+            schoolMentorGrade = 16f,
+            schoolMentorObservation = "Bom desempenho global.",
+            schoolMentorName = "Prof. Carvalho",
+            hasSeenNotification = false,
+        )
+    }
+    var showEvaluationModal by remember { mutableStateOf(evaluation?.state == EvaluationState.COMPLETED && evaluation.hasSeenNotification == false) }
+    var hasSeenResult by remember { mutableStateOf(false) }
+
+    if (showEvaluationModal && evaluation?.state == EvaluationState.COMPLETED) {
+        EvaluationNotificationModal(
+            title = "Resultado do Estágio Disponível",
+            message = "A sua nota final foi atribuída. Pode agora consultar o resultado do seu estágio.",
+            actionLabel = "Ver resultado",
+            onAction = {
+                navController.navigate(AlunoRoutes.internshipResultRoute(evaluation.internshipId))
+                hasSeenResult = true
+            },
+            onDismiss = { showEvaluationModal = false },
+        )
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -120,6 +159,20 @@ fun HomeAlunoScreen(
                 style = MaterialTheme.typography.bodyMedium,
                 color = DarkGrey
             )
+        }
+
+        if (evaluation?.state == EvaluationState.COMPLETED && !hasSeenResult) {
+            EvaluationPendingCard(
+                title = "Resultado disponível",
+                message = "A sua nota final encontra-se disponível para consulta.",
+                actionLabel = "Ver resultado",
+                isDanger = false,
+                onClick = {
+                    navController.navigate(AlunoRoutes.internshipResultRoute(evaluation.internshipId))
+                    hasSeenResult = true
+                },
+            )
+            Spacer(modifier = Modifier.height(8.dp))
         }
 
         Column(

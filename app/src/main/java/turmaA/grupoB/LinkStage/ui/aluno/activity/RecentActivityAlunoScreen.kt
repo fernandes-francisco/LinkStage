@@ -84,6 +84,10 @@ import turmaA.grupoB.LinkStage.ui.common.LinkStageDialog
 import turmaA.grupoB.LinkStage.ui.common.LinkStageLogo
 import turmaA.grupoB.LinkStage.ui.common.LinkStageOutlinedButton
 import turmaA.grupoB.LinkStage.ui.common.SectionLabel
+import turmaA.grupoB.LinkStage.ui.common.formatGrade
+import turmaA.grupoB.LinkStage.ui.orientador.EvaluationState
+import turmaA.grupoB.LinkStage.ui.orientador.InternshipEvaluation
+import turmaA.grupoB.LinkStage.ui.orientador.InternshipType
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
@@ -223,6 +227,7 @@ fun RecentActivityAlunoScreen(
                     internship = activeInternship!!,
                     onSubmitReport = onSubmitReport,
                     onActivityClick = onActivityClick,
+                    onViewResult = onViewResult,
                     modifier = Modifier
                         .weight(1f)
                         .padding(bottom = innerPadding.calculateBottomPadding()),
@@ -452,8 +457,26 @@ private fun ActiveInternshipContent(
     internship: ActiveInternship,
     onSubmitReport: () -> Unit,
     onActivityClick: (String) -> Unit = {},
+    onViewResult: (String) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
+    val evaluation: InternshipEvaluation? = remember {
+        InternshipEvaluation(
+            internshipId = internship.id,
+            internshipType = InternshipType.COMPANY_SCHOOL,
+            state = EvaluationState.COMPLETED,
+            companyResponsibleGrade = 16.5f,
+            companyResponsibleObservation = "Excelente desempenho técnico.",
+            companyResponsibleName = "Ana Costa",
+            companyMentorGrade = 15.0f,
+            companyMentorObservation = "Bom trabalho em equipa.",
+            companyMentorName = "Prof. Tiago Alexandre",
+            schoolMentorGrade = 16f,
+            schoolMentorObservation = "Bom desempenho global.",
+            schoolMentorName = "Prof. Carvalho",
+        )
+    }
+
     var showSubmitConfirmation by remember { mutableStateOf(false) }
 
     if (showSubmitConfirmation) {
@@ -523,10 +546,65 @@ private fun ActiveInternshipContent(
 
             item {
                 Spacer(modifier = Modifier.height(8.dp))
-                ReportSubmissionCard(
-                    daysRemaining = daysRemaining,
-                    onSubmit = { showSubmitConfirmation = true },
-                )
+
+                if (evaluation?.state == EvaluationState.COMPLETED && evaluation.schoolMentorGrade != null) {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(containerColor = DarkBlue),
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(20.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                        ) {
+                            Text(
+                                text = "Nota Final",
+                                color = Color.White.copy(alpha = 0.8f),
+                                fontSize = 13.sp,
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = formatGrade(evaluation.schoolMentorGrade),
+                                color = Color.White,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 48.sp,
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = "em 20 valores",
+                                color = Color.White.copy(alpha = 0.7f),
+                                fontSize = 13.sp,
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Button(
+                        onClick = { onViewResult(internship.id) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp)
+                            .height(50.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = LightBlue,
+                            contentColor = Color.White,
+                        ),
+                    ) {
+                        Text(
+                            text = "Ver resultado completo",
+                            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
+                        )
+                    }
+                } else {
+                    ReportSubmissionCard(
+                        daysRemaining = daysRemaining,
+                        onSubmit = { showSubmitConfirmation = true },
+                    )
+                }
             }
         }
     }

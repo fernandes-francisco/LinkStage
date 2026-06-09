@@ -41,7 +41,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import turmaA.grupoB.LinkStage.ui.common.formatGrade
+import turmaA.grupoB.LinkStage.ui.orientador.EvaluationState
 import turmaA.grupoB.LinkStage.ui.orientador.InternshipEvaluation
+import turmaA.grupoB.LinkStage.ui.orientador.InternshipType
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
@@ -51,14 +54,17 @@ import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 
 private val sampleResultEvaluation = InternshipEvaluation(
     internshipId = "int1",
-    schoolMentorName = "Prof. Carvalho",
+    internshipType = InternshipType.COMPANY_SCHOOL,
+    state = EvaluationState.COMPLETED,
+    companyResponsibleGrade = 17f,
+    companyResponsibleObservation = "Boa integração na equipa. Mostrou iniciativa e capacidade de trabalho autónomo.",
+    companyResponsibleName = "Ana Costa",
+    companyMentorGrade = 15.5f,
+    companyMentorObservation = "Bom trabalho técnico.",
+    companyMentorName = "Prof. Tiago Alexandre",
+    schoolMentorGrade = 16.5f,
     schoolMentorObservation = "O aluno demonstrou um excelente desempenho ao longo do estágio, com particular destaque na capacidade de resolver problemas de forma criativa.",
-    schoolMentorGrade = "16",
-    companyMentorName = "Ana Costa",
-    companyMentorObservation = "Boa integração na equipa. Mostrou iniciativa e capacidade de trabalho autónomo.",
-    companyMentorGrade = "17",
-    finalGrade = 16.5f,
-    isCompleted = true,
+    schoolMentorName = "Prof. Carvalho",
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -152,7 +158,7 @@ fun InternshipResultScreen(
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "${evaluation.finalGrade}",
+                        text = if (evaluation.schoolMentorGrade != null) formatGrade(evaluation.schoolMentorGrade) else "--",
                         color = Color.White,
                         fontWeight = FontWeight.Bold,
                         fontSize = 48.sp,
@@ -168,21 +174,43 @@ fun InternshipResultScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // School mentor evaluation
-            EvaluationCard(
-                mentorName = evaluation.schoolMentorName,
-                mentorRole = "Orientador Escolar",
-                observation = evaluation.schoolMentorObservation,
-                grade = evaluation.schoolMentorGrade,
-            )
+            // School mentor evaluation (nota final)
+            if (evaluation.schoolMentorGrade != null) {
+                EvaluationCard(
+                    mentorName = evaluation.schoolMentorName,
+                    mentorRole = "Orientador Escolar (Nota Final)",
+                    observation = evaluation.schoolMentorObservation ?: "",
+                    grade = formatGrade(evaluation.schoolMentorGrade),
+                )
+            }
 
-            // Company mentor evaluation (if exists)
-            if (evaluation.companyMentorName.isNotEmpty()) {
+            // Company responsible evaluation
+            if (evaluation.companyResponsibleGrade != null) {
+                EvaluationCard(
+                    mentorName = evaluation.companyResponsibleName,
+                    mentorRole = "Responsável da Empresa",
+                    observation = evaluation.companyResponsibleObservation ?: "",
+                    grade = formatGrade(evaluation.companyResponsibleGrade),
+                )
+            }
+
+            // Company mentor evaluation
+            if (evaluation.companyMentorGrade != null && evaluation.companyMentorName.isNotEmpty()) {
                 EvaluationCard(
                     mentorName = evaluation.companyMentorName,
                     mentorRole = "Orientador de Empresa",
-                    observation = evaluation.companyMentorObservation,
-                    grade = evaluation.companyMentorGrade,
+                    observation = evaluation.companyMentorObservation ?: "",
+                    grade = formatGrade(evaluation.companyMentorGrade),
+                )
+            }
+
+            // Institution evaluation (for SCHOOL_ONLY)
+            if (evaluation.institutionGrade != null) {
+                EvaluationCard(
+                    mentorName = evaluation.institutionName,
+                    mentorRole = "Instituição Escolar",
+                    observation = evaluation.institutionObservation ?: "",
+                    grade = formatGrade(evaluation.institutionGrade),
                 )
             }
 

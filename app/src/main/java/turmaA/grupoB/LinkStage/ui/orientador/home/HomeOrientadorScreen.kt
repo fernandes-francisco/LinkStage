@@ -52,8 +52,14 @@ import turmaA.grupoB.LinkStage.ui.aluno.chat.Conversation
 import turmaA.grupoB.LinkStage.ui.aluno.chat.avatarColors
 import turmaA.grupoB.LinkStage.ui.aluno.chat.sampleConversations
 import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
+import turmaA.grupoB.LinkStage.ui.common.EvaluationNotificationModal
+import turmaA.grupoB.LinkStage.ui.common.EvaluationPendingCard
+import turmaA.grupoB.LinkStage.ui.orientador.EvaluationState
+import turmaA.grupoB.LinkStage.ui.orientador.InternshipEvaluation
+import turmaA.grupoB.LinkStage.ui.orientador.InternshipType
 import turmaA.grupoB.LinkStage.ui.orientador.MentorInternship
 import turmaA.grupoB.LinkStage.ui.orientador.OrientadorRoutes
+import turmaA.grupoB.LinkStage.ui.orientador.sampleEvaluation
 import turmaA.grupoB.LinkStage.ui.orientador.sampleMentorInternships
 import turmaA.grupoB.LinkStage.ui.orientador.sampleMentorStudents
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
@@ -69,6 +75,35 @@ fun HomeOrientadorScreen(
     navController: NavController,
     modifier: Modifier = Modifier,
 ) {
+    val evaluation = sampleEvaluation
+    var showEvaluationModal by remember {
+        mutableStateOf(evaluation.state == EvaluationState.READY_FOR_FINAL && !evaluation.hasSeenNotification)
+    }
+
+    if (showEvaluationModal) {
+        val (modalTitle, modalMessage) = when (evaluation.internshipType) {
+            InternshipType.COMPANY_SCHOOL -> Pair(
+                "Avaliações Submetidas",
+                "A empresa e o orientador de empresa já submeteram as suas avaliações. " +
+                "Pode agora consultar as avaliações e atribuir a nota final ao aluno."
+            )
+            InternshipType.SCHOOL_ONLY -> Pair(
+                "Avaliação Institucional Submetida",
+                "A instituição escolar já submeteu a sua avaliação. " +
+                "Pode agora consultá-la e atribuir a nota final ao aluno."
+            )
+        }
+        EvaluationNotificationModal(
+            title = modalTitle,
+            message = modalMessage,
+            actionLabel = "Ver avaliações",
+            onAction = {
+                navController.navigate(OrientadorRoutes.mentorStudentDetail("s1"))
+            },
+            onDismiss = { showEvaluationModal = false },
+        )
+    }
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -93,6 +128,19 @@ fun HomeOrientadorScreen(
                 style = MaterialTheme.typography.bodyMedium,
                 color = DarkGrey
             )
+        }
+
+        if (evaluation.state == EvaluationState.READY_FOR_FINAL) {
+            EvaluationPendingCard(
+                title = "Nota final pendente",
+                message = "Todas as avaliações foram submetidas. Atribua a nota final.",
+                actionLabel = "Atribuir nota final",
+                isDanger = true,
+                onClick = {
+                    navController.navigate(OrientadorRoutes.mentorStudentDetail("s1"))
+                },
+            )
+            Spacer(modifier = Modifier.height(4.dp))
         }
 
         Column(

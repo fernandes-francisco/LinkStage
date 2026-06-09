@@ -11,6 +11,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import turmaA.grupoB.LinkStage.ui.admin.AdminMainScreen
 import turmaA.grupoB.LinkStage.ui.aluno.AlunoMainScreen
+import turmaA.grupoB.LinkStage.ui.auth.ForceChangePasswordScreen
 import turmaA.grupoB.LinkStage.ui.auth.login.LoginScreen
 import turmaA.grupoB.LinkStage.ui.auth.register.RegisterScreen
 import turmaA.grupoB.LinkStage.ui.auth.register.RegisterDataScreen
@@ -31,6 +32,8 @@ object Routes {
     const val REGISTER_SKILLS = "auth/register-skills"
     const val FORGOT_PASSWORD = "auth/forgot-password"
     const val UPDATE_PASSWORD = "auth/update-password"
+
+    const val FORCE_CHANGE_PASSWORD = "force_change_password"
 
     const val ADMIN_MAIN = "admin"
     const val ALUNO_MAIN = "aluno"
@@ -92,8 +95,17 @@ fun AppNavigation(
         composable(Routes.LOGIN) {
             LoginScreen(
                 onLoginClick = { _, _ ->
-                    navController.navigate(Routes.ALUNO_MAIN) {
-                        popUpTo(Routes.LOGIN) { inclusive = true }
+                    // TODO: Replace with real auth check.
+                    // Hardcoded: simulate a mentor account that must change password.
+                    val mustChangePassword = false
+                    if (mustChangePassword) {
+                        navController.navigate(Routes.FORCE_CHANGE_PASSWORD) {
+                            popUpTo(Routes.LOGIN) { inclusive = true }
+                        }
+                    } else {
+                        navController.navigate(Routes.ORIENTADOR_MAIN) {
+                            popUpTo(Routes.LOGIN) { inclusive = true }
+                        }
                     }
                 },
                 onRegisterClick = {
@@ -102,6 +114,12 @@ fun AppNavigation(
                 onForgotPasswordClick = {
                     navController.navigate(Routes.FORGOT_PASSWORD)
                 }
+            )
+        }
+        composable(Routes.FORCE_CHANGE_PASSWORD) {
+            ForceChangePasswordScreen(
+                navController = navController,
+                userDestination = Routes.ORIENTADOR_MAIN,
             )
         }
         composable(Routes.FORGOT_PASSWORD) {

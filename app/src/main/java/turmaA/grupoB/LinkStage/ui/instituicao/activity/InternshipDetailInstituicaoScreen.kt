@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -31,6 +32,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -44,6 +47,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -51,18 +55,26 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import turmaA.grupoB.LinkStage.ui.aluno.chat.avatarColors
 import turmaA.grupoB.LinkStage.ui.common.ConfirmationDialog
+import turmaA.grupoB.LinkStage.ui.common.EvaluationReadOnlyCard
+import turmaA.grupoB.LinkStage.ui.common.SectionLabel
+import turmaA.grupoB.LinkStage.ui.common.formatGrade
+import turmaA.grupoB.LinkStage.ui.common.validateGrade
 import turmaA.grupoB.LinkStage.ui.instituicao.InstitutionInternship
 import turmaA.grupoB.LinkStage.ui.instituicao.InternshipOrigin
 import turmaA.grupoB.LinkStage.ui.instituicao.InternshipStatus
 import turmaA.grupoB.LinkStage.ui.instituicao.internshipStatusColor
 import turmaA.grupoB.LinkStage.ui.instituicao.internshipStatusLabel
 import turmaA.grupoB.LinkStage.ui.instituicao.sampleInstitutionInternships
+import turmaA.grupoB.LinkStage.ui.orientador.EvaluationState
+import turmaA.grupoB.LinkStage.ui.orientador.InternshipEvaluation
+import turmaA.grupoB.LinkStage.ui.orientador.InternshipType
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.Fade2
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
+import turmaA.grupoB.LinkStage.ui.theme.Red
 
 @Composable
 fun InternshipDetailInstituicaoScreen(
@@ -72,6 +84,17 @@ fun InternshipDetailInstituicaoScreen(
 ) {
     val internship = sampleInstitutionInternships.find { it.id == internshipId }
         ?: sampleInstitutionInternships.first()
+
+    val evaluation: InternshipEvaluation? = remember {
+        InternshipEvaluation(
+            internshipId = internshipId,
+            internshipType = InternshipType.SCHOOL_ONLY,
+            state = EvaluationState.PENDING,
+            institutionName = "ESTG-IPVC",
+            schoolMentorName = "Prof. Tiago Alex.",
+            hasSeenNotification = false,
+        )
+    }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -129,8 +152,11 @@ fun InternshipDetailInstituicaoScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Bottom action buttons (placed inside scrollable content or fixed? Original was fixed)
-            // Let's place them fixed at the bottom as per standard Detail screens.
+            if (evaluation != null) {
+                InstitutionEvaluationSection(evaluation = evaluation)
+            }
+
+            Spacer(modifier = Modifier.height(80.dp))
         }
 
         // Action Buttons at the bottom (Fixed)
@@ -328,6 +354,172 @@ private fun ActivityPlaceholderCard(
         }
     }
 }
+
+// region Institution Evaluation Section
+
+@Composable
+private fun InstitutionEvaluationSection(evaluation: InternshipEvaluation) {
+    when (evaluation.state) {
+        EvaluationState.PENDING -> {
+            InstitutionEvaluationForm()
+        }
+        EvaluationState.PARTIAL, EvaluationState.READY_FOR_FINAL -> {
+            Text(
+                text = "Avaliação Institucional Submetida",
+                color = DarkBlue,
+                fontWeight = FontWeight.Bold,
+                fontSize = 15.sp,
+                modifier = Modifier.padding(horizontal = 16.dp),
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            if (evaluation.institutionGrade != null) {
+                EvaluationReadOnlyCard(
+                    role = "Instituição Escolar",
+                    name = evaluation.institutionName,
+                    grade = evaluation.institutionGrade,
+                    observation = evaluation.institutionObservation,
+                )
+            }
+        }
+        EvaluationState.COMPLETED -> {
+            Text(
+                text = "Avaliação Concluída",
+                color = DarkBlue,
+                fontWeight = FontWeight.Bold,
+                fontSize = 15.sp,
+                modifier = Modifier.padding(horizontal = 16.dp),
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            if (evaluation.institutionGrade != null) {
+                EvaluationReadOnlyCard(
+                    role = "Instituição Escolar",
+                    name = evaluation.institutionName,
+                    grade = evaluation.institutionGrade,
+                    observation = evaluation.institutionObservation,
+                )
+            }
+            if (evaluation.schoolMentorGrade != null) {
+                EvaluationReadOnlyCard(
+                    role = "Orientador Escolar (Nota Final)",
+                    name = evaluation.schoolMentorName,
+                    grade = evaluation.schoolMentorGrade,
+                    observation = evaluation.schoolMentorObservation,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun InstitutionEvaluationForm() {
+    var observation by remember { mutableStateOf("") }
+    var gradeText by remember { mutableStateOf("") }
+    var gradeError by remember { mutableStateOf(false) }
+    var showConfirmDialog by remember { mutableStateOf(false) }
+
+    val parsedGrade = validateGrade(gradeText)
+
+    if (showConfirmDialog) {
+        ConfirmationDialog(
+            title = "Submeter avaliação?",
+            body = "Tem a certeza que pretende submeter a avaliação institucional? Esta ação não poderá ser revertida.",
+            confirmLabel = "Submeter",
+            isDanger = false,
+            onConfirm = { showConfirmDialog = false },
+            onDismiss = { showConfirmDialog = false },
+        )
+    }
+
+    Text(
+        text = "Avaliação Institucional",
+        color = DarkBlue,
+        fontWeight = FontWeight.Bold,
+        fontSize = 15.sp,
+        modifier = Modifier.padding(horizontal = 16.dp),
+    )
+    Spacer(modifier = Modifier.height(8.dp))
+
+    Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+        SectionLabel("Observação")
+        Spacer(modifier = Modifier.height(8.dp))
+        OutlinedTextField(
+            value = observation,
+            onValueChange = { observation = it },
+            modifier = Modifier.fillMaxWidth(),
+            placeholder = { Text("Escreva aqui.", color = DarkGrey) },
+            shape = RoundedCornerShape(10.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = LightBlue,
+                unfocusedBorderColor = BorderGrey,
+                focusedContainerColor = Color.White,
+                unfocusedContainerColor = Color.White,
+            ),
+            minLines = 3,
+            maxLines = 6,
+        )
+    }
+
+    Spacer(modifier = Modifier.height(12.dp))
+
+    Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+        SectionLabel("Nota (0-20)")
+        Spacer(modifier = Modifier.height(8.dp))
+        OutlinedTextField(
+            value = gradeText,
+            onValueChange = {
+                gradeText = it
+                gradeError = false
+            },
+            modifier = Modifier.fillMaxWidth(),
+            placeholder = { Text("Ex: 14,5", color = DarkGrey) },
+            shape = RoundedCornerShape(10.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = if (gradeError) Red else LightBlue,
+                unfocusedBorderColor = if (gradeError) Red else BorderGrey,
+                focusedContainerColor = Color.White,
+                unfocusedContainerColor = Color.White,
+            ),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+            singleLine = true,
+            isError = gradeError,
+        )
+        if (gradeError) {
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "Introduza um valor entre 0,0 e 20,0 com no máximo uma casa decimal.",
+                color = Red,
+                fontSize = 12.sp,
+            )
+        }
+    }
+
+    Spacer(modifier = Modifier.height(16.dp))
+
+    Button(
+        onClick = {
+            if (validateGrade(gradeText) == null) {
+                gradeError = true
+            } else {
+                showConfirmDialog = true
+            }
+        },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+            .height(48.dp),
+        shape = RoundedCornerShape(12.dp),
+        colors = ButtonDefaults.buttonColors(containerColor = DarkBlue),
+    ) {
+        Text(
+            text = "Submeter avaliação",
+            color = Color.White,
+            fontWeight = FontWeight.SemiBold,
+            fontSize = 14.sp,
+        )
+    }
+}
+
+// endregion
 
 // region Previews
 
