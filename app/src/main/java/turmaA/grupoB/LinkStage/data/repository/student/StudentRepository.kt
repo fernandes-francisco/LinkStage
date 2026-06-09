@@ -1,8 +1,10 @@
 package turmaA.grupoB.LinkStage.data.repository.student
 
 import io.github.jan.supabase.postgrest.from
+import turmaA.grupoB.LinkStage.data.remote.model.user.CreateStudentInput
 import turmaA.grupoB.LinkStage.data.remote.model.user.StudentModel
 import turmaA.grupoB.LinkStage.data.remote.supabase.SupabaseClientProvider
+
 
 class StudentRepository : StudentRepositoryInterface {
 
@@ -60,5 +62,14 @@ class StudentRepository : StudentRepositoryInterface {
                 }
             }
             .decodeList<StudentModel>()
+    }
+
+    override suspend fun createStudent(input: CreateStudentInput): StudentModel {
+        return supabase
+            .from("students")
+            .insert(input) {
+                select()
+            }
+            .decodeSingle<StudentModel>()
     }
 }

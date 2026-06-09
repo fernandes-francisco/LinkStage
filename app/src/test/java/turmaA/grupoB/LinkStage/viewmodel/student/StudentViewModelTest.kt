@@ -15,6 +15,7 @@ import org.junit.Test
 import org.junit.rules.TestWatcher
 import org.junit.runner.Description
 import turmaA.grupoB.LinkStage.data.remote.model.user.StudentModel
+import turmaA.grupoB.LinkStage.data.remote.model.user.CreateStudentInput
 import turmaA.grupoB.LinkStage.data.repository.student.StudentRepositoryInterface
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -292,6 +293,7 @@ private class FakeStudentRepository : StudentRepositoryInterface {
     var shouldThrowOnGetStudentByUserId: Boolean = false
     var shouldThrowOnGetStudentByNumber: Boolean = false
     var shouldThrowOnGetStudentsByCourse: Boolean = false
+    var shouldThrowOnCreateStudent: Boolean = false
 
     override suspend fun getStudents(): List<StudentModel> {
         if (shouldThrowOnGetStudents) {
@@ -331,6 +333,10 @@ private class FakeStudentRepository : StudentRepositoryInterface {
         }
 
         return students.filter { it.course == course }
+    }
+
+    override suspend fun createStudent(input: CreateStudentInput): StudentModel {
+        TODO("Not yet implemented")
     }
 }
 
