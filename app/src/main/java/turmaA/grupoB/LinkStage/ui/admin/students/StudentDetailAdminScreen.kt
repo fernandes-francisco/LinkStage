@@ -1,0 +1,309 @@
+package turmaA.grupoB.LinkStage.ui.admin.students
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.outlined.Work
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import turmaA.grupoB.LinkStage.ui.admin.sampleStudents
+import turmaA.grupoB.LinkStage.ui.common.ContentSection
+import turmaA.grupoB.LinkStage.ui.common.LinkStageButton
+import turmaA.grupoB.LinkStage.ui.common.LinkStageDialog
+import turmaA.grupoB.LinkStage.ui.common.SecondaryTopBar
+import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
+import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
+import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
+import turmaA.grupoB.LinkStage.ui.theme.Fade1
+import turmaA.grupoB.LinkStage.ui.theme.Fade3
+import turmaA.grupoB.LinkStage.ui.theme.LightBlue
+import turmaA.grupoB.LinkStage.ui.theme.MediumBlue
+import turmaA.grupoB.LinkStage.ui.theme.Red
+
+@Composable
+fun StudentDetailAdminScreen(
+    studentId: String,
+    onBack: () -> Unit,
+    onViewInternship: (String) -> Unit = {},
+) {
+    val student = sampleStudents.find { it.id == studentId } ?: run {
+        onBack()
+        return
+    }
+
+    var showDeleteDialog by remember { mutableStateOf(false) }
+
+    if (showDeleteDialog) {
+        LinkStageDialog(
+            title = "Remover Aluno",
+            onConfirm = {
+                showDeleteDialog = false
+                onBack()
+            },
+            onDismiss = { showDeleteDialog = false },
+            confirmText = "Remover",
+            dismissText = "Cancelar",
+            content = {
+                Text(
+                    text = "Tens a certeza que queres remover \"${student.name}\"? Esta ação não pode ser revertida.",
+                    color = DarkGrey,
+                    lineHeight = 22.sp,
+                )
+            }
+        )
+    }
+
+    Scaffold(
+        topBar = { SecondaryTopBar(title = "Detalhes do Aluno", onBack = onBack) },
+        containerColor = BackgroundLight,
+        bottomBar = {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(BackgroundLight)
+                    .padding(16.dp)
+            ) {
+                LinkStageButton(
+                    text = "Remover Aluno",
+                    onClick = { showDeleteDialog = true },
+                    height = 50.dp,
+                    brush = SolidColor(Red)
+                )
+            }
+        }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .verticalScroll(rememberScrollState()),
+        ) {
+            // Header Card
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+            ) {
+                Row(
+                    modifier = Modifier.padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(56.dp)
+                            .clip(CircleShape)
+                            .background(brush = Fade1),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(
+                            text = student.avatarInitials,
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp,
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(14.dp))
+                    Column {
+                        Text(
+                            text = student.name,
+                            color = DarkBlue,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp,
+                        )
+                        Text(
+                            text = student.email,
+                            color = DarkGrey,
+                            fontSize = 13.sp,
+                        )
+                        Text(
+                            text = student.institution,
+                            color = MediumBlue,
+                            fontSize = 12.sp,
+                        )
+                    }
+                }
+            }
+
+            // Personal Information
+            ContentSection(title = "Informação Pessoal") {
+                Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
+                    DetailRow("Curso", student.course)
+                    DetailRow("Telemóvel", student.phone)
+                    DetailRow("Média", "${student.gpa} valores")
+                    DetailRow("Registado", student.registeredAgo)
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Internship Status
+            if (student.hasActiveInternship) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(brush = Fade3)
+                ) {
+                    Column(modifier = Modifier.padding(20.dp)) {
+                        Text(
+                            text = "Estágio Ativo",
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp,
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "Empresa: ${student.internshipCompany}",
+                            color = Color.White.copy(alpha = 0.8f),
+                            fontSize = 14.sp,
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Button(
+                            onClick = { onViewInternship(student.id) },
+                            modifier = Modifier.fillMaxWidth().height(44.dp),
+                            shape = RoundedCornerShape(10.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color.White,
+                                contentColor = DarkBlue
+                            )
+                        ) {
+                            Text("Ver Detalhes do Estágio", fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+            } else {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(20.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        Text(
+                            text = "Sem estágio ativo",
+                            color = DarkGrey,
+                            fontSize = 14.sp,
+                            textAlign = TextAlign.Center,
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "${student.applicationCount} candidaturas submetidas",
+                            color = DarkGrey,
+                            fontSize = 12.sp,
+                            textAlign = TextAlign.Center,
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Recent Applications (placeholder)
+            ContentSection(title = "Candidaturas Recentes") {
+                Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
+                    ApplicationPlaceholderItem("UI/UX Designer", "Viana S.T.Arts", "Pendente")
+                    Spacer(modifier = Modifier.height(8.dp))
+                    ApplicationPlaceholderItem("Frontend Developer", "Pingo Doce", "Em análise")
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+    }
+}
+
+@Composable
+private fun DetailRow(label: String, value: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 6.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Text(text = label, color = DarkGrey, fontSize = 13.sp)
+        Text(text = value, color = DarkBlue, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+    }
+}
+
+@Composable
+private fun ApplicationPlaceholderItem(title: String, company: String, status: String) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(8.dp),
+        colors = CardDefaults.cardColors(containerColor = BackgroundLight),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(text = title, color = DarkBlue, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+                Text(text = company, color = DarkGrey, fontSize = 12.sp)
+            }
+            Text(text = status, color = MediumBlue, fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
+        }
+    }
+}
+
+@Preview(showSystemUi = true)
+@Composable
+private fun StudentDetailPreview() {
+    MaterialTheme {
+        StudentDetailAdminScreen(studentId = "s1", onBack = {})
+    }
+}
+
+@Preview(showSystemUi = true)
+@Composable
+private fun StudentDetailNoInternshipPreview() {
+    MaterialTheme {
+        StudentDetailAdminScreen(studentId = "s2", onBack = {})
+    }
+}
