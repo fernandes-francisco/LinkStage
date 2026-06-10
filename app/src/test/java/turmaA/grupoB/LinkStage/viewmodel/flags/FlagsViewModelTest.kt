@@ -60,7 +60,7 @@ class FlagsViewModelTest {
 
         val state = viewModel.uiState.value
         assertTrue(state is FlagsUIState.Success)
-        assertEquals(mockImgs, (state as FlagsUIState.Success).imgs)
+        assertEquals(listOf(mockImgs), (state as FlagsUIState.Success).imgs)
     }
 
     @Test
@@ -106,7 +106,7 @@ class FlagsViewModelTest {
 
     @Test
     fun getImagesShouldSetEmptyWhenRepositoryReturnsNull() = runTest {
-        whenever(mockRepository.getFlag("unknown")).thenReturn(null)
+        whenever(mockRepository.getFlag("unknown")).thenAnswer { null }
 
         viewModel.getImages(listOf("unknown"))
         advanceUntilIdle()
@@ -116,7 +116,7 @@ class FlagsViewModelTest {
     }
 
     @Test
-    fun getImagesWithMultipleCountriesShouldUseLastResult() = runTest {
+    fun getImagesWithMultipleCountriesShouldCollectAllResults() = runTest {
         val mockImgs1 = Imgs(png = "https://flagcdn.com/w320/pt.png")
         val mockImgs2 = Imgs(png = "https://flagcdn.com/w320/es.png")
         whenever(mockRepository.getFlag("portugal")).thenReturn(mockImgs1)
@@ -127,7 +127,7 @@ class FlagsViewModelTest {
 
         val state = viewModel.uiState.value
         assertTrue(state is FlagsUIState.Success)
-        assertEquals(mockImgs2, (state as FlagsUIState.Success).imgs)
+        assertEquals(listOf(mockImgs1, mockImgs2), (state as FlagsUIState.Success).imgs)
     }
 
     @Test
@@ -146,14 +146,14 @@ class FlagsViewModelTest {
     }
 
     @Test
-    fun getImagesWithEmptyListShouldSetLoading() = runTest {
+    fun getImagesWithEmptyListShouldSetEmpty() = runTest {
         viewModel.getImages(emptyList())
         advanceUntilIdle()
 
         val state = viewModel.uiState.value
         assertTrue(
-            "Expected Loading for empty list but got ${state::class.simpleName}",
-            state is FlagsUIState.Loading
+            "Expected Empty for empty list but got ${state::class.simpleName}",
+            state is FlagsUIState.Empty
         )
     }
 }
