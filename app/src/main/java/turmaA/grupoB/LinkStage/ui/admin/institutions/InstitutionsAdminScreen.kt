@@ -1,5 +1,10 @@
 package turmaA.grupoB.LinkStage.ui.admin.institutions
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -18,6 +23,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.outlined.AccountBalance
+import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.FilterList
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Card
@@ -36,6 +43,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -52,9 +60,11 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import turmaA.grupoB.LinkStage.ui.admin.AdminInstitution
 import turmaA.grupoB.LinkStage.ui.admin.AdminRoutes
+import turmaA.grupoB.LinkStage.ui.admin.InstitutionStatus
 import turmaA.grupoB.LinkStage.ui.admin.sampleInstitutions
 import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
 import turmaA.grupoB.LinkStage.ui.common.LinkStageDialog
+import turmaA.grupoB.LinkStage.ui.common.LinkStageTabRow
 import turmaA.grupoB.LinkStage.ui.common.SectionLabel
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
@@ -73,8 +83,14 @@ fun InstitutionsAdminScreen(
     var showFilterDialog by remember { mutableStateOf(false) }
     var filterType by rememberSaveable { mutableStateOf("") }
     var filterLocation by rememberSaveable { mutableStateOf("") }
+    var selectedTab by rememberSaveable { mutableIntStateOf(0) }
 
-    val filtered = sampleInstitutions.filter { institution ->
+    val approvedInstitutions = sampleInstitutions.filter { it.status == InstitutionStatus.APPROVED }
+    val pendingInstitutions = sampleInstitutions.filter { it.status == InstitutionStatus.PENDING_APPROVAL }
+
+    val currentList = if (selectedTab == 0) approvedInstitutions else pendingInstitutions
+
+    val filtered = currentList.filter { institution ->
         val matchesSearch = searchQuery.isBlank() ||
             institution.name.contains(searchQuery, ignoreCase = true) ||
             institution.code.contains(searchQuery, ignoreCase = true) ||
@@ -102,6 +118,8 @@ fun InstitutionsAdminScreen(
         )
     }
 
+    val pendingLabel = if (pendingInstitutions.isNotEmpty()) "Pendentes (${pendingInstitutions.size})" else "Pendentes"
+
     Scaffold(
         modifier = modifier,
         containerColor = BackgroundLight,
@@ -122,6 +140,11 @@ fun InstitutionsAdminScreen(
                     onFilterClick = { showFilterDialog = true },
                 )
                 Spacer(modifier = Modifier.height(8.dp))
+                LinkStageTabRow(
+                    tabs = listOf("Aprovadas", pendingLabel),
+                    selectedIndex = selectedTab,
+                    onTabSelected = { selectedTab = it },
+                )
             }
         },
         floatingActionButton = {
@@ -135,21 +158,55 @@ fun InstitutionsAdminScreen(
             }
         },
     ) { innerPadding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding),
-        ) {
-            items(filtered, key = { it.id }) { institution ->
-                InstitutionListItem(
-                    institution = institution,
-                    onClick = {
-                        navController.navigate(AdminRoutes.institutionDetail(institution.id))
-                    },
-                )
-            }
+        AnimatedContent(
+            targetState = selectedTab,
+            transitionSpec = { fadeIn() togetherWith fadeOut() },
+            label = "tab_content",
+            modifier = Modifier.padding(innerPadding),
+        ) { tab ->
+            if (filtered.isEmpty()) {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                ) {
+                    Icon(
+                        imageVector = if (tab == 0) Icons.Outlined.AccountBalance else Icons.Outlined.CheckCircle,
+                        contentDescription = null,
+                        tint = BorderGrey,
+                        modifier = Modifier.size(64.dp),
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(
+                        text = if (tab == 0) "Não existem instituições aprovadas."
+                        else "Não existem pedidos de registo pendentes.",
+                        color = DarkGrey,
+                        fontSize = 16.sp,
+                    )
+                }
+            } else {
+                LazyColumn(modifier = Modifier.fillMaxSize()) {
+                    items(filtered, key = { it.id }) { institution ->
+                        if (tab == 0) {
+                            InstitutionListItem(
+                                institution = institution,
+                                onClick = {
+                                    navController.navigate(AdminRoutes.institutionDetail(institution.id))
+                                },
+                            )
+                        } else {
+                            PendingInstitutionListItem(
+                                institution = institution,
+                                onClick = {
+                                    navController.navigate(AdminRoutes.institutionDetail(institution.id))
+                                },
+                            )
+                        }
+                    }
 
-            item { Spacer(modifier = Modifier.height(80.dp)) }
+                    item { Spacer(modifier = Modifier.height(80.dp)) }
+                }
+            }
         }
     }
 }
@@ -368,6 +425,93 @@ private fun InstitutionListItem(
                     fontWeight = FontWeight.Bold,
                     fontSize = 11.sp,
                 )
+            }
+        }
+    }
+}
+
+@Composable
+private fun PendingInstitutionListItem(
+    institution: AdminInstitution,
+    onClick: () -> Unit,
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 4.dp)
+            .clickable { onClick() },
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        border = BorderStroke(1.dp, Color(0xFFF5C518).copy(alpha = 0.5f)),
+    ) {
+        Row(
+            modifier = Modifier.padding(14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(44.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(institution.logoColor),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = institution.logoInitial,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                )
+            }
+            Spacer(modifier = Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = institution.name,
+                    color = DarkBlue,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 15.sp,
+                )
+                Text(
+                    text = institution.location,
+                    color = DarkGrey,
+                    fontSize = 12.sp,
+                )
+                Text(
+                    text = "Submetido ${institution.submittedAt}",
+                    color = DarkGrey,
+                    fontSize = 11.sp,
+                )
+            }
+            Column(
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(LightBlue.copy(alpha = 0.15f))
+                        .padding(horizontal = 8.dp, vertical = 3.dp),
+                ) {
+                    Text(
+                        text = institution.type,
+                        color = DarkBlue,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 10.sp,
+                    )
+                }
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(Color(0xFFF5C518).copy(alpha = 0.2f))
+                        .padding(horizontal = 8.dp, vertical = 3.dp),
+                ) {
+                    Text(
+                        text = "Pendente",
+                        color = Color(0xFFF5C518),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 10.sp,
+                    )
+                }
             }
         }
     }

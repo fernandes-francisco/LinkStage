@@ -40,6 +40,12 @@ data class AdminMentor(
     val isAvailable: Boolean = true,
 )
 
+enum class InstitutionStatus {
+    PENDING_APPROVAL,
+    APPROVED,
+    REJECTED,
+}
+
 data class AdminInstitution(
     val id: String,
     val name: String,
@@ -54,6 +60,8 @@ data class AdminInstitution(
     val activeInternshipsCount: Int,
     val email: String = "",
     val website: String = "",
+    val status: InstitutionStatus = InstitutionStatus.APPROVED,
+    val submittedAt: String = "",
 )
 
 val avatarColors = listOf(LightBlue, DarkBlue, MediumBlue)
@@ -99,11 +107,21 @@ val sampleInstitutions = listOf(
     AdminInstitution(
         "i1", "Uni. de Aveiro", "UA", "U", Color(0xFF1565C0),
         "Instituição de Ensino", "Aveiro", "2h atrás", 45, 8, 12,
-        "geral@ua.pt", "ua.pt",
+        "geral@ua.pt", "ua.pt", InstitutionStatus.APPROVED,
     ),
     AdminInstitution(
         "i2", "Pingo Doce", "PD", "P", Color(0xFF388E3C),
         "Instituição Empresarial", "Lisboa", "3h atrás", 12, 2, 5,
-        "estagios@pingodoce.pt", "pingodoce.pt",
+        "estagios@pingodoce.pt", "pingodoce.pt", InstitutionStatus.APPROVED,
+    ),
+    AdminInstitution(
+        "i3", "Tech Lisboa", "TL", "T", Color(0xFF7B1FA2),
+        "Instituição Empresarial", "Lisboa", "1h atrás", 0, 0, 0,
+        "geral@techlisboa.pt", "techlisboa.pt", InstitutionStatus.PENDING_APPROVAL, "1h atrás",
+    ),
+    AdminInstitution(
+        "i4", "IPCA", "IP", "I", Color(0xFF0288D1),
+        "Instituição de Ensino", "Barcelos", "30m atrás", 0, 0, 0,
+        "geral@ipca.pt", "ipca.pt", InstitutionStatus.PENDING_APPROVAL, "30m atrás",
     ),
 )

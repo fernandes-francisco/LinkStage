@@ -1,5 +1,6 @@
 package turmaA.grupoB.LinkStage.ui.admin.institutions
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,10 +16,18 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.outlined.Cancel
+import androidx.compose.material.icons.outlined.HourglassEmpty
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -36,11 +45,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import turmaA.grupoB.LinkStage.ui.admin.InstitutionStatus
 import turmaA.grupoB.LinkStage.ui.admin.sampleInstitutions
 import turmaA.grupoB.LinkStage.ui.admin.sampleMentors
 import turmaA.grupoB.LinkStage.ui.admin.sampleStudents
 import turmaA.grupoB.LinkStage.ui.admin.students.MentorListItem
 import turmaA.grupoB.LinkStage.ui.admin.students.StudentListItem
+import turmaA.grupoB.LinkStage.ui.common.ConfirmationDialog
 import turmaA.grupoB.LinkStage.ui.common.ContentSection
 import turmaA.grupoB.LinkStage.ui.common.LinkStageButton
 import turmaA.grupoB.LinkStage.ui.common.LinkStageDialog
@@ -48,6 +59,7 @@ import turmaA.grupoB.LinkStage.ui.common.SecondaryTopBar
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
+import turmaA.grupoB.LinkStage.ui.theme.Green
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.ui.theme.Red
 
@@ -63,6 +75,8 @@ fun InstitutionDetailAdminScreen(
     }
 
     var showDeleteDialog by remember { mutableStateOf(false) }
+    var showApproveDialog by remember { mutableStateOf(false) }
+    var showRejectDialog by remember { mutableStateOf(false) }
 
     val relatedStudents = sampleStudents.filter {
         it.institutionCode == institution.code
@@ -92,22 +106,53 @@ fun InstitutionDetailAdminScreen(
         )
     }
 
+    if (showApproveDialog) {
+        ConfirmationDialog(
+            title = "Aprovar instituição?",
+            body = "Ao aprovar, \"${institution.name}\" terá acesso imediato à plataforma LinkStage.",
+            confirmLabel = "Aprovar",
+            confirmBrush = SolidColor(Green),
+            isDanger = false,
+            onConfirm = {
+                showApproveDialog = false
+                onBack()
+            },
+            onDismiss = { showApproveDialog = false },
+        )
+    }
+
+    if (showRejectDialog) {
+        ConfirmationDialog(
+            title = "Rejeitar pedido?",
+            body = "\"${institution.name}\" será notificada da rejeição e poderá corrigir os seus dados e resubmeter o pedido.",
+            confirmLabel = "Rejeitar",
+            isDanger = true,
+            onConfirm = {
+                showRejectDialog = false
+                onBack()
+            },
+            onDismiss = { showRejectDialog = false },
+        )
+    }
+
     Scaffold(
         topBar = { SecondaryTopBar(title = "Detalhes da Instituição", onBack = onBack) },
         containerColor = BackgroundLight,
         bottomBar = {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(BackgroundLight)
-                    .padding(16.dp)
-            ) {
-                LinkStageButton(
-                    text = "Remover Instituição",
-                    onClick = { showDeleteDialog = true },
-                    height = 50.dp,
-                    brush = SolidColor(Red)
-                )
+            if (institution.status == InstitutionStatus.APPROVED) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(BackgroundLight)
+                        .padding(16.dp)
+                ) {
+                    LinkStageButton(
+                        text = "Remover Instituição",
+                        onClick = { showDeleteDialog = true },
+                        height = 50.dp,
+                        brush = SolidColor(Red)
+                    )
+                }
             }
         }
     ) { paddingValues ->
@@ -269,6 +314,98 @@ fun InstitutionDetailAdminScreen(
                 }
             }
 
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Pending approval section
+            if (institution.status == InstitutionStatus.PENDING_APPROVAL) {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF5C518).copy(alpha = 0.1f)),
+                    border = BorderStroke(1.dp, Color(0xFFF5C518).copy(alpha = 0.4f)),
+                ) {
+                    Row(
+                        modifier = Modifier.padding(14.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Icon(
+                            Icons.Outlined.HourglassEmpty,
+                            contentDescription = null,
+                            tint = Color(0xFFF5C518),
+                            modifier = Modifier.size(22.dp),
+                        )
+                        Column(modifier = Modifier.padding(start = 12.dp)) {
+                            Text(
+                                text = "Pedido de registo pendente",
+                                color = DarkBlue,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 14.sp,
+                            )
+                            Text(
+                                text = "Esta instituição aguarda aprovação para aceder à plataforma.",
+                                color = DarkGrey,
+                                fontSize = 12.sp,
+                                lineHeight = 18.sp,
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Button(
+                    onClick = { showApproveDialog = true },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .height(50.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Green),
+                ) {
+                    Icon(
+                        Icons.Default.CheckCircle,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(18.dp),
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Aprovar instituição",
+                        color = Color.White,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 15.sp,
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedButton(
+                    onClick = { showRejectDialog = true },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .height(50.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    border = BorderStroke(1.dp, Red),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Red),
+                ) {
+                    Icon(
+                        Icons.Outlined.Cancel,
+                        contentDescription = null,
+                        tint = Red,
+                        modifier = Modifier.size(18.dp),
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Rejeitar pedido",
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 15.sp,
+                    )
+                }
+            }
+
             Spacer(modifier = Modifier.height(16.dp))
         }
     }
@@ -328,5 +465,13 @@ private fun DetailRow(label: String, value: String) {
 private fun InstitutionDetailPreview() {
     MaterialTheme {
         InstitutionDetailAdminScreen(institutionId = "i1", onBack = {})
+    }
+}
+
+@Preview(showSystemUi = true)
+@Composable
+private fun InstitutionDetailPendingPreview() {
+    MaterialTheme {
+        InstitutionDetailAdminScreen(institutionId = "i3", onBack = {})
     }
 }

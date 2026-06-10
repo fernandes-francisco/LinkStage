@@ -21,6 +21,7 @@ import turmaA.grupoB.LinkStage.ui.auth.updatepassword.UpdatePasswordScreen
 import turmaA.grupoB.LinkStage.ui.introSliders.IntroSlidersScreen
 import turmaA.grupoB.LinkStage.ui.splash.SplashScreen
 import turmaA.grupoB.LinkStage.ui.instituicao.InstituicaoMainScreen
+import turmaA.grupoB.LinkStage.ui.instituicao.InstitutionPendingScreen
 import turmaA.grupoB.LinkStage.ui.orientador.OrientadorMainScreen
 
 object Routes {
@@ -34,6 +35,7 @@ object Routes {
     const val UPDATE_PASSWORD = "auth/update-password"
 
     const val FORCE_CHANGE_PASSWORD = "force_change_password"
+    const val INSTITUTION_PENDING = "institution_pending"
 
     const val ADMIN_MAIN = "admin"
     const val ALUNO_MAIN = "aluno"
@@ -223,6 +225,9 @@ fun AppNavigation(
                     }
                 },
             )
+        }
+        composable(Routes.INSTITUTION_PENDING) {
+            InstitutionPendingScreen(navController = navController)
         }
         composable(Routes.INSTITUICAO_MAIN) { InstituicaoMainScreen() }
     }

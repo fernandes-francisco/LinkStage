@@ -1,16 +1,14 @@
 package turmaA.grupoB.LinkStage.ui.orientador.internships
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -23,18 +21,24 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowForward
-import androidx.compose.material.icons.outlined.LocationOn
-import androidx.compose.material.icons.outlined.Schedule
-import androidx.compose.material.icons.outlined.Work
+import androidx.compose.material.icons.outlined.Grade
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -47,194 +51,128 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import turmaA.grupoB.LinkStage.ui.admin.AdminStudent
 import turmaA.grupoB.LinkStage.ui.admin.avatarColors
-import turmaA.grupoB.LinkStage.ui.aluno.offers.BenefitChip
-import turmaA.grupoB.LinkStage.ui.aluno.offers.MetaChip
-import turmaA.grupoB.LinkStage.ui.aluno.offers.ResponsibilityItem
-import turmaA.grupoB.LinkStage.ui.common.CheckItem
-import turmaA.grupoB.LinkStage.ui.common.ContentSection
-import turmaA.grupoB.LinkStage.ui.common.ContentSectionColored
+import turmaA.grupoB.LinkStage.ui.aluno.activity.ActivityLogCard
+import turmaA.grupoB.LinkStage.ui.aluno.activity.InternshipHeader
+import turmaA.grupoB.LinkStage.ui.aluno.activity.calculateInternshipProgress
 import turmaA.grupoB.LinkStage.ui.common.SecondaryTopBar
+import turmaA.grupoB.LinkStage.ui.orientador.EvaluationState
 import turmaA.grupoB.LinkStage.ui.orientador.MentorInternship
 import turmaA.grupoB.LinkStage.ui.orientador.OrientadorRoutes
+import turmaA.grupoB.LinkStage.ui.orientador.sampleEvaluation
 import turmaA.grupoB.LinkStage.ui.orientador.sampleMentorInternships
 import turmaA.grupoB.LinkStage.ui.orientador.sampleMentorStudents
+import turmaA.grupoB.LinkStage.ui.orientador.sampleStudentInternship
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.Fade1
+import turmaA.grupoB.LinkStage.ui.theme.Fade2
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun MentorInternshipDetailScreen(
     internshipId: String = "i1",
     navController: NavController,
-    internship: MentorInternship = sampleMentorInternships.find { it.id == internshipId }
-        ?: sampleMentorInternships.first(),
-    student: AdminStudent = sampleMentorStudents.find { it.id == internship.studentId }
-        ?: sampleMentorStudents.first(),
 ) {
+    val internship = sampleMentorInternships.find { it.id == internshipId }
+        ?: sampleMentorInternships.first()
+    val student = sampleMentorStudents.find { it.id == internship.studentId }
+        ?: sampleMentorStudents.first()
+    val activeInternship = sampleStudentInternship
+    val evaluation = sampleEvaluation
+
+    val progress = calculateInternshipProgress(activeInternship.startDate, activeInternship.endDate)
+
+    var animationStarted by remember { mutableStateOf(false) }
+    val animatedProgress by animateFloatAsState(
+        targetValue = if (animationStarted) progress else 0f,
+        animationSpec = tween(durationMillis = 1000),
+        label = "progress",
+    )
+    LaunchedEffect(Unit) { animationStarted = true }
+
+    val showEvaluateButton = evaluation.state == EvaluationState.READY_FOR_FINAL
+
     Scaffold(
         topBar = { SecondaryTopBar(title = "Detalhes do Estágio", onBack = { navController.popBackStack() }) },
         containerColor = BackgroundLight,
+        bottomBar = {
+            if (showEvaluateButton) {
+                Surface(
+                    color = Color.White,
+                    shadowElevation = 8.dp,
+                ) {
+                    Button(
+                        onClick = {
+                            navController.navigate(OrientadorRoutes.mentorStudentDetail(student.id))
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 12.dp)
+                            .height(50.dp)
+                            .background(Fade2, RoundedCornerShape(12.dp)),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                    ) {
+                        Icon(
+                            Icons.Outlined.Grade,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(20.dp),
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Avaliar estágio",
+                            color = Color.White,
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 15.sp,
+                        )
+                    }
+                }
+            }
+        },
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .verticalScroll(rememberScrollState()),
         ) {
-            // Fixed header with grey background
-            InternshipFixedHeader(internship = internship)
+            Spacer(modifier = Modifier.height(8.dp))
 
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState()),
-            ) {
-                Spacer(modifier = Modifier.height(12.dp))
+            InternshipHeader(
+                internship = activeInternship,
+                animatedProgress = animatedProgress,
+            )
 
-                // Meta chips (3 equal size)
-                InternshipMetaChips(internship = internship)
+            Spacer(modifier = Modifier.height(8.dp))
 
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Sobre a empresa
-                if (internship.aboutCompany.isNotEmpty()) {
-                    ContentSection(title = "Sobre a empresa") {
-                        Text(
-                            text = internship.aboutCompany,
-                            fontSize = 14.sp,
-                            color = DarkGrey,
-                            lineHeight = 22.sp,
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(12.dp))
-                }
-
-                // Responsabilidades
-                if (internship.responsibilities.isNotEmpty()) {
-                    ContentSection(title = "Responsabilidades") {
-                        internship.responsibilities.forEach { item ->
-                            ResponsibilityItem(text = item)
-                        }
-                        Spacer(modifier = Modifier.height(8.dp))
-                    }
-                    Spacer(modifier = Modifier.height(12.dp))
-                }
-
-                // Requisitos
-                if (internship.requirements.isNotEmpty()) {
-                    ContentSectionColored(title = "Requisitos") {
-                        internship.requirements.forEach { item ->
-                            CheckItem(text = item)
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(12.dp))
-                }
-
-                // Benefícios
-                if (internship.benefits.isNotEmpty()) {
-                    ContentSection(title = "Benefícios") {
-                        FlowRow(
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
-                            internship.benefits.forEach { benefit ->
-                                BenefitChip(text = benefit)
-                            }
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(12.dp))
-                }
-
-                // Aluno estagiário
-                InternshipStudentSection(student = student, navController = navController)
-
-                Spacer(modifier = Modifier.height(24.dp))
-            }
-        }
-    }
-}
-
-@Composable
-private fun InternshipFixedHeader(internship: MentorInternship) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Color.White)
-            .padding(bottom = 12.dp),
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-                .clip(RoundedCornerShape(12.dp))
-                .background(BackgroundLight)
-                .padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(44.dp)
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(internship.logoColor),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(
-                    text = internship.logoInitial,
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp,
-                )
-            }
-            Spacer(modifier = Modifier.width(12.dp))
-            Column {
-                Text(
-                    text = internship.offerTitle,
-                    fontSize = 15.sp,
+            Text(
+                text = "Atividade Recente",
+                style = MaterialTheme.typography.titleLarge.copy(
                     fontWeight = FontWeight.Bold,
                     color = DarkBlue,
-                )
-                Text(
-                    text = internship.businessInstitutionName,
-                    fontSize = 13.sp,
-                    color = LightBlue,
-                )
-            }
-        }
-    }
-}
+                ),
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+            )
 
-@Composable
-private fun InternshipMetaChips(internship: MentorInternship) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-            .height(IntrinsicSize.Min),
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-    ) {
-        MetaChip(
-            icon = Icons.Outlined.LocationOn,
-            label = "Localização",
-            value = internship.location,
-            modifier = Modifier.weight(1f).fillMaxHeight(),
-        )
-        MetaChip(
-            icon = Icons.Outlined.Schedule,
-            label = "Duração",
-            value = internship.duration,
-            modifier = Modifier.weight(1f).fillMaxHeight(),
-        )
-        MetaChip(
-            icon = Icons.Outlined.Work,
-            label = "Tipo",
-            value = internship.type,
-            modifier = Modifier.weight(1f).fillMaxHeight(),
-        )
+            activeInternship.activityLogs.forEach { activityLog ->
+                ActivityLogCard(
+                    activityLog = activityLog,
+                    onClick = {
+                        navController.navigate(OrientadorRoutes.mentorCheckpointDetail(activityLog.id))
+                    },
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            InternshipStudentSection(student = student, navController = navController)
+
+            Spacer(modifier = Modifier.height(24.dp))
+        }
     }
 }
 

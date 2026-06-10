@@ -27,6 +27,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Email
@@ -36,6 +37,7 @@ import androidx.compose.material.icons.outlined.KeyboardArrowDown
 import androidx.compose.material.icons.outlined.KeyboardArrowUp
 import androidx.compose.material.icons.automirrored.outlined.MenuBook
 import androidx.compose.material.icons.outlined.Phone
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -82,6 +84,7 @@ import turmaA.grupoB.LinkStage.ui.common.LinkStageTabRow
 import turmaA.grupoB.LinkStage.ui.common.SecondaryTopBar
 import turmaA.grupoB.LinkStage.ui.common.SectionLabel
 import turmaA.grupoB.LinkStage.ui.common.ConfirmationDialog
+import turmaA.grupoB.LinkStage.ui.common.CreateCheckpointDialog
 import turmaA.grupoB.LinkStage.ui.common.EvaluationReadOnlyCard
 import turmaA.grupoB.LinkStage.ui.common.formatGrade
 import turmaA.grupoB.LinkStage.ui.common.validateGrade
@@ -112,6 +115,16 @@ fun MentorStudentDetailScreen(
     val student = sampleMentorStudents.find { it.id == studentId } ?: return
     val evaluation = sampleEvaluation
     var selectedTab by remember { mutableIntStateOf(0) }
+    var showCreateCheckpointDialog by remember { mutableStateOf(false) }
+
+    if (showCreateCheckpointDialog) {
+        CreateCheckpointDialog(
+            onSave = { _, _, _ ->
+                showCreateCheckpointDialog = false
+            },
+            onDismiss = { showCreateCheckpointDialog = false },
+        )
+    }
 
     Scaffold(
         topBar = {
@@ -168,6 +181,18 @@ fun MentorStudentDetailScreen(
                 }
             }
         },
+        floatingActionButton = {
+            if (selectedTab == 1) {
+                FloatingActionButton(
+                    onClick = { showCreateCheckpointDialog = true },
+                    containerColor = DarkBlue,
+                    contentColor = Color.White,
+                    shape = CircleShape,
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = "Criar ponto de entrega")
+                }
+            }
+        },
         containerColor = BackgroundLight,
     ) { paddingValues ->
         AnimatedContent(
@@ -179,7 +204,7 @@ fun MentorStudentDetailScreen(
             when (tab) {
                 0 -> StudentDetailsTab(student, navController)
                 1 -> StudentWorkTab(navController)
-                2 -> StudentEvaluateTab(student, evaluation)
+                2 -> StudentEvaluateTab(student, evaluation, navController)
             }
         }
     }
@@ -329,6 +354,7 @@ private fun StudentWorkTab(navController: NavController) {
                 onClick = {
                     navController.navigate(OrientadorRoutes.mentorCheckpointDetail(activityLog.id))
                 },
+                showViewers = true,
             )
             Spacer(modifier = Modifier.height(8.dp))
         }
@@ -345,6 +371,7 @@ private fun StudentWorkTab(navController: NavController) {
 private fun StudentEvaluateTab(
     student: AdminStudent,
     evaluation: InternshipEvaluation,
+    navController: NavController,
 ) {
     val internship = sampleStudentInternship
     val progress = calculateInternshipProgress(internship.startDate, internship.endDate)
@@ -374,7 +401,7 @@ private fun StudentEvaluateTab(
         when (evaluation.state) {
             EvaluationState.PENDING -> PendingStateCard()
             EvaluationState.PARTIAL -> PartialStateContent(evaluation)
-            EvaluationState.READY_FOR_FINAL -> ReadyForFinalContent(student, evaluation)
+            EvaluationState.READY_FOR_FINAL -> ReadyForFinalContent(student, evaluation, navController)
             EvaluationState.COMPLETED -> CompletedStateContent(evaluation)
         }
 
@@ -483,6 +510,7 @@ private fun PartialStateContent(evaluation: InternshipEvaluation) {
 private fun ReadyForFinalContent(
     student: AdminStudent,
     evaluation: InternshipEvaluation,
+    navController: NavController,
 ) {
     var observation by remember { mutableStateOf("") }
     var gradeText by remember { mutableStateOf("") }
@@ -497,7 +525,10 @@ private fun ReadyForFinalContent(
             body = "Ao atribuir a nota final de ${formatGrade(parsedGrade)} valores ao aluno, esta ação não poderá ser revertida. Tem a certeza que pretende continuar?",
             confirmLabel = "Atribuir",
             isDanger = false,
-            onConfirm = { showConfirmDialog = false },
+            onConfirm = {
+                showConfirmDialog = false
+                navController.navigate(OrientadorRoutes.finalGradeSubmittedRoute(evaluation.internshipId))
+            },
             onDismiss = { showConfirmDialog = false },
         )
     }

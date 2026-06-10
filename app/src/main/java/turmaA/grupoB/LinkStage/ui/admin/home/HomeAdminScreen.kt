@@ -23,6 +23,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -38,11 +42,14 @@ import turmaA.grupoB.LinkStage.ui.admin.AdminInstitution
 import turmaA.grupoB.LinkStage.ui.admin.AdminMentor
 import turmaA.grupoB.LinkStage.ui.admin.AdminRoutes
 import turmaA.grupoB.LinkStage.ui.admin.AdminStudent
+import turmaA.grupoB.LinkStage.ui.admin.InstitutionStatus
 import turmaA.grupoB.LinkStage.ui.admin.avatarColors
 import turmaA.grupoB.LinkStage.ui.admin.sampleInstitutions
 import turmaA.grupoB.LinkStage.ui.admin.sampleMentors
 import turmaA.grupoB.LinkStage.ui.admin.sampleStudents
 import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
+import turmaA.grupoB.LinkStage.ui.common.EvaluationNotificationModal
+import turmaA.grupoB.LinkStage.ui.common.EvaluationPendingCard
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
@@ -53,6 +60,28 @@ fun HomeAdminScreen(
     navController: NavController,
     modifier: Modifier = Modifier,
 ) {
+    val pendingInstitutions = sampleInstitutions.filter { it.status == InstitutionStatus.PENDING_APPROVAL }
+    var showPendingModal by remember { mutableStateOf(pendingInstitutions.isNotEmpty()) }
+
+    if (showPendingModal) {
+        EvaluationNotificationModal(
+            title = "Novas Instituições Pendentes",
+            message = "Existem ${pendingInstitutions.size} instituição(ões) a aguardar aprovação. " +
+                "Por favor, reveja e aprove ou rejeite os pedidos de registo.",
+            actionLabel = "Rever pedidos",
+            onAction = {
+                navController.navigate(AdminRoutes.INSTITUTIONS) {
+                    popUpTo(navController.graph.findStartDestination().id) {
+                        saveState = true
+                    }
+                    launchSingleTop = true
+                    restoreState = true
+                }
+            },
+            onDismiss = { showPendingModal = false },
+        )
+    }
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -85,7 +114,24 @@ fun HomeAdminScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp),
         ) {
-            Spacer(modifier = Modifier.height(8.dp))
+            if (pendingInstitutions.isNotEmpty()) {
+                EvaluationPendingCard(
+                    title = "Aprovações pendentes",
+                    message = "${pendingInstitutions.size} instituição(ões) aguarda(m) aprovação.",
+                    actionLabel = "Rever pedidos",
+                    isDanger = false,
+                    onClick = {
+                        navController.navigate(AdminRoutes.INSTITUTIONS) {
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+            }
 
             // Novos alunos
             SectionHeader(

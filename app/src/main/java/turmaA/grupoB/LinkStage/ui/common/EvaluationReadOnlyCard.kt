@@ -1,5 +1,6 @@
 package turmaA.grupoB.LinkStage.ui.common
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -36,6 +37,7 @@ fun EvaluationReadOnlyCard(
     name: String,
     grade: Float,
     observation: String?,
+    highlight: Boolean = false,
 ) {
     val initials = name.split(" ")
         .filter { it.isNotEmpty() }
@@ -48,7 +50,10 @@ fun EvaluationReadOnlyCard(
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 4.dp),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(
+            containerColor = if (highlight) LightBlue.copy(alpha = 0.06f) else Color.White,
+        ),
+        border = if (highlight) BorderStroke(2.dp, LightBlue) else null,
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
     ) {
         Column(modifier = Modifier.padding(14.dp)) {

@@ -38,7 +38,9 @@ import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.FilterList
 import androidx.compose.material.icons.outlined.RadioButtonUnchecked
+import androidx.compose.material.icons.outlined.School
 import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.Work
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -129,6 +131,9 @@ data class ActivityLog(
     val hasSubmitted: Boolean = false,
     val submittedAt: LocalDate? = null,
     val submittedFiles: List<CheckpointFile> = emptyList(),
+    val createdBy: String = "STUDENT",
+    val createdByName: String = "",
+    val viewers: List<turmaA.grupoB.LinkStage.ui.orientador.CheckpointViewer> = emptyList(),
 )
 
 data class ActiveInternship(
@@ -670,6 +675,7 @@ fun InternshipHeader(
 fun ActivityLogCard(
     activityLog: ActivityLog,
     onClick: () -> Unit = {},
+    showViewers: Boolean = false,
 ) {
     val isCompleted = activityLog.status == ActivityLogStatus.COMPLETED
 
@@ -717,6 +723,26 @@ fun ActivityLogCard(
                     text = activityLog.title,
                     style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
                 )
+
+                if (activityLog.createdBy == "MENTOR") {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Outlined.School,
+                            contentDescription = null,
+                            tint = LightBlue,
+                            modifier = Modifier.size(12.dp),
+                        )
+                        Text(
+                            text = "Definido pelo orientador",
+                            fontSize = 11.sp,
+                            color = LightBlue,
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.padding(start = 4.dp),
+                        )
+                    }
+                }
+
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = activityLog.description,
@@ -738,6 +764,24 @@ fun ActivityLogCard(
                         style = MaterialTheme.typography.labelSmall,
                         color = DarkGrey,
                     )
+                }
+
+                if (showViewers && activityLog.viewers.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Outlined.Visibility,
+                            contentDescription = null,
+                            tint = DarkGrey,
+                            modifier = Modifier.size(13.dp),
+                        )
+                        Text(
+                            text = "Revisto por ${activityLog.viewers.size} pessoa(s)",
+                            color = DarkGrey,
+                            fontSize = 11.sp,
+                            modifier = Modifier.padding(start = 4.dp),
+                        )
+                    }
                 }
             }
         }

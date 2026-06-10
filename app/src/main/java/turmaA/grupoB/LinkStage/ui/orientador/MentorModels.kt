@@ -8,6 +8,15 @@ import turmaA.grupoB.LinkStage.ui.aluno.activity.ActivityLogStatus
 import turmaA.grupoB.LinkStage.ui.aluno.activity.CheckpointFile
 import java.time.LocalDate
 
+enum class CheckpointCreatedBy { STUDENT, MENTOR }
+
+data class CheckpointViewer(
+    val viewerId: String,
+    val viewerName: String,
+    val viewerRole: String,
+    val viewedAt: String,
+)
+
 data class MentorInternship(
     val id: String,
     val offerTitle: String,
@@ -163,14 +172,22 @@ val sampleMentorActivityLogs = listOf(
             CheckpointFile("f1", "PPT ponto de controlo"),
             CheckpointFile("f2", "relatório atualizado"),
         ),
+        createdBy = "STUDENT",
+        viewers = listOf(
+            CheckpointViewer("m1", "Prof. Carvalho", "Orientador Escolar", "Hoje às 14:32"),
+            CheckpointViewer("i1", "Viana S.T.Arts", "Instituição", "Ontem às 09:15"),
+        ),
     ),
     ActivityLog(
-        "2", "Ponto de Controlo 2", "Foquei-me em desenhar as primeiras mockups.",
-        LocalDate.of(2026, 5, 5), ActivityLogStatus.PENDING,
+        "2", "Relatório Intercalar", "Submeter relatório com progresso até à data.",
+        LocalDate.of(2026, 3, 15), ActivityLogStatus.PENDING,
         "Viana S.T.Arts", "V", Color(0xFF212121),
         requirements = listOf("PPT com o trabalho realizado.", "Relatório atualizado.", "Documentação adicional."),
         hasSubmitted = false,
         submittedFiles = emptyList(),
+        createdBy = "MENTOR",
+        createdByName = "Prof. Carvalho",
+        viewers = emptyList(),
     ),
 )
 

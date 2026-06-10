@@ -20,11 +20,13 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.RateReview
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -53,12 +55,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import turmaA.grupoB.LinkStage.ui.aluno.activity.ActivityLogCard
 import turmaA.grupoB.LinkStage.ui.aluno.chat.avatarColors
 import turmaA.grupoB.LinkStage.ui.common.ConfirmationDialog
+import turmaA.grupoB.LinkStage.ui.common.CreateCheckpointDialog
 import turmaA.grupoB.LinkStage.ui.common.EvaluationReadOnlyCard
 import turmaA.grupoB.LinkStage.ui.common.SectionLabel
 import turmaA.grupoB.LinkStage.ui.common.formatGrade
 import turmaA.grupoB.LinkStage.ui.common.validateGrade
+import turmaA.grupoB.LinkStage.ui.instituicao.InstituicaoRoutes
 import turmaA.grupoB.LinkStage.ui.instituicao.InstitutionInternship
 import turmaA.grupoB.LinkStage.ui.instituicao.InternshipOrigin
 import turmaA.grupoB.LinkStage.ui.instituicao.InternshipStatus
@@ -68,6 +73,7 @@ import turmaA.grupoB.LinkStage.ui.instituicao.sampleInstitutionInternships
 import turmaA.grupoB.LinkStage.ui.orientador.EvaluationState
 import turmaA.grupoB.LinkStage.ui.orientador.InternshipEvaluation
 import turmaA.grupoB.LinkStage.ui.orientador.InternshipType
+import turmaA.grupoB.LinkStage.ui.orientador.sampleMentorActivityLogs
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
@@ -96,9 +102,30 @@ fun InternshipDetailInstituicaoScreen(
         )
     }
 
+    var showCreateCheckpointDialog by remember { mutableStateOf(false) }
+
+    if (showCreateCheckpointDialog) {
+        CreateCheckpointDialog(
+            onSave = { _, _, _ ->
+                showCreateCheckpointDialog = false
+            },
+            onDismiss = { showCreateCheckpointDialog = false },
+        )
+    }
+
     Scaffold(
         modifier = modifier.fillMaxSize(),
         containerColor = BackgroundLight,
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { showCreateCheckpointDialog = true },
+                containerColor = DarkBlue,
+                contentColor = Color.White,
+                shape = CircleShape,
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Criar ponto de entrega")
+            }
+        },
         topBar = {
             Column(modifier = Modifier.background(Color.White)) {
                 Row(
@@ -146,14 +173,22 @@ fun InternshipDetailInstituicaoScreen(
             )
             Spacer(modifier = Modifier.height(8.dp))
 
-            ActivityPlaceholderCard("Reunião de acompanhamento", "Concluído", LightBlue)
-            ActivityPlaceholderCard("Entrega do relatório parcial", "Pendente", Color(0xFFF5C518))
-            ActivityPlaceholderCard("Apresentação de progresso", "Agendado", DarkGrey)
+            sampleMentorActivityLogs.forEach { activityLog ->
+                ActivityLogCard(
+                    activityLog = activityLog,
+                    showViewers = true,
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 
             if (evaluation != null) {
-                InstitutionEvaluationSection(evaluation = evaluation)
+                InstitutionEvaluationSection(
+                    evaluation = evaluation,
+                    internshipId = internshipId,
+                    navController = navController,
+                )
             }
 
             Spacer(modifier = Modifier.height(80.dp))
@@ -358,10 +393,17 @@ private fun ActivityPlaceholderCard(
 // region Institution Evaluation Section
 
 @Composable
-private fun InstitutionEvaluationSection(evaluation: InternshipEvaluation) {
+private fun InstitutionEvaluationSection(
+    evaluation: InternshipEvaluation,
+    internshipId: String,
+    navController: NavController,
+) {
     when (evaluation.state) {
         EvaluationState.PENDING -> {
-            InstitutionEvaluationForm()
+            InstitutionEvaluationForm(
+                internshipId = internshipId,
+                navController = navController,
+            )
         }
         EvaluationState.PARTIAL, EvaluationState.READY_FOR_FINAL -> {
             Text(
@@ -411,7 +453,10 @@ private fun InstitutionEvaluationSection(evaluation: InternshipEvaluation) {
 }
 
 @Composable
-private fun InstitutionEvaluationForm() {
+private fun InstitutionEvaluationForm(
+    internshipId: String,
+    navController: NavController,
+) {
     var observation by remember { mutableStateOf("") }
     var gradeText by remember { mutableStateOf("") }
     var gradeError by remember { mutableStateOf(false) }
@@ -425,7 +470,10 @@ private fun InstitutionEvaluationForm() {
             body = "Tem a certeza que pretende submeter a avaliação institucional? Esta ação não poderá ser revertida.",
             confirmLabel = "Submeter",
             isDanger = false,
-            onConfirm = { showConfirmDialog = false },
+            onConfirm = {
+                showConfirmDialog = false
+                navController.navigate(InstituicaoRoutes.evaluationSubmittedRoute(internshipId))
+            },
             onDismiss = { showConfirmDialog = false },
         )
     }

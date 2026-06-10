@@ -43,6 +43,7 @@ import turmaA.grupoB.LinkStage.ui.instituicao.offers.OfferDetailInstituicaoScree
 import turmaA.grupoB.LinkStage.ui.instituicao.offers.OfferFormInstituicaoScreen
 import turmaA.grupoB.LinkStage.ui.instituicao.offers.OfferSuccessInstituicaoScreen
 import turmaA.grupoB.LinkStage.ui.instituicao.offers.OffersInstituicaoScreen
+import turmaA.grupoB.LinkStage.ui.common.EvaluationSubmittedScreen
 import turmaA.grupoB.LinkStage.ui.instituicao.settings.NotificationsInstituicaoScreen
 import turmaA.grupoB.LinkStage.ui.instituicao.settings.SettingsInstituicaoScreen
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
@@ -64,6 +65,7 @@ object InstituicaoRoutes {
     const val ASSIGN_MENTOR = "assign_mentor/{mentorId}"
     const val MENTOR_ASSIGNED_SUCCESS = "mentor_assigned_success"
     const val INTERNSHIP_DETAIL = "instituicao_internship_detail/{internshipId}"
+    const val EVALUATION_SUBMITTED = "evaluation_submitted/{internshipId}"
     const val PRIVACY_POLICY = "instituicao_privacy_policy"
 
     fun chatRoute(conversationId: String) = "instituicao_chat/$conversationId"
@@ -74,6 +76,7 @@ object InstituicaoRoutes {
     fun mentorDetailRoute(mentorId: String) = "instituicao_mentor/$mentorId"
     fun assignMentorRoute(mentorId: String) = "assign_mentor/$mentorId"
     fun internshipDetailRoute(internshipId: String) = "instituicao_internship_detail/$internshipId"
+    fun evaluationSubmittedRoute(internshipId: String) = "evaluation_submitted/$internshipId"
 }
 
 private data class InstituicaoTab(
@@ -273,6 +276,16 @@ fun InstituicaoMainScreen(onLogout: () -> Unit = {}) {
                 val applicationId = backStackEntry.arguments?.getString("applicationId") ?: return@composable
                 ApplicationDetailInstituicaoScreen(
                     applicationId = applicationId,
+                    navController = navController,
+                )
+            }
+            composable(
+                route = InstituicaoRoutes.EVALUATION_SUBMITTED,
+                arguments = listOf(navArgument("internshipId") { type = NavType.StringType }),
+            ) { backStackEntry ->
+                val internshipId = backStackEntry.arguments?.getString("internshipId") ?: return@composable
+                EvaluationSubmittedScreen(
+                    internshipId = internshipId,
                     navController = navController,
                 )
             }

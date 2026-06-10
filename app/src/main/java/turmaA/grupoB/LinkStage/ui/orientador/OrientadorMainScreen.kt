@@ -26,6 +26,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import turmaA.grupoB.LinkStage.ui.common.FinalGradeSubmittedScreen
 import turmaA.grupoB.LinkStage.ui.aluno.chat.ChatScreen
 import turmaA.grupoB.LinkStage.ui.aluno.chat.Conversation
 import turmaA.grupoB.LinkStage.ui.aluno.chat.sampleContacts
@@ -54,12 +55,14 @@ object OrientadorRoutes {
     const val MENTOR_STUDENT_DETAIL = "mentor_student/{studentId}"
     const val MENTOR_CHECKPOINT_DETAIL = "mentor_checkpoint/{checkpointId}"
     const val MENTOR_INTERNSHIP_DETAIL = "mentor_internship/{internshipId}"
+    const val FINAL_GRADE_SUBMITTED = "final_grade_submitted/{internshipId}"
     const val PRIVACY_POLICY = "orientador_privacy_policy"
 
     fun chatRoute(conversationId: String) = "orientador_chat/$conversationId"
     fun mentorStudentDetail(studentId: String) = "mentor_student/$studentId"
     fun mentorCheckpointDetail(checkpointId: String) = "mentor_checkpoint/$checkpointId"
     fun mentorInternshipDetail(internshipId: String) = "mentor_internship/$internshipId"
+    fun finalGradeSubmittedRoute(internshipId: String) = "final_grade_submitted/$internshipId"
 }
 
 private data class OrientadorTab(
@@ -215,6 +218,16 @@ fun OrientadorMainScreen(onLogout: () -> Unit = {}) {
             ) { backStackEntry ->
                 val internshipId = backStackEntry.arguments?.getString("internshipId") ?: return@composable
                 MentorInternshipDetailScreen(
+                    internshipId = internshipId,
+                    navController = navController,
+                )
+            }
+            composable(
+                route = OrientadorRoutes.FINAL_GRADE_SUBMITTED,
+                arguments = listOf(navArgument("internshipId") { type = NavType.StringType }),
+            ) { backStackEntry ->
+                val internshipId = backStackEntry.arguments?.getString("internshipId") ?: return@composable
+                FinalGradeSubmittedScreen(
                     internshipId = internshipId,
                     navController = navController,
                 )

@@ -1,6 +1,7 @@
 package turmaA.grupoB.LinkStage.ui.orientador.students
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,9 +13,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.School
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -25,6 +28,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -70,6 +74,29 @@ fun MentorCheckpointDetailScreen(
                 color = DarkBlue,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
             )
+
+            if (activityLog.createdBy == "MENTOR") {
+                Row(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 2.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.School,
+                        contentDescription = null,
+                        tint = LightBlue,
+                        modifier = Modifier.size(14.dp),
+                    )
+                    Text(
+                        text = "Definido pelo orientador" +
+                            if (activityLog.createdByName.isNotEmpty()) " — ${activityLog.createdByName}" else "",
+                        fontSize = 12.sp,
+                        color = LightBlue,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.padding(start = 6.dp),
+                    )
+                }
+                Spacer(modifier = Modifier.height(4.dp))
+            }
 
             // Delivery date
             Card(
@@ -127,6 +154,64 @@ fun MentorCheckpointDetailScreen(
                     Column(modifier = Modifier.padding(vertical = 8.dp)) {
                         activityLog.submittedFiles.forEach { file ->
                             ExpandableFileRow(file = file)
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Viewers section
+            if (activityLog.viewers.isNotEmpty()) {
+                ContentSection(title = "Revisto por") {
+                    Column(
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        activityLog.viewers.forEach { viewer ->
+                            val initials = viewer.viewerName.split(" ")
+                                .filter { it.isNotEmpty() }
+                                .map { it.first() }
+                                .take(2)
+                                .joinToString("")
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(32.dp)
+                                        .clip(CircleShape)
+                                        .background(LightBlue.copy(alpha = 0.2f)),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    Text(
+                                        text = initials,
+                                        color = LightBlue,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 11.sp,
+                                    )
+                                }
+                                Column(
+                                    modifier = Modifier
+                                        .padding(start = 10.dp)
+                                        .weight(1f),
+                                ) {
+                                    Text(
+                                        text = viewer.viewerName,
+                                        color = DarkBlue,
+                                        fontWeight = FontWeight.SemiBold,
+                                        fontSize = 13.sp,
+                                    )
+                                    Text(
+                                        text = viewer.viewerRole,
+                                        color = DarkGrey,
+                                        fontSize = 11.sp,
+                                    )
+                                }
+                                Text(
+                                    text = viewer.viewedAt,
+                                    color = DarkGrey,
+                                    fontSize = 11.sp,
+                                )
+                            }
                         }
                     }
                 }
