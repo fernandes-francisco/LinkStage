@@ -13,12 +13,15 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
+import turmaA.grupoB.LinkStage.R
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
@@ -79,17 +82,17 @@ object AlunoRoutes {
 }
 
 private data class AlunoTab(
-    val title: String,
+    @StringRes val titleResId: Int,
     val icon: ImageVector,
     val route: String,
 )
 
 private val alunoTabs = listOf(
-    AlunoTab("Ínicio", Icons.Outlined.Home, AlunoRoutes.HOME),
-    AlunoTab("Estágios", Icons.Outlined.Work, AlunoRoutes.DISCOVER),
-    AlunoTab("Atividade", Icons.Outlined.History, AlunoRoutes.ACTIVITY),
-    AlunoTab("Mensagens", Icons.AutoMirrored.Outlined.Chat, AlunoRoutes.MESSAGES),
-    AlunoTab("Definições", Icons.Outlined.Settings, AlunoRoutes.SETTINGS),
+    AlunoTab(R.string.tab_home, Icons.Outlined.Home, AlunoRoutes.HOME),
+    AlunoTab(R.string.tab_internships, Icons.Outlined.Work, AlunoRoutes.DISCOVER),
+    AlunoTab(R.string.tab_activity, Icons.Outlined.History, AlunoRoutes.ACTIVITY),
+    AlunoTab(R.string.tab_messages, Icons.AutoMirrored.Outlined.Chat, AlunoRoutes.MESSAGES),
+    AlunoTab(R.string.tab_settings, Icons.Outlined.Settings, AlunoRoutes.SETTINGS),
 )
 
 @Composable
@@ -125,8 +128,8 @@ fun AlunoMainScreen(onLogout: () -> Unit = {}) {
                                     }
                                 }
                             },
-                            icon = { Icon(tab.icon, contentDescription = tab.title) },
-                            label = { Text(tab.title) },
+                            icon = { Icon(tab.icon, contentDescription = stringResource(tab.titleResId)) },
+                            label = { Text(stringResource(tab.titleResId)) },
                             colors = NavigationBarItemDefaults.colors(
                                 selectedIconColor = LightBlue,
                                 selectedTextColor = LightBlue,

@@ -52,6 +52,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -61,6 +62,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.admin.sampleMentors
 import turmaA.grupoB.LinkStage.ui.aluno.apply.skillCategories
 import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
@@ -101,9 +103,11 @@ fun OfferFormInstituicaoScreen(
 
     if (showPublishDialog) {
         ConfirmationDialog(
-            title = "Publicar oferta?",
-            body = "A oferta ficará visível para os estudantes da comunidade LinkStage.",
-            confirmLabel = "Publicar",
+            title = if (offerId == "new") stringResource(R.string.offer_form_publish_title) else stringResource(R.string.offer_form_save_title),
+            body = if (offerId == "new")
+                stringResource(R.string.offer_form_publish_body)
+            else stringResource(R.string.offer_form_edit_body),
+            confirmLabel = if (offerId == "new") stringResource(R.string.offer_form_publish_button) else stringResource(R.string.common_save),
             onConfirm = {
                 showPublishDialog = false
                 viewModel.createOffer()
@@ -130,12 +134,12 @@ fun OfferFormInstituicaoScreen(
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Voltar",
+                            contentDescription = stringResource(R.string.common_back_content_desc),
                             tint = DarkBlue
                         )
                     }
                     Text(
-                        text = "Criar Oferta",
+                        text = if (offerId == "new") stringResource(R.string.offer_form_create_title) else stringResource(R.string.offer_form_edit_title),
                         style = MaterialTheme.typography.titleLarge.copy(
                             fontWeight = FontWeight.Bold,
                             color = DarkBlue,
@@ -159,9 +163,9 @@ fun OfferFormInstituicaoScreen(
 
             // Step title + subtitle
             val (stepTitle, stepSubtitle) = when (currentStep) {
-                0 -> "Detalhes" to "Preencha os detalhes da oferta de estágio."
-                1 -> "Requisitos e Logística" to "Indique os requisitos que o candidato deve cumprir."
-                else -> "Rever Oferta" to "Reveja os dados antes de publicar."
+                0 -> stringResource(R.string.offer_form_step0_title) to stringResource(R.string.offer_form_step0_subtitle)
+                1 -> stringResource(R.string.offer_form_step1_title) to stringResource(R.string.offer_form_step1_subtitle)
+                else -> stringResource(R.string.offer_form_step2_title) to stringResource(R.string.offer_form_step2_subtitle)
             }
             Column(modifier = Modifier.padding(horizontal = 20.dp)) {
                 Text(text = stepTitle, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = DarkBlue)
@@ -205,7 +209,7 @@ fun OfferFormInstituicaoScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 LinkStageButton(
-                    text = if (currentStep == 2) "Publicar oferta" else "Seguinte",
+                    text = if (currentStep == 2) stringResource(R.string.offer_form_publish_offer) else stringResource(R.string.offer_form_next),
                     onClick = {
                         when (currentStep) {
                             0 -> {
@@ -234,7 +238,7 @@ fun OfferFormInstituicaoScreen(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 LinkStageOutlinedButton(
-                    text = "Voltar",
+                    text = stringResource(R.string.common_back),
                     onClick = {
                         if (currentStep == 0) {
                             navController.popBackStack()
@@ -328,26 +332,26 @@ private fun StepDetails(
     ) {
         // Tipo de estágio (escola vs empresa)
         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            SectionLabel("Tipo de estágio")
+            SectionLabel(stringResource(R.string.offer_form_internship_type))
             LinkStageTabRow(
-                tabs = listOf("Escolar", "Empresa"),
+                tabs = listOf(stringResource(R.string.offer_form_type_school), stringResource(R.string.offer_form_type_company)),
                 selectedIndex = if (viewModel.isCompanyOffer) 1 else 0,
                 onTabSelected = { viewModel.isCompanyOffer = it == 1 }
             )
             Text(
                 text = if (viewModel.isCompanyOffer)
-                    "Estágios em empresa requerem um orientador escolar e um orientador da empresa."
+                    stringResource(R.string.offer_form_company_hint)
                 else
-                    "Estágios escolares requerem apenas um orientador da instituição de ensino.",
+                    stringResource(R.string.offer_form_school_hint),
                 color = DarkGrey, fontSize = 12.sp,
             )
         }
 
         // Orientador escolar
         OfferDropdown(
-            label = "Orientador escolar",
+            label = stringResource(R.string.offer_form_school_mentor),
             value = viewModel.schoolMentorName,
-            placeholder = "Escolha o orientador da instituição",
+            placeholder = stringResource(R.string.offer_form_school_mentor_placeholder),
             options = sampleMentors.map { it.name },
             onOptionSelected = { name ->
                 viewModel.schoolMentorName = name
@@ -358,27 +362,27 @@ private fun StepDetails(
         // Orientador da empresa (só visível se for estágio empresa)
         if (viewModel.isCompanyOffer) {
             OfferTextField(
-                label = "Orientador da empresa",
+                label = stringResource(R.string.offer_form_company_mentor),
                 value = viewModel.companyMentorName,
                 onValueChange = { viewModel.companyMentorName = it },
-                placeholder = "Nome do orientador designado pela empresa",
+                placeholder = stringResource(R.string.offer_form_company_mentor_placeholder),
             )
         }
 
         // Título
         OfferTextField(
-            label = "Título",
+            label = stringResource(R.string.offer_form_title_label),
             value = viewModel.title,
             onValueChange = { viewModel.title = it },
-            placeholder = "Ex: Estágio de Engenheiro de Software",
+            placeholder = stringResource(R.string.offer_form_title_placeholder),
             isError = titleError,
         )
 
         // Categoria
         OfferDropdown(
-            label = "Categoria",
+            label = stringResource(R.string.offer_form_category),
             value = viewModel.category,
-            placeholder = "Escolha uma categoria",
+            placeholder = stringResource(R.string.offer_form_category_placeholder),
             options = categoryOptions,
             onOptionSelected = { viewModel.category = it },
             isError = categoryError,
@@ -386,10 +390,10 @@ private fun StepDetails(
 
         // Descrição
         OfferTextField(
-            label = "Descrição",
+            label = stringResource(R.string.offer_form_description),
             value = viewModel.description,
             onValueChange = { viewModel.description = it },
-            placeholder = "Descreva a missão, a equipa e o que o estagiário irá aprender...",
+            placeholder = stringResource(R.string.offer_form_description_placeholder),
             singleLine = false,
             minLines = 4,
             maxLines = 8,
@@ -419,10 +423,10 @@ private fun StepRequirements(
     ) {
         // Requisitos
         OfferTextField(
-            label = "Requisitos da candidatura",
+            label = stringResource(R.string.offer_form_requirements),
             value = viewModel.requirements,
             onValueChange = { viewModel.requirements = it },
-            placeholder = "Indique competências, ferramentas ou formação académica necessária...",
+            placeholder = stringResource(R.string.offer_form_requirements_placeholder),
             singleLine = false,
             minLines = 4,
             maxLines = 8,
@@ -430,7 +434,7 @@ private fun StepRequirements(
 
         // Local
         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            SectionLabel("Local")
+            SectionLabel(stringResource(R.string.offer_form_location))
             OutlinedTextField(
                 value = viewModel.location,
                 onValueChange = { viewModel.location = it },
@@ -443,7 +447,7 @@ private fun StepRequirements(
                         modifier = Modifier.size(18.dp),
                     )
                 },
-                placeholder = { Text("Remoto ou nome da cidade", color = DarkGrey, fontSize = 14.sp) },
+                placeholder = { Text(stringResource(R.string.offer_form_location_placeholder), color = DarkGrey, fontSize = 14.sp) },
                 shape = RoundedCornerShape(10.dp),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = if (locationError) Red else LightBlue,
@@ -457,13 +461,13 @@ private fun StepRequirements(
                 isError = locationError,
             )
             if (locationError) {
-                Text("Este campo é obrigatório", color = Red, fontSize = 12.sp)
+                Text(stringResource(R.string.common_required_field), color = Red, fontSize = 12.sp)
             }
         }
 
         // Data de fecho
         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            SectionLabel("Data de fecho de candidaturas")
+            SectionLabel(stringResource(R.string.offer_form_deadline))
             OutlinedTextField(
                 value = viewModel.deadline,
                 onValueChange = { newValue ->
@@ -489,7 +493,7 @@ private fun StepRequirements(
                         modifier = Modifier.size(18.dp),
                     )
                 },
-                placeholder = { Text("dd/mm/aaaa", color = DarkGrey, fontSize = 14.sp) },
+                placeholder = { Text(stringResource(R.string.checkpoint_deadline_placeholder), color = DarkGrey, fontSize = 14.sp) },
                 shape = RoundedCornerShape(10.dp),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = if (deadlineError) Red else LightBlue,
@@ -504,7 +508,7 @@ private fun StepRequirements(
                 isError = deadlineError,
             )
             if (deadlineError) {
-                Text("Formato de data inválido (dd/mm/aaaa)", color = Red, fontSize = 12.sp)
+                Text(stringResource(R.string.offer_form_deadline_error), color = Red, fontSize = 12.sp)
             }
         }
 
@@ -524,34 +528,34 @@ private fun StepReview(viewModel: OfferFormViewModel) {
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 20.dp),
     ) {
-        ReviewRow(label = "Título", value = viewModel.title)
+        ReviewRow(label = stringResource(R.string.offer_form_title_label), value = viewModel.title)
         ReviewRow(
-            label = "Tipo",
-            value = if (viewModel.isCompanyOffer) "Empresa" else "Escolar",
+            label = stringResource(R.string.offer_form_review_type),
+            value = if (viewModel.isCompanyOffer) stringResource(R.string.offer_form_type_company) else stringResource(R.string.offer_form_type_school),
         )
         ReviewRow(
-            label = "Orientador escolar",
-            value = viewModel.schoolMentorName.ifBlank { "Não atribuído" },
+            label = stringResource(R.string.offer_form_school_mentor),
+            value = viewModel.schoolMentorName.ifBlank { stringResource(R.string.offer_form_not_assigned) },
             valueColor = if (viewModel.schoolMentorName.isBlank()) DarkGrey else DarkBlue,
         )
         if (viewModel.isCompanyOffer) {
             ReviewRow(
-                label = "Orientador empresa",
-                value = viewModel.companyMentorName.ifBlank { "Não atribuído" },
+                label = stringResource(R.string.offer_form_company_mentor_short),
+                value = viewModel.companyMentorName.ifBlank { stringResource(R.string.offer_form_not_assigned) },
                 valueColor = if (viewModel.companyMentorName.isBlank()) DarkGrey else DarkBlue,
             )
         }
-        ReviewRow(label = "Categoria", value = viewModel.category)
-        ReviewRow(label = "Local", value = viewModel.location)
-        ReviewRow(label = "Data de fecho", value = viewModel.deadline)
+        ReviewRow(label = stringResource(R.string.offer_form_category), value = viewModel.category)
+        ReviewRow(label = stringResource(R.string.offer_form_location), value = viewModel.location)
+        ReviewRow(label = stringResource(R.string.offer_form_review_deadline), value = viewModel.deadline)
         ReviewRow(
-            label = "Requisitos",
-            value = if (viewModel.requirements.isNotBlank()) "Completo" else "Sem informação",
+            label = stringResource(R.string.offer_form_review_requirements),
+            value = if (viewModel.requirements.isNotBlank()) stringResource(R.string.common_complete) else stringResource(R.string.offer_form_no_info),
             valueColor = if (viewModel.requirements.isNotBlank()) LightBlue else DarkGrey,
         )
         ReviewRow(
-            label = "Descrição",
-            value = "Completo",
+            label = stringResource(R.string.offer_form_description),
+            value = stringResource(R.string.common_complete),
             valueColor = LightBlue,
         )
 
@@ -628,7 +632,7 @@ private fun OfferTextField(
             isError = isError,
         )
         if (isError) {
-            Text("Este campo é obrigatório", color = Red, fontSize = 12.sp)
+            Text(stringResource(R.string.common_required_field), color = Red, fontSize = 12.sp)
         }
     }
 }
@@ -690,7 +694,7 @@ private fun OfferDropdown(
             }
         }
         if (isError) {
-            Text("Este campo é obrigatório", color = Red, fontSize = 12.sp)
+            Text(stringResource(R.string.common_required_field), color = Red, fontSize = 12.sp)
         }
     }
 }

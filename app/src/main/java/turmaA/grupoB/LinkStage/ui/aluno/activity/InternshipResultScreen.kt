@@ -20,16 +20,15 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -41,6 +40,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import androidx.lifecycle.viewmodel.compose.viewModel
+import turmaA.grupoB.LinkStage.ui.common.SecondaryTopBar
 import turmaA.grupoB.LinkStage.ui.common.formatGrade
 import turmaA.grupoB.LinkStage.ui.orientador.EvaluationState
 import turmaA.grupoB.LinkStage.ui.orientador.InternshipEvaluation
@@ -51,6 +52,7 @@ import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.Fade2
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
+import turmaA.grupoB.LinkStage.viewmodel.HomeViewModel
 
 private val sampleResultEvaluation = InternshipEvaluation(
     internshipId = "int1",
@@ -67,32 +69,48 @@ private val sampleResultEvaluation = InternshipEvaluation(
     schoolMentorName = "Prof. Carvalho",
 )
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InternshipResultScreen(
     internshipId: String,
     navController: NavController,
+    homeViewModel: HomeViewModel = viewModel(),
 ) {
     val evaluation = sampleResultEvaluation
 
+    LaunchedEffect(Unit) {
+        homeViewModel.setHasSeenEvaluationResult(true)
+    }
+
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        "Resultado do Estágio",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp,
-                        color = DarkBlue,
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar", tint = DarkBlue)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White),
+            SecondaryTopBar(
+                title = "Resultado do Estágio",
+                onBack = { navController.popBackStack() }
             )
+        },
+        bottomBar = {
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                color = Color.White,
+                shadowElevation = 8.dp
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                        .height(50.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Fade2)
+                        .clickable { navController.popBackStack() },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        text = "Voltar ao Início",
+                        color = Color.White,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                }
+            }
         },
         containerColor = BackgroundLight,
     ) { paddingValues ->
@@ -143,32 +161,37 @@ fun InternshipResultScreen(
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp),
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = DarkBlue),
+                colors = CardDefaults.cardColors(containerColor = Color.Transparent),
             ) {
-                Column(
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .background(Fade2)
                         .padding(24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
+                    contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = "Nota Final",
-                        color = Color.White.copy(alpha = 0.8f),
-                        fontSize = 14.sp,
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = if (evaluation.schoolMentorGrade != null) formatGrade(evaluation.schoolMentorGrade) else "--",
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 48.sp,
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "em 20 valores",
-                        color = Color.White.copy(alpha = 0.7f),
-                        fontSize = 13.sp,
-                    )
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        Text(
+                            text = "Nota Final",
+                            color = Color.White.copy(alpha = 0.8f),
+                            fontSize = 14.sp,
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = if (evaluation.schoolMentorGrade != null) formatGrade(evaluation.schoolMentorGrade) else "--",
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 48.sp,
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "em 20 valores",
+                            color = Color.White.copy(alpha = 0.7f),
+                            fontSize = 13.sp,
+                        )
+                    }
                 }
             }
 
@@ -211,26 +234,6 @@ fun InternshipResultScreen(
                     mentorRole = "Instituição Escolar",
                     observation = evaluation.institutionObservation ?: "",
                     grade = formatGrade(evaluation.institutionGrade),
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Back button
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-                    .height(50.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(Fade2)
-                    .clickable { navController.popBackStack() },
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(
-                    text = "Voltar ao Início",
-                    color = Color.White,
-                    fontWeight = FontWeight.SemiBold,
                 )
             }
 

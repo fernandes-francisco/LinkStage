@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -35,6 +36,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
+import turmaA.grupoB.LinkStage.ui.theme.Fade2
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 
 @Composable
@@ -96,23 +98,33 @@ fun EvaluationNotificationModal(
 
                 Spacer(modifier = Modifier.height(4.dp))
 
-                Button(
-                    onClick = {
-                        onAction()
-                        onDismiss()
-                    },
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(48.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = DarkBlue),
+                        .height(48.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Fade2)
                 ) {
-                    Text(
-                        text = actionLabel,
-                        color = Color.White,
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 14.sp,
-                    )
+                    Button(
+                        onClick = {
+                            onAction()
+                            onDismiss()
+                        },
+                        modifier = Modifier.fillMaxSize(),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.Transparent,
+                            disabledContainerColor = Color.Transparent
+                        ),
+                        contentPadding = androidx.compose.foundation.layout.PaddingValues()
+                    ) {
+                        Text(
+                            text = actionLabel,
+                            color = Color.White,
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 14.sp,
+                        )
+                    }
                 }
 
                 TextButton(

@@ -72,7 +72,9 @@ import androidx.navigation.compose.rememberNavController
 import turmaA.grupoB.LinkStage.ui.aluno.chat.avatarColors
 import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
 import turmaA.grupoB.LinkStage.ui.common.ConfirmationDialog
+import turmaA.grupoB.LinkStage.ui.common.LinkStageButton
 import turmaA.grupoB.LinkStage.ui.common.LinkStageDialog
+import turmaA.grupoB.LinkStage.ui.common.LinkStageOutlinedButton
 import turmaA.grupoB.LinkStage.ui.common.LinkStageTabRow
 import turmaA.grupoB.LinkStage.ui.common.PasswordField
 import turmaA.grupoB.LinkStage.ui.common.SectionLabel
@@ -884,17 +886,14 @@ private fun CreateMentorDialog(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    OutlinedButton(
+                    LinkStageOutlinedButton(
+                        text = "Cancelar",
                         onClick = onDismiss,
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(48.dp),
-                        shape = RoundedCornerShape(10.dp),
-                        border = BorderStroke(1.dp, DarkBlue),
-                    ) {
-                        Text("Cancelar", color = DarkBlue, fontWeight = FontWeight.SemiBold)
-                    }
-                    Button(
+                        modifier = Modifier.weight(1f),
+                        height = 48.dp
+                    )
+                    LinkStageButton(
+                        text = "Criar conta",
                         onClick = {
                             var isValid = true
                             if (name.isBlank()) {
@@ -917,14 +916,9 @@ private fun CreateMentorDialog(
                                 showConfirmDialog = true
                             }
                         },
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(48.dp),
-                        shape = RoundedCornerShape(10.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = DarkBlue),
-                    ) {
-                        Text("Criar conta", color = Color.White, fontWeight = FontWeight.SemiBold)
-                    }
+                        modifier = Modifier.weight(1f),
+                        height = 48.dp
+                    )
                 }
             }
         }

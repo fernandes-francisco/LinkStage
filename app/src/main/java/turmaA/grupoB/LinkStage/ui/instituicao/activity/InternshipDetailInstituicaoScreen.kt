@@ -1,6 +1,7 @@
 package turmaA.grupoB.LinkStage.ui.instituicao.activity
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,6 +22,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.RateReview
 import androidx.compose.material3.Button
@@ -40,6 +42,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -48,11 +51,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import turmaA.grupoB.LinkStage.ui.aluno.activity.ActivityLogCard
@@ -60,6 +65,7 @@ import turmaA.grupoB.LinkStage.ui.aluno.chat.avatarColors
 import turmaA.grupoB.LinkStage.ui.common.ConfirmationDialog
 import turmaA.grupoB.LinkStage.ui.common.CreateCheckpointDialog
 import turmaA.grupoB.LinkStage.ui.common.EvaluationReadOnlyCard
+import turmaA.grupoB.LinkStage.ui.common.LinkStageButton
 import turmaA.grupoB.LinkStage.ui.common.SectionLabel
 import turmaA.grupoB.LinkStage.ui.common.formatGrade
 import turmaA.grupoB.LinkStage.ui.common.validateGrade
@@ -81,12 +87,14 @@ import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.Fade2
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.ui.theme.Red
+import turmaA.grupoB.LinkStage.viewmodel.InstitutionHomeViewModel
 
 @Composable
 fun InternshipDetailInstituicaoScreen(
     internshipId: String,
     navController: NavController,
     modifier: Modifier = Modifier,
+    institutionHomeViewModel: InstitutionHomeViewModel = viewModel(),
 ) {
     val internship = sampleInstitutionInternships.find { it.id == internshipId }
         ?: sampleInstitutionInternships.first()
@@ -100,6 +108,34 @@ fun InternshipDetailInstituicaoScreen(
             schoolMentorName = "Prof. Tiago Alex.",
             hasSeenNotification = false,
         )
+    }
+
+    // Evaluation Form State
+    var observation by remember { mutableStateOf("") }
+    var gradeText by remember { mutableStateOf("") }
+    var gradeError by remember { mutableStateOf(false) }
+    var showConfirmDialog by remember { mutableStateOf(false) }
+
+    val isFormValid = observation.isNotBlank() && validateGrade(gradeText) != null
+
+    if (showConfirmDialog) {
+        ConfirmationDialog(
+            title = "Submeter avaliação?",
+            body = "Tem a certeza que pretende submeter a avaliação institucional? Esta ação não poderá ser revertida.",
+            confirmLabel = "Submeter",
+            isDanger = false,
+            onConfirm = {
+                showConfirmDialog = false
+                navController.navigate(InstituicaoRoutes.evaluationSubmittedRoute(internshipId))
+            },
+            onDismiss = { showConfirmDialog = false },
+        )
+    }
+
+    LaunchedEffect(Unit) {
+        if (evaluation?.state == EvaluationState.PENDING) {
+            institutionHomeViewModel.setHasSeenEvaluations(true)
+        }
     }
 
     var showCreateCheckpointDialog by remember { mutableStateOf(false) }
@@ -122,6 +158,7 @@ fun InternshipDetailInstituicaoScreen(
                 containerColor = DarkBlue,
                 contentColor = Color.White,
                 shape = CircleShape,
+                modifier = Modifier.padding(bottom = if (evaluation?.state == EvaluationState.PENDING) 80.dp else 0.dp)
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Criar ponto de entrega")
             }
@@ -149,6 +186,60 @@ fun InternshipDetailInstituicaoScreen(
                             fontSize = 20.sp
                         )
                     )
+                }
+            }
+        },
+        bottomBar = {
+            Surface(
+                color = Color.White,
+                shadowElevation = 8.dp,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .navigationBarsPadding()
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    if (evaluation?.state == EvaluationState.PENDING) {
+                        LinkStageButton(
+                            text = "Submeter avaliação",
+                            onClick = {
+                                if (validateGrade(gradeText) == null) {
+                                    gradeError = true
+                                } else {
+                                    showConfirmDialog = true
+                                }
+                            },
+                            enabled = isFormValid,
+                            height = 48.dp,
+                            brush = Fade2
+                        )
+                    }
+
+                    Button(
+                        onClick = { },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp)
+                            .background(
+                                brush = if (evaluation?.state == EvaluationState.PENDING) SolidColor(Color.Transparent) else Fade2,
+                                shape = RoundedCornerShape(10.dp)
+                            )
+                            .border(
+                                width = if (evaluation?.state == EvaluationState.PENDING) 1.dp else 0.dp,
+                                brush = if (evaluation?.state == EvaluationState.PENDING) Fade2 else SolidColor(Color.Transparent),
+                                shape = RoundedCornerShape(10.dp)
+                            ),
+                        shape = RoundedCornerShape(10.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.Transparent,
+                            contentColor = if (evaluation?.state == EvaluationState.PENDING) DarkBlue else Color.White
+                        ),
+                    ) {
+                        Text("Ver atividades", fontWeight = FontWeight.SemiBold)
+                    }
                 }
             }
         }
@@ -186,43 +277,18 @@ fun InternshipDetailInstituicaoScreen(
             if (evaluation != null) {
                 InstitutionEvaluationSection(
                     evaluation = evaluation,
-                    internshipId = internshipId,
-                    navController = navController,
+                    observation = observation,
+                    onObservationChange = { observation = it },
+                    gradeText = gradeText,
+                    onGradeTextChange = { 
+                        gradeText = it
+                        gradeError = false
+                    },
+                    gradeError = gradeError
                 )
             }
 
-            Spacer(modifier = Modifier.height(80.dp))
-        }
-
-        // Action Buttons at the bottom (Fixed)
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
-            Surface(
-                color = Color.White,
-                shadowElevation = 8.dp,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .navigationBarsPadding()
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    Button(
-                        onClick = { },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(48.dp)
-                            .background(Fade2, RoundedCornerShape(10.dp)),
-                        shape = RoundedCornerShape(10.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-                    ) {
-                        Icon(Icons.Outlined.CalendarMonth, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Ver atividades", fontWeight = FontWeight.SemiBold)
-                    }
-                }
-            }
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }
@@ -395,14 +461,20 @@ private fun ActivityPlaceholderCard(
 @Composable
 private fun InstitutionEvaluationSection(
     evaluation: InternshipEvaluation,
-    internshipId: String,
-    navController: NavController,
+    observation: String,
+    onObservationChange: (String) -> Unit,
+    gradeText: String,
+    onGradeTextChange: (String) -> Unit,
+    gradeError: Boolean
 ) {
     when (evaluation.state) {
         EvaluationState.PENDING -> {
             InstitutionEvaluationForm(
-                internshipId = internshipId,
-                navController = navController,
+                observation = observation,
+                onObservationChange = onObservationChange,
+                gradeText = gradeText,
+                onGradeTextChange = onGradeTextChange,
+                gradeError = gradeError
             )
         }
         EvaluationState.PARTIAL, EvaluationState.READY_FOR_FINAL -> {
@@ -454,30 +526,12 @@ private fun InstitutionEvaluationSection(
 
 @Composable
 private fun InstitutionEvaluationForm(
-    internshipId: String,
-    navController: NavController,
+    observation: String,
+    onObservationChange: (String) -> Unit,
+    gradeText: String,
+    onGradeTextChange: (String) -> Unit,
+    gradeError: Boolean
 ) {
-    var observation by remember { mutableStateOf("") }
-    var gradeText by remember { mutableStateOf("") }
-    var gradeError by remember { mutableStateOf(false) }
-    var showConfirmDialog by remember { mutableStateOf(false) }
-
-    val parsedGrade = validateGrade(gradeText)
-
-    if (showConfirmDialog) {
-        ConfirmationDialog(
-            title = "Submeter avaliação?",
-            body = "Tem a certeza que pretende submeter a avaliação institucional? Esta ação não poderá ser revertida.",
-            confirmLabel = "Submeter",
-            isDanger = false,
-            onConfirm = {
-                showConfirmDialog = false
-                navController.navigate(InstituicaoRoutes.evaluationSubmittedRoute(internshipId))
-            },
-            onDismiss = { showConfirmDialog = false },
-        )
-    }
-
     Text(
         text = "Avaliação Institucional",
         color = DarkBlue,
@@ -492,7 +546,7 @@ private fun InstitutionEvaluationForm(
         Spacer(modifier = Modifier.height(8.dp))
         OutlinedTextField(
             value = observation,
-            onValueChange = { observation = it },
+            onValueChange = onObservationChange,
             modifier = Modifier.fillMaxWidth(),
             placeholder = { Text("Escreva aqui.", color = DarkGrey) },
             shape = RoundedCornerShape(10.dp),
@@ -514,10 +568,7 @@ private fun InstitutionEvaluationForm(
         Spacer(modifier = Modifier.height(8.dp))
         OutlinedTextField(
             value = gradeText,
-            onValueChange = {
-                gradeText = it
-                gradeError = false
-            },
+            onValueChange = onGradeTextChange,
             modifier = Modifier.fillMaxWidth(),
             placeholder = { Text("Ex: 14,5", color = DarkGrey) },
             shape = RoundedCornerShape(10.dp),
@@ -542,29 +593,6 @@ private fun InstitutionEvaluationForm(
     }
 
     Spacer(modifier = Modifier.height(16.dp))
-
-    Button(
-        onClick = {
-            if (validateGrade(gradeText) == null) {
-                gradeError = true
-            } else {
-                showConfirmDialog = true
-            }
-        },
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-            .height(48.dp),
-        shape = RoundedCornerShape(12.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = DarkBlue),
-    ) {
-        Text(
-            text = "Submeter avaliação",
-            color = Color.White,
-            fontWeight = FontWeight.SemiBold,
-            fontSize = 14.sp,
-        )
-    }
 }
 
 // endregion

@@ -73,6 +73,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -80,6 +81,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
+import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
 import turmaA.grupoB.LinkStage.ui.common.LinkStageButton
 import turmaA.grupoB.LinkStage.ui.common.LinkStageDialog
@@ -94,12 +96,15 @@ import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
+import turmaA.grupoB.LinkStage.ui.theme.Fade2
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.ui.theme.Red
 import turmaA.grupoB.LinkStage.ui.aluno.home.ApplicationStatus
 import turmaA.grupoB.LinkStage.viewmodel.HomeViewModel
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
+import java.util.Locale
 
 // region Data models
 
@@ -162,8 +167,8 @@ fun calculateInternshipProgress(startDate: LocalDate, endDate: LocalDate): Float
 }
 
 private fun formatDate(date: LocalDate): String {
-    val monthNames = listOf("Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez")
-    return "${monthNames[date.monthValue - 1]} ${date.dayOfMonth}"
+    val formatter = DateTimeFormatter.ofPattern("MMM d", Locale.getDefault())
+    return date.format(formatter)
 }
 
 // endregion
@@ -186,7 +191,7 @@ fun RecentActivityAlunoScreen(
 
     var showAddActivityModal by remember { mutableStateOf(false) }
     var showFilterModal by remember { mutableStateOf(false) }
-    var currentFilter by remember { mutableStateOf("Todas") }
+    var currentFilter by remember { mutableStateOf<ApplicationStatus?>(null) }
     var searchQuery by remember { mutableStateOf("") }
 
     if (showFilterModal) {
@@ -220,7 +225,7 @@ fun RecentActivityAlunoScreen(
                     contentColor = Color.White,
                     shape = RoundedCornerShape(16.dp),
                 ) {
-                    Icon(Icons.Default.Add, contentDescription = "Adicionar atividade")
+                    Icon(Icons.Default.Add, contentDescription = stringResource(R.string.activity_add))
                 }
             },
             containerColor = BackgroundLight,
@@ -240,21 +245,13 @@ fun RecentActivityAlunoScreen(
             }
         }
     } else {
-        // Filtro e Pesquisa para Candidaturas
-        val filterStatus = when (currentFilter) {
-            "Pendente" -> ApplicationStatus.PENDING
-            "Aceite" -> ApplicationStatus.ACCEPTED
-            "Recusado" -> ApplicationStatus.REJECTED
-            else -> null
-        }
-
         val filteredActive = activeApplications.filter {
-            (filterStatus == null || it.status == filterStatus) &&
+            (currentFilter == null || it.status == currentFilter) &&
                     (searchQuery.isBlank() || it.offerTitle.contains(searchQuery, ignoreCase = true) || it.company.contains(searchQuery, ignoreCase = true))
         }
 
         val filteredPast = pastApplications.filter {
-            (filterStatus == null || it.status == filterStatus) &&
+            (currentFilter == null || it.status == currentFilter) &&
                     (searchQuery.isBlank() || it.offerTitle.contains(searchQuery, ignoreCase = true) || it.company.contains(searchQuery, ignoreCase = true))
         }
 
@@ -294,7 +291,7 @@ private fun ApplicationsContent(
 
         item {
             Text(
-                text = "Atividades Recentes",
+                text = stringResource(R.string.activity_recent),
                 style = MaterialTheme.typography.headlineSmall.copy(
                     fontWeight = FontWeight.Bold,
                     color = DarkBlue,
@@ -320,14 +317,14 @@ private fun ApplicationsContent(
                         .padding(32.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("Nenhuma candidatura encontrada.", color = DarkGrey)
+                    Text(stringResource(R.string.applications_empty), color = DarkGrey)
                 }
             }
         }
 
         if (activeApplications.isNotEmpty()) {
             item {
-                ApplicationSection(title = "Candidaturas ativas") {
+                ApplicationSection(title = stringResource(R.string.applications_active)) {
                     activeApplications.forEach { app ->
                         ApplicationCard(application = app)
                     }
@@ -338,7 +335,7 @@ private fun ApplicationsContent(
 
         if (pastApplications.isNotEmpty()) {
             item {
-                ApplicationSection(title = "Candidaturas passadas") {
+                ApplicationSection(title = stringResource(R.string.applications_past)) {
                     pastApplications.forEach { app ->
                         ApplicationCard(application = app)
                     }
@@ -416,7 +413,7 @@ fun ApplicationCard(application: ApplicationItem) {
                     color = DarkGrey,
                 )
                 Text(
-                    text = "• Candidatou-se ${application.appliedAgo}",
+                    text = stringResource(R.string.applications_applied_ago, application.appliedAgo),
                     style = MaterialTheme.typography.labelSmall,
                     color = DarkGrey,
                 )
@@ -433,10 +430,10 @@ fun ApplicationCard(application: ApplicationItem) {
 
 @Composable
 fun StatusBadge(status: ApplicationStatus) {
-    val (label, color) = when (status) {
-        ApplicationStatus.PENDING -> "Pendente" to DarkGrey
-        ApplicationStatus.ACCEPTED -> "Aceite" to LightBlue
-        ApplicationStatus.REJECTED -> "Recusado" to Red
+    val (labelRes, color) = when (status) {
+        ApplicationStatus.PENDING -> R.string.applications_filter_pending to DarkGrey
+        ApplicationStatus.ACCEPTED -> R.string.applications_filter_accepted to LightBlue
+        ApplicationStatus.REJECTED -> R.string.applications_filter_rejected to Red
     }
     Box(
         modifier = Modifier
@@ -446,7 +443,7 @@ fun StatusBadge(status: ApplicationStatus) {
             .padding(horizontal = 10.dp, vertical = 4.dp),
     ) {
         Text(
-            text = label,
+            text = stringResource(labelRes),
             style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
             color = color,
         )
@@ -486,17 +483,17 @@ private fun ActiveInternshipContent(
 
     if (showSubmitConfirmation) {
         LinkStageDialog(
-            title = "Submeter Relatório",
+            title = stringResource(R.string.report_submit_title),
             onConfirm = {
                 showSubmitConfirmation = false
                 onSubmitReport()
             },
             onDismiss = { showSubmitConfirmation = false },
-            confirmText = "Submeter",
-            dismissText = "Cancelar",
+            confirmText = stringResource(R.string.activity_submit),
+            dismissText = stringResource(R.string.common_cancel),
             content = {
                 Text(
-                    text = "Tens a certeza que pretendes submeter o relatório final? Esta ação não pode ser desfeita e marcará o teu estágio como concluído.",
+                    text = stringResource(R.string.report_submit_message),
                     color = DarkGrey,
                     lineHeight = 22.sp,
                 )
@@ -532,7 +529,7 @@ private fun ActiveInternshipContent(
         ) {
             item {
                 Text(
-                    text = "Atividade Recente",
+                    text = stringResource(R.string.activity_recent),
                     style = MaterialTheme.typography.titleLarge.copy(
                         fontWeight = FontWeight.Bold,
                         color = DarkBlue,
@@ -558,32 +555,37 @@ private fun ActiveInternshipContent(
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp),
                         shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(containerColor = DarkBlue),
+                        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
                     ) {
-                        Column(
+                        Box(
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .background(Fade2)
                                 .padding(20.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
+                            contentAlignment = Alignment.Center
                         ) {
-                            Text(
-                                text = "Nota Final",
-                                color = Color.White.copy(alpha = 0.8f),
-                                fontSize = 13.sp,
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = formatGrade(evaluation.schoolMentorGrade),
-                                color = Color.White,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 48.sp,
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = "em 20 valores",
-                                color = Color.White.copy(alpha = 0.7f),
-                                fontSize = 13.sp,
-                            )
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.report_final_grade),
+                                    color = Color.White.copy(alpha = 0.8f),
+                                    fontSize = 13.sp,
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    text = formatGrade(evaluation.schoolMentorGrade),
+                                    color = Color.White,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 48.sp,
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = stringResource(R.string.report_out_of_20),
+                                    color = Color.White.copy(alpha = 0.7f),
+                                    fontSize = 13.sp,
+                                )
+                            }
                         }
                     }
                     Spacer(modifier = Modifier.height(8.dp))
@@ -600,7 +602,7 @@ private fun ActiveInternshipContent(
                         ),
                     ) {
                         Text(
-                            text = "Ver resultado completo",
+                            text = stringResource(R.string.report_view_result),
                             style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
                         )
                     }
@@ -653,7 +655,7 @@ fun InternshipHeader(
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             Text(
-                text = "Início: ${formatDate(internship.startDate)}",
+                text = "${stringResource(R.string.activity_start)} ${formatDate(internship.startDate)}",
                 style = MaterialTheme.typography.labelSmall,
                 color = DarkGrey,
             )
@@ -663,7 +665,7 @@ fun InternshipHeader(
                 color = LightBlue,
             )
             Text(
-                text = "Fim: ${formatDate(internship.endDate)}",
+                text = "${stringResource(R.string.activity_end)} ${formatDate(internship.endDate)}",
                 style = MaterialTheme.typography.labelSmall,
                 color = DarkGrey,
             )
@@ -702,14 +704,14 @@ fun ActivityLogCard(
                 if (isCompleted) {
                     Icon(
                         imageVector = Icons.Default.Check,
-                        contentDescription = "Concluído",
+                        contentDescription = stringResource(R.string.activity_status_completed),
                         tint = Color.White,
                         modifier = Modifier.size(16.dp),
                     )
                 } else {
                     Icon(
                         imageVector = Icons.Outlined.RadioButtonUnchecked,
-                        contentDescription = "Pendente",
+                        contentDescription = stringResource(R.string.activity_status_pending),
                         tint = DarkGrey,
                         modifier = Modifier.size(16.dp),
                     )
@@ -734,7 +736,7 @@ fun ActivityLogCard(
                             modifier = Modifier.size(12.dp),
                         )
                         Text(
-                            text = "Definido pelo orientador",
+                            text = stringResource(R.string.activity_defined_by_advisor),
                             fontSize = 11.sp,
                             color = LightBlue,
                             fontWeight = FontWeight.SemiBold,
@@ -776,7 +778,7 @@ fun ActivityLogCard(
                             modifier = Modifier.size(13.dp),
                         )
                         Text(
-                            text = "Revisto por ${activityLog.viewers.size} pessoa(s)",
+                            text = stringResource(R.string.activity_reviewed_by, activityLog.viewers.size),
                             color = DarkGrey,
                             fontSize = 11.sp,
                             modifier = Modifier.padding(start = 4.dp),
@@ -799,7 +801,7 @@ private fun ReportSubmissionCard(
             .padding(horizontal = 16.dp),
     ) {
         Text(
-            text = "Submissão do relatório final",
+            text = stringResource(R.string.report_title),
             style = MaterialTheme.typography.titleLarge.copy(
                 fontWeight = FontWeight.Bold,
                 color = DarkBlue,
@@ -809,7 +811,7 @@ private fun ReportSubmissionCard(
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "O teu estágio acaba em $daysRemaining dias. Prepara e dá upload do teu relatório final para validação dos orientadores.",
+            text = stringResource(R.string.report_message, daysRemaining.toInt()),
             style = MaterialTheme.typography.bodyMedium,
             color = DarkGrey,
             lineHeight = 20.sp,
@@ -835,7 +837,7 @@ private fun ReportSubmissionCard(
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = "Submeter",
+                text = stringResource(R.string.activity_submit),
                 style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
             )
         }
@@ -863,7 +865,7 @@ fun AddActivityModal(
     }
 
     LinkStageDialog(
-        title = "Adicionar Atividade",
+        title = stringResource(R.string.activity_add_title),
         onConfirm = {
             if (title.isBlank()) {
                 titleError = true
@@ -872,8 +874,8 @@ fun AddActivityModal(
             }
         },
         onDismiss = onDismiss,
-        confirmText = "Guardar",
-        dismissText = "Cancelar",
+        confirmText = stringResource(R.string.common_save),
+        dismissText = stringResource(R.string.common_cancel),
         content = {
             Column(
                 modifier = Modifier
@@ -883,7 +885,7 @@ fun AddActivityModal(
             ) {
                 // Título
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    SectionLabel("Título")
+                    SectionLabel(stringResource(R.string.activity_add_title_label))
                     OutlinedTextField(
                         value = title,
                         onValueChange = {
@@ -891,7 +893,7 @@ fun AddActivityModal(
                             titleError = false
                         },
                         modifier = Modifier.fillMaxWidth(),
-                        placeholder = { Text("Escreva aqui.", color = DarkGrey, fontSize = 14.sp) },
+                        placeholder = { Text(stringResource(R.string.common_write_here), color = DarkGrey, fontSize = 14.sp) },
                         shape = RoundedCornerShape(10.dp),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = if (titleError) Red else LightBlue,
@@ -903,18 +905,18 @@ fun AddActivityModal(
                         isError = titleError,
                     )
                     if (titleError) {
-                        Text("Campo obrigatório", color = Red, fontSize = 12.sp)
+                        Text(stringResource(R.string.common_required_field), color = Red, fontSize = 12.sp)
                     }
                 }
 
                 // Descrição
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    SectionLabel("Breve descrição.")
+                    SectionLabel(stringResource(R.string.activity_add_desc_label))
                     OutlinedTextField(
                         value = description,
                         onValueChange = { description = it },
                         modifier = Modifier.fillMaxWidth(),
-                        placeholder = { Text("Escreva aqui.", color = DarkGrey, fontSize = 14.sp) },
+                        placeholder = { Text(stringResource(R.string.common_write_here), color = DarkGrey, fontSize = 14.sp) },
                         shape = RoundedCornerShape(10.dp),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = LightBlue,
@@ -929,7 +931,7 @@ fun AddActivityModal(
 
                 // Anexos
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    SectionLabel("Anexos")
+                    SectionLabel(stringResource(R.string.activity_attachments))
                     if (fileUri != null) {
                         Row(
                             modifier = Modifier
@@ -948,7 +950,7 @@ fun AddActivityModal(
                                 Icon(Icons.Outlined.Description, contentDescription = null, tint = LightBlue)
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
-                                    fileName ?: "ficheiro",
+                                    fileName ?: stringResource(R.string.common_file),
                                     fontSize = 13.sp,
                                     color = DarkBlue,
                                     fontWeight = FontWeight.Medium,
@@ -957,7 +959,7 @@ fun AddActivityModal(
                                 )
                             }
                             IconButton(onClick = { fileUri = null; fileName = null }) {
-                                Icon(Icons.Default.Close, contentDescription = "Remover", tint = DarkGrey)
+                                Icon(Icons.Default.Close, contentDescription = stringResource(R.string.common_remove), tint = DarkGrey)
                             }
                         }
                     } else {
@@ -982,8 +984,8 @@ fun AddActivityModal(
                                     tint = DarkGrey,
                                     modifier = Modifier.size(40.dp),
                                 )
-                                Text("Selecionar Ficheiro", fontWeight = FontWeight.Bold, color = DarkBlue, fontSize = 14.sp)
-                                Text("PDF, DOCX até 10MB", color = DarkGrey, fontSize = 12.sp)
+                                Text(stringResource(R.string.apply_select_file), fontWeight = FontWeight.Bold, color = DarkBlue, fontSize = 14.sp)
+                                Text(stringResource(R.string.apply_file_format), color = DarkGrey, fontSize = 12.sp)
                             }
                         }
                     }
@@ -1000,37 +1002,42 @@ fun AddActivityModal(
 
 @Composable
 private fun ActivityFilterModal(
-    currentFilter: String,
+    currentFilter: ApplicationStatus?,
     onDismiss: () -> Unit,
-    onApply: (String) -> Unit
+    onApply: (ApplicationStatus?) -> Unit,
 ) {
     var selectedOption by remember { mutableStateOf(currentFilter) }
-    val options = listOf("Todas", "Pendente", "Aceite", "Recusado")
+    val options = listOf(
+        null to stringResource(R.string.applications_filter_all),
+        ApplicationStatus.PENDING to stringResource(R.string.applications_filter_pending),
+        ApplicationStatus.ACCEPTED to stringResource(R.string.applications_filter_accepted),
+        ApplicationStatus.REJECTED to stringResource(R.string.applications_filter_rejected),
+    )
 
     LinkStageDialog(
-        title = "Filtrar Candidaturas",
+        title = stringResource(R.string.applications_filter_title),
         onConfirm = { onApply(selectedOption) },
         onDismiss = onDismiss,
-        confirmText = "Filtrar",
-        dismissText = "Cancelar",
+        confirmText = stringResource(R.string.filter_apply),
+        dismissText = stringResource(R.string.common_cancel),
         content = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                options.forEach { option ->
+                options.forEach { (status, label) ->
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(8.dp))
-                            .clickable { selectedOption = option }
+                            .clickable { selectedOption = status }
                             .padding(vertical = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
                         RadioButton(
-                            selected = (option == selectedOption),
-                            onClick = { selectedOption = option },
-                            colors = RadioButtonDefaults.colors(selectedColor = DarkBlue)
+                            selected = (status == selectedOption),
+                            onClick = { selectedOption = status },
+                            colors = RadioButtonDefaults.colors(selectedColor = DarkBlue),
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text(text = option, color = DarkGrey)
+                        Text(text = label, color = DarkGrey)
                     }
                 }
             }
@@ -1055,7 +1062,7 @@ private fun ApplicationSearchBar(
             value = query,
             onValueChange = onQueryChange,
             modifier = Modifier.weight(1f),
-            placeholder = { Text("Pesquisar...", color = DarkGrey) },
+            placeholder = { Text(stringResource(R.string.common_search), color = DarkGrey) },
             leadingIcon = {
                 Icon(Icons.Outlined.Search, contentDescription = null, tint = DarkGrey)
             },
@@ -1076,7 +1083,7 @@ private fun ApplicationSearchBar(
                 .clickable { onFilterClick() },
             contentAlignment = Alignment.Center,
         ) {
-            Icon(Icons.Outlined.FilterList, contentDescription = "Filtros", tint = Color.White)
+            Icon(Icons.Outlined.FilterList, contentDescription = stringResource(R.string.discover_filters), tint = Color.White)
         }
     }
 }

@@ -271,8 +271,6 @@ private fun DetailsTab(mentor: AdminMentor) {
             shape = RoundedCornerShape(12.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
         ) {
-            Icon(Icons.Outlined.Work, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
-            Spacer(modifier = Modifier.width(8.dp))
             Text("Ver estágios atribuídos", fontWeight = FontWeight.SemiBold)
         }
 

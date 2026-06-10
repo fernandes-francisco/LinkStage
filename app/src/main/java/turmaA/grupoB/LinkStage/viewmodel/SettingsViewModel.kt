@@ -1,5 +1,7 @@
 package turmaA.grupoB.LinkStage.viewmodel
 
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -8,7 +10,7 @@ import turmaA.grupoB.LinkStage.ui.aluno.settings.LoggedUser
 
 class SettingsViewModel : ViewModel() {
 
-    private val _currentLanguage = MutableStateFlow("PT")
+    private val _currentLanguage = MutableStateFlow(resolveCurrentLanguage())
     val currentLanguage: StateFlow<String> = _currentLanguage.asStateFlow()
 
     private val _notificationsEnabled = MutableStateFlow(true)
@@ -42,6 +44,8 @@ class SettingsViewModel : ViewModel() {
 
     fun changeLanguage(lang: String) {
         _currentLanguage.value = lang
+        val tag = if (lang == "PT") "pt" else "en"
+        AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(tag))
     }
 
     fun toggleNotifications(enabled: Boolean) {
@@ -74,5 +78,14 @@ class SettingsViewModel : ViewModel() {
 
     fun logout() {
         // Supabase auth sign out will be implemented here
+    }
+
+    companion object {
+        private fun resolveCurrentLanguage(): String {
+            val locales = AppCompatDelegate.getApplicationLocales()
+            if (locales.isEmpty) return "EN"
+            val tag = locales[0]?.language ?: return "EN"
+            return if (tag == "pt") "PT" else "EN"
+        }
     }
 }

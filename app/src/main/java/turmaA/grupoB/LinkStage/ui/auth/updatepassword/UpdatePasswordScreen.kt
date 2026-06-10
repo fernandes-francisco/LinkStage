@@ -38,6 +38,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -69,7 +70,7 @@ fun UpdatePasswordScreen(
     var showSuccessDialog by remember { mutableStateOf(false) }
 
     SuccessDialog(
-        message = "A sua palavra-passe foi alterada com sucesso. Pode agora iniciar sessão.",
+        message = stringResource(R.string.update_password_success),
         show = showSuccessDialog,
         onConfirm = {
             onUpdatePasswordClick(password)
@@ -85,11 +86,11 @@ fun UpdatePasswordScreen(
         }
     }
     val hasMinLength by remember { derivedStateOf { password.length >= 8 } }
-    
+
     val isPasswordValid by remember {
         derivedStateOf { hasNumber && hasUpperAndLower && hasMinLength }
     }
-    
+
     val isConfirmValid by remember {
         derivedStateOf { confirmPassword == password && confirmPassword.isNotEmpty() }
     }
@@ -119,7 +120,7 @@ fun UpdatePasswordScreen(
             Spacer(modifier = Modifier.height(20.dp))
 
             Text(
-                text = "Nova Palavra-passe",
+                text = stringResource(R.string.update_password_title),
                 color = DarkBlue,
                 style = MaterialTheme.typography.bodyLarge,
                 fontSize = 18.sp
@@ -128,7 +129,7 @@ fun UpdatePasswordScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = "Introduza a sua nova palavra-passe abaixo.",
+                text = stringResource(R.string.update_password_subtitle),
                 color = Color.Gray,
                 style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center,
@@ -139,7 +140,7 @@ fun UpdatePasswordScreen(
 
             Column(modifier = Modifier.fillMaxWidth()) {
                 Text(
-                    text = "Nova Palavra-passe",
+                    text = stringResource(R.string.update_password_new),
                     color = Color.DarkGray,
                     fontWeight = FontWeight.Medium,
                     style = MaterialTheme.typography.bodyMedium
@@ -148,7 +149,7 @@ fun UpdatePasswordScreen(
                 TextField(
                     value = password,
                     onValueChange = { password = it },
-                    placeholder = { Text("Introduza a nova palavra-passe", color = Color.Gray) },
+                    placeholder = { Text(stringResource(R.string.update_password_new_placeholder), color = Color.Gray) },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(10.dp),
                     colors = TextFieldDefaults.colors(
@@ -168,12 +169,12 @@ fun UpdatePasswordScreen(
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                     singleLine = true
                 )
-                
+
                 if (password.isNotEmpty()) {
                     Spacer(modifier = Modifier.height(8.dp))
-                    ValidationItem(text = "Incluir um número", isValid = hasNumber)
-                    ValidationItem(text = "Incluir maiúsculas e minúsculas", isValid = hasUpperAndLower)
-                    ValidationItem(text = "Mínimo 8 caracteres", isValid = hasMinLength)
+                    ValidationItem(text = stringResource(R.string.validation_number), isValid = hasNumber)
+                    ValidationItem(text = stringResource(R.string.validation_case), isValid = hasUpperAndLower)
+                    ValidationItem(text = stringResource(R.string.validation_length), isValid = hasMinLength)
                 }
             }
 
@@ -181,7 +182,7 @@ fun UpdatePasswordScreen(
 
             Column(modifier = Modifier.fillMaxWidth()) {
                 Text(
-                    text = "Confirmar Palavra-passe",
+                    text = stringResource(R.string.update_password_confirm),
                     color = Color.DarkGray,
                     fontWeight = FontWeight.Medium,
                     style = MaterialTheme.typography.bodyMedium
@@ -190,7 +191,7 @@ fun UpdatePasswordScreen(
                 TextField(
                     value = confirmPassword,
                     onValueChange = { confirmPassword = it },
-                    placeholder = { Text("Confirme a nova palavra-passe", color = Color.Gray) },
+                    placeholder = { Text(stringResource(R.string.update_password_confirm_placeholder), color = Color.Gray) },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(10.dp),
                     colors = TextFieldDefaults.colors(
@@ -213,7 +214,7 @@ fun UpdatePasswordScreen(
                 )
                 if (confirmPassword.isNotEmpty() && !isConfirmValid) {
                     Text(
-                        text = "As palavras-passe não coincidem",
+                        text = stringResource(R.string.update_password_mismatch),
                         color = Red,
                         fontSize = 12.sp,
                         modifier = Modifier.padding(start = 4.dp, top = 4.dp)
@@ -225,7 +226,7 @@ fun UpdatePasswordScreen(
 
             Column(modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)) {
                 LinkStageButton(
-                    text = "Atualizar Palavra-passe",
+                    text = stringResource(R.string.update_password_button),
                     onClick = { if (isEnabled) showSuccessDialog = true },
                     enabled = isEnabled
                 )
@@ -233,7 +234,7 @@ fun UpdatePasswordScreen(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 LinkStageOutlinedButton(
-                    text = "Voltar",
+                    text = stringResource(R.string.common_back),
                     onClick = onBackToLogin
                 )
             }

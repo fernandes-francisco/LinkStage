@@ -40,11 +40,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.aluno.settings.ChangePasswordDialog
 import turmaA.grupoB.LinkStage.ui.aluno.settings.LoggedUser
 import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
@@ -88,7 +90,6 @@ fun SettingsOrientadorScreen(
         ChangePasswordDialog(
             onDismiss = { showPasswordDialog = false },
             onConfirm = { newPassword ->
-                // Lógica de update
                 showPasswordDialog = false
             }
         )
@@ -108,7 +109,7 @@ fun SettingsOrientadorScreen(
             horizontalAlignment = Alignment.Start,
         ) {
             Text(
-                text = "Definições",
+                text = stringResource(R.string.settings_title),
                 style = MaterialTheme.typography.headlineSmall.copy(
                     fontWeight = FontWeight.Bold,
                     color = DarkBlue,
@@ -153,7 +154,7 @@ fun SettingsOrientadorScreen(
                 HorizontalDivider(color = BorderGrey)
 
                 SettingsRowItem(
-                    label = "Políticas de Privacidade",
+                    label = stringResource(R.string.settings_privacy_policy),
                     onClick = onPrivacyPolicyClick,
                 )
             }
@@ -161,12 +162,12 @@ fun SettingsOrientadorScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             // Settings section
-            SettingsSectionHeader(title = "Configurações")
+            SettingsSectionHeader(title = stringResource(R.string.settings_section_config))
 
             SettingsCard(modifier = Modifier.padding(horizontal = 20.dp)) {
                 SettingsRowItem(
                     icon = Icons.Outlined.Settings,
-                    label = "Alterar Palavra-Passe",
+                    label = stringResource(R.string.settings_change_password),
                     onClick = { showPasswordDialog = true },
                 )
 
@@ -177,7 +178,7 @@ fun SettingsOrientadorScreen(
 
                 SettingsRowItem(
                     icon = Icons.Outlined.Settings,
-                    label = "Notificações",
+                    label = stringResource(R.string.settings_notifications),
                     onClick = onNotificationsClick,
                 )
 
@@ -201,7 +202,7 @@ fun SettingsOrientadorScreen(
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        text = "Idioma",
+                        text = stringResource(R.string.settings_language),
                         style = MaterialTheme.typography.bodyLarge,
                         color = DarkBlue,
                         modifier = Modifier.weight(1f),
@@ -216,7 +217,7 @@ fun SettingsOrientadorScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             // App version section
-            SettingsSectionHeader(title = "Versão da APP")
+            SettingsSectionHeader(title = stringResource(R.string.settings_section_version))
 
             SettingsCard(modifier = Modifier.padding(horizontal = 20.dp)) {
                 Row(
@@ -233,7 +234,7 @@ fun SettingsOrientadorScreen(
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        text = "V1.0.0 - Android 36 / Kotlin / Supabase",
+                        text = stringResource(R.string.settings_version),
                         style = MaterialTheme.typography.bodySmall,
                         color = DarkGrey,
                     )
@@ -244,7 +245,7 @@ fun SettingsOrientadorScreen(
 
             // Logout button
             LinkStageButton(
-                text = "Terminar Sessão",
+                text = stringResource(R.string.settings_logout),
                 onClick = { showLogoutDialog = true },
                 modifier = Modifier.padding(horizontal = 20.dp),
                 height = 52.dp,
@@ -392,14 +393,14 @@ private fun LogoutConfirmDialog(
     onDismiss: () -> Unit,
 ) {
     LinkStageDialog(
-        title = "Terminar Sessão",
+        title = stringResource(R.string.settings_logout),
         onConfirm = onConfirm,
         onDismiss = onDismiss,
-        confirmText = "Terminar",
-        dismissText = "Cancelar",
+        confirmText = stringResource(R.string.settings_logout_button),
+        dismissText = stringResource(R.string.common_cancel),
         content = {
             Text(
-                text = "Tens a certeza que queres terminar sessão?",
+                text = stringResource(R.string.settings_logout_confirm),
                 color = DarkGrey,
             )
         }

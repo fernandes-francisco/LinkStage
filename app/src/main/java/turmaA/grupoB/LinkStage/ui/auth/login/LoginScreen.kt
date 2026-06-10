@@ -42,6 +42,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -141,7 +142,7 @@ fun LoginScreenContent(
             Spacer(modifier = Modifier.height(20.dp))
 
             Text(
-                text = "Acede à tua conta para continuar",
+                text = stringResource(R.string.login_subtitle),
                 color = DarkBlue,
                 style = MaterialTheme.typography.bodyLarge,
                 fontSize = 18.sp
@@ -151,7 +152,7 @@ fun LoginScreenContent(
 
             Column(modifier = Modifier.fillMaxWidth()) {
                 Text(
-                    text = "E-mail",
+                    text = stringResource(R.string.login_email_label),
                     color = Color.DarkGray,
                     fontWeight = FontWeight.Medium,
                     style = MaterialTheme.typography.bodyMedium
@@ -160,7 +161,7 @@ fun LoginScreenContent(
                 TextField(
                     value = email,
                     onValueChange = onEmailChange,
-                    placeholder = { Text("Introduza o seu E-mail", color = Color.Gray) },
+                    placeholder = { Text(stringResource(R.string.login_email_placeholder), color = Color.Gray) },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(10.dp),
                     colors = TextFieldDefaults.colors(
@@ -176,7 +177,7 @@ fun LoginScreenContent(
                 )
                 if (!isEmailValid) {
                     Text(
-                        text = "E-mail inválido. Use o formato nome@dominio.com",
+                        text = stringResource(R.string.login_email_error),
                         color = Red,
                         fontSize = 12.sp,
                         modifier = Modifier.padding(start = 4.dp, top = 4.dp)
@@ -188,7 +189,7 @@ fun LoginScreenContent(
 
             Column(modifier = Modifier.fillMaxWidth()) {
                 Text(
-                    text = "Palavra-passe",
+                    text = stringResource(R.string.login_password_label),
                     color = Color.DarkGray,
                     fontWeight = FontWeight.Medium,
                     style = MaterialTheme.typography.bodyMedium
@@ -197,7 +198,7 @@ fun LoginScreenContent(
                 TextField(
                     value = password,
                     onValueChange = onPasswordChange,
-                    placeholder = { Text("Introduza a sua Palavra-passe", color = Color.Gray) },
+                    placeholder = { Text(stringResource(R.string.login_password_placeholder), color = Color.Gray) },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(10.dp),
                     colors = TextFieldDefaults.colors(
@@ -228,7 +229,7 @@ fun LoginScreenContent(
                 contentPadding = PaddingValues(0.dp)
             ) {
                 Text(
-                    text = "Esqueceu a Palavra-passe?",
+                    text = stringResource(R.string.login_forgot_password),
                     color = MediumBlue,
                     style = MaterialTheme.typography.bodySmall,
                     fontSize = 14.sp
@@ -238,7 +239,7 @@ fun LoginScreenContent(
             Spacer(modifier = Modifier.height(32.dp))
 
             LinkStageButton(
-                text = "Entrar",
+                text = stringResource(R.string.login_button),
                 onClick = onLoginClick,
                 enabled = isLoginEnabled
             )
@@ -251,7 +252,7 @@ fun LoginScreenContent(
                 modifier = Modifier.padding(bottom = 16.dp)
             ) {
                 Text(
-                    text = "Não tens conta? ",
+                    text = stringResource(R.string.login_no_account),
                     color = DarkBlue,
                     style = MaterialTheme.typography.bodyMedium
                 )
@@ -260,7 +261,7 @@ fun LoginScreenContent(
                     contentPadding = PaddingValues(0.dp)
                 ) {
                     Text(
-                        text = "Regista-te aqui",
+                        text = stringResource(R.string.login_register_link),
                         color = MediumBlue,
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Bold

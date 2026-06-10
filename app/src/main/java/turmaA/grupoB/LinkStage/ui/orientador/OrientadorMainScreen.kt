@@ -13,11 +13,14 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
+import turmaA.grupoB.LinkStage.R
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
@@ -26,6 +29,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import androidx.lifecycle.viewmodel.compose.viewModel
 import turmaA.grupoB.LinkStage.ui.common.FinalGradeSubmittedScreen
 import turmaA.grupoB.LinkStage.ui.aluno.chat.ChatScreen
 import turmaA.grupoB.LinkStage.ui.aluno.chat.Conversation
@@ -43,6 +47,7 @@ import turmaA.grupoB.LinkStage.ui.orientador.settings.SettingsOrientadorScreen
 import turmaA.grupoB.LinkStage.ui.orientador.students.StudentsOrientadorScreen
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
+import turmaA.grupoB.LinkStage.viewmodel.AdvisorHomeViewModel
 
 object OrientadorRoutes {
     const val HOME = "orientador_home"
@@ -66,22 +71,23 @@ object OrientadorRoutes {
 }
 
 private data class OrientadorTab(
-    val title: String,
+    @StringRes val titleResId: Int,
     val icon: ImageVector,
     val route: String,
 )
 
 private val orientadorTabs = listOf(
-    OrientadorTab("Início", Icons.Outlined.Home, OrientadorRoutes.HOME),
-    OrientadorTab("Alunos", Icons.Outlined.People, OrientadorRoutes.STUDENTS),
-    OrientadorTab("Estágios", Icons.Outlined.Work, OrientadorRoutes.INTERNSHIPS),
-    OrientadorTab("Mensagens", Icons.AutoMirrored.Outlined.Chat, OrientadorRoutes.MESSAGES),
-    OrientadorTab("Definições", Icons.Outlined.Settings, OrientadorRoutes.SETTINGS),
+    OrientadorTab(R.string.tab_home, Icons.Outlined.Home, OrientadorRoutes.HOME),
+    OrientadorTab(R.string.tab_students, Icons.Outlined.People, OrientadorRoutes.STUDENTS),
+    OrientadorTab(R.string.tab_internships, Icons.Outlined.Work, OrientadorRoutes.INTERNSHIPS),
+    OrientadorTab(R.string.tab_messages, Icons.AutoMirrored.Outlined.Chat, OrientadorRoutes.MESSAGES),
+    OrientadorTab(R.string.tab_settings, Icons.Outlined.Settings, OrientadorRoutes.SETTINGS),
 )
 
 @Composable
 fun OrientadorMainScreen(onLogout: () -> Unit = {}) {
     val navController = rememberNavController()
+    val advisorHomeViewModel: AdvisorHomeViewModel = viewModel()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
@@ -109,8 +115,8 @@ fun OrientadorMainScreen(onLogout: () -> Unit = {}) {
                                     restoreState = true
                                 }
                             },
-                            icon = { Icon(tab.icon, contentDescription = tab.title) },
-                            label = { Text(tab.title) },
+                            icon = { Icon(tab.icon, contentDescription = stringResource(tab.titleResId)) },
+                            label = { Text(stringResource(tab.titleResId)) },
                             colors = NavigationBarItemDefaults.colors(
                                 selectedIconColor = LightBlue,
                                 selectedTextColor = LightBlue,
@@ -130,7 +136,10 @@ fun OrientadorMainScreen(onLogout: () -> Unit = {}) {
             modifier = Modifier.padding(innerPadding),
         ) {
             composable(OrientadorRoutes.HOME) {
-                HomeOrientadorScreen(navController = navController)
+                HomeOrientadorScreen(
+                    navController = navController,
+                    advisorHomeViewModel = advisorHomeViewModel
+                )
             }
             composable(OrientadorRoutes.STUDENTS) {
                 StudentsOrientadorScreen(navController = navController)
@@ -200,6 +209,7 @@ fun OrientadorMainScreen(onLogout: () -> Unit = {}) {
                 MentorStudentDetailScreen(
                     studentId = studentId,
                     navController = navController,
+                    advisorHomeViewModel = advisorHomeViewModel
                 )
             }
             composable(

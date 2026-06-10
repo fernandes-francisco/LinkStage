@@ -33,6 +33,21 @@ class HomeViewModel : ViewModel() {
     private val _recentConversations = MutableStateFlow(sampleConversations.take(3))
     val recentConversations: StateFlow<List<Conversation>> = _recentConversations.asStateFlow()
 
+    private val _hasSeenEvaluationResult = MutableStateFlow(false)
+    val hasSeenEvaluationResult: StateFlow<Boolean> = _hasSeenEvaluationResult.asStateFlow()
+
+    private val _hasDismissedEvaluationModal = MutableStateFlow(false)
+    val hasDismissedEvaluationModal: StateFlow<Boolean> = _hasDismissedEvaluationModal.asStateFlow()
+
+    fun setHasSeenEvaluationResult(seen: Boolean) {
+        _hasSeenEvaluationResult.value = seen
+        if (seen) _hasDismissedEvaluationModal.value = true
+    }
+
+    fun setHasDismissedEvaluationModal(dismissed: Boolean) {
+        _hasDismissedEvaluationModal.value = dismissed
+    }
+
     fun setActiveInternship(internship: ActiveInternship?) {
         _activeInternship.value = internship
         _hasActiveInternship.value = internship != null

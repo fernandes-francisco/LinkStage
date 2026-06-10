@@ -65,12 +65,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.common.LinkStageButton
 import turmaA.grupoB.LinkStage.ui.common.SecondaryTopBar
 import turmaA.grupoB.LinkStage.ui.common.LinkStageDialog
@@ -110,13 +112,13 @@ fun ApplyScreen(
 
     if (showCvIncompleteDialog) {
         LinkStageDialog(
-            title = "CV incompleto.",
+            title = stringResource(R.string.apply_cv_incomplete_title),
             onConfirm = { showCvIncompleteDialog = false },
             onDismiss = { showCvIncompleteDialog = false },
-            confirmText = "Voltar",
+            confirmText = stringResource(R.string.common_back),
             content = {
                 Text(
-                    "Adiciona pelo menos uma skill ao teu cv para que possas continuar a candidatura.",
+                    stringResource(R.string.apply_cv_incomplete_message),
                     color = DarkGrey,
                     lineHeight = 22.sp,
                 )
@@ -145,9 +147,9 @@ fun ApplyScreen(
 
         // Step title + subtitle
         val (stepTitle, stepSubtitle) = when (currentStep) {
-            0 -> "Informação Pessoal" to "Aqui podes editar a tua informação."
-            1 -> "Informação Essencial" to "Completa com informação importantes."
-            else -> "Rever Candidatura" to "Revê os teus dados para continuar."
+            0 -> stringResource(R.string.apply_step0_title) to stringResource(R.string.apply_step0_subtitle)
+            1 -> stringResource(R.string.apply_step1_title) to stringResource(R.string.apply_step1_subtitle)
+            else -> stringResource(R.string.apply_step2_title) to stringResource(R.string.apply_step2_subtitle)
         }
         Column(modifier = Modifier.padding(horizontal = 20.dp)) {
             Text(text = stepTitle, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = DarkBlue)
@@ -193,7 +195,7 @@ fun ApplyScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             LinkStageButton(
-                text = if (currentStep == 2) "Submeter" else "Continuar",
+                text = if (currentStep == 2) stringResource(R.string.apply_submit) else stringResource(R.string.apply_continue),
                 onClick = {
                     when (currentStep) {
                         0 -> {
@@ -228,7 +230,7 @@ fun ApplyScreen(
                     onBack()
                 },
             ) {
-                Text("Guardar como rascunho", color = DarkGrey, fontSize = 13.sp)
+                Text(stringResource(R.string.apply_save_draft), color = DarkGrey, fontSize = 13.sp)
             }
         }
     }
@@ -253,7 +255,7 @@ private fun ApplyHeader(
             .padding(bottom = 12.dp),
     ) {
         SecondaryTopBar(
-            title = "Finalizar Candidatura",
+            title = stringResource(R.string.apply_title),
             onBack = onBack
         )
 
@@ -357,14 +359,14 @@ private fun StepPersonalInfo(
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         ApplyTextField(
-            label = "Nome completo",
+            label = stringResource(R.string.apply_name),
             value = viewModel.fullName,
             onValueChange = { viewModel.fullName = it },
             icon = Icons.Outlined.Person,
             isError = nameError,
         )
         ApplyTextField(
-            label = "Email",
+            label = stringResource(R.string.apply_email),
             value = viewModel.email,
             onValueChange = { viewModel.email = it },
             icon = Icons.Outlined.Email,
@@ -372,7 +374,7 @@ private fun StepPersonalInfo(
             isError = emailError,
         )
         ApplyTextField(
-            label = "Telemóvel",
+            label = stringResource(R.string.apply_phone),
             value = viewModel.phone,
             onValueChange = { viewModel.phone = it },
             icon = Icons.Outlined.Phone,
@@ -380,21 +382,21 @@ private fun StepPersonalInfo(
             isError = phoneError,
         )
         ApplyTextField(
-            label = "Curso",
+            label = stringResource(R.string.apply_course),
             value = viewModel.course,
             onValueChange = { viewModel.course = it },
             icon = Icons.AutoMirrored.Outlined.MenuBook,
             isError = courseError,
         )
         ApplyTextField(
-            label = "Instituição",
+            label = stringResource(R.string.apply_institution),
             value = viewModel.institution,
             onValueChange = { viewModel.institution = it },
             icon = Icons.Outlined.School,
             isError = institutionError,
         )
         ApplyTextField(
-            label = "Média atual (0-20)",
+            label = stringResource(R.string.apply_gpa),
             value = viewModel.gpa,
             onValueChange = { viewModel.gpa = it },
             icon = Icons.Outlined.Grade,
@@ -421,7 +423,7 @@ private fun ApplyTextField(
             onValueChange = onValueChange,
             modifier = Modifier.fillMaxWidth(),
             leadingIcon = { Icon(icon, contentDescription = null, tint = DarkGrey) },
-            placeholder = { Text("Escreva aqui.", color = DarkGrey, fontSize = 14.sp) },
+            placeholder = { Text(stringResource(R.string.common_write_here), color = DarkGrey, fontSize = 14.sp) },
             shape = RoundedCornerShape(10.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = if (isError) Red else LightBlue,
@@ -434,7 +436,7 @@ private fun ApplyTextField(
             isError = isError,
         )
         if (isError) {
-            Text("Campo obrigatório", color = Red, fontSize = 12.sp)
+            Text(stringResource(R.string.common_required_field), color = Red, fontSize = 12.sp)
         }
     }
 }
@@ -466,9 +468,9 @@ private fun StepEssentialInfo(
     ) {
         // Personal Statement
         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            SectionLabel("Declaração Pessoal")
+            SectionLabel(stringResource(R.string.apply_personal_statement))
             Text(
-                "Explicação curta do porquê és a pessoa perfeita para o cargo.",
+                stringResource(R.string.apply_personal_statement_desc),
                 fontSize = 12.sp,
                 color = DarkGrey,
             )
@@ -476,7 +478,7 @@ private fun StepEssentialInfo(
                 value = viewModel.personalStatement,
                 onValueChange = { viewModel.personalStatement = it },
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("Escreva aqui.", color = DarkGrey, fontSize = 14.sp) },
+                placeholder = { Text(stringResource(R.string.common_write_here), color = DarkGrey, fontSize = 14.sp) },
                 shape = RoundedCornerShape(10.dp),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = LightBlue,
@@ -490,7 +492,7 @@ private fun StepEssentialInfo(
 
         // Edit Skills
         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            SectionLabel("Editar Skills")
+            SectionLabel(stringResource(R.string.apply_skills_label))
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -503,9 +505,9 @@ private fun StepEssentialInfo(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Column {
-                    Text("Editar Skills", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = DarkBlue)
+                    Text(stringResource(R.string.apply_skills_label), fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = DarkBlue)
                     Text(
-                        "${viewModel.userSkills.size} skills adicionadas",
+                        "${viewModel.userSkills.size} ${stringResource(R.string.apply_skills_count)}",
                         fontSize = 12.sp,
                         color = if (viewModel.isCvComplete) LightBlue else DarkGrey,
                     )
@@ -520,7 +522,7 @@ private fun StepEssentialInfo(
 
         // Motivation Letter
         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            SectionLabel("Carta de Motivação")
+            SectionLabel(stringResource(R.string.apply_motivation_letter))
             if (viewModel.motivationFile != null) {
                 Row(
                     modifier = Modifier
@@ -548,7 +550,7 @@ private fun StepEssentialInfo(
                             viewModel.motivationFileName = ""
                         },
                     ) {
-                        Icon(Icons.Default.Close, contentDescription = "Remover", tint = DarkGrey)
+                        Icon(Icons.Default.Close, contentDescription = stringResource(R.string.common_remove), tint = DarkGrey)
                     }
                 }
             } else {
@@ -573,8 +575,8 @@ private fun StepEssentialInfo(
                             tint = DarkGrey,
                             modifier = Modifier.size(48.dp),
                         )
-                        Text("Selecionar Ficheiro", fontWeight = FontWeight.Bold, color = DarkBlue, fontSize = 14.sp)
-                        Text("PDF, DOCX até 10MB", color = DarkGrey, fontSize = 12.sp)
+                        Text(stringResource(R.string.apply_select_file), fontWeight = FontWeight.Bold, color = DarkBlue, fontSize = 14.sp)
+                        Text(stringResource(R.string.apply_file_format), color = DarkGrey, fontSize = 12.sp)
                     }
                 }
             }
@@ -596,21 +598,21 @@ private fun StepReview(viewModel: ApplyViewModel) {
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 20.dp),
     ) {
-        ReviewRow(label = "Nome", value = viewModel.fullName)
-        ReviewRow(label = "E-mail", value = viewModel.email)
+        ReviewRow(label = stringResource(R.string.apply_review_name), value = viewModel.fullName)
+        ReviewRow(label = stringResource(R.string.apply_email), value = viewModel.email)
         ReviewRow(
-            label = "Curso",
+            label = stringResource(R.string.apply_review_course),
             value = "${viewModel.course} - ${viewModel.institution}",
         )
-        ReviewRow(label = "Média", value = "${viewModel.gpa} valores")
+        ReviewRow(label = stringResource(R.string.apply_review_gpa), value = "${viewModel.gpa} ${stringResource(R.string.common_values)}")
         ReviewRow(
             label = "CV",
-            value = if (viewModel.isCvComplete) "Completo" else "Incompleto",
+            value = if (viewModel.isCvComplete) stringResource(R.string.apply_review_complete) else stringResource(R.string.apply_review_incomplete),
             valueColor = if (viewModel.isCvComplete) LightBlue else Red,
         )
         ReviewRow(
-            label = "Carta de Motivação",
-            value = if (viewModel.isMotivationComplete) "Completo" else "Não anexada",
+            label = stringResource(R.string.apply_motivation_letter),
+            value = if (viewModel.isMotivationComplete) stringResource(R.string.apply_review_complete) else stringResource(R.string.apply_review_not_attached),
             valueColor = if (viewModel.isMotivationComplete) LightBlue else DarkGrey,
         )
         Spacer(modifier = Modifier.height(16.dp))

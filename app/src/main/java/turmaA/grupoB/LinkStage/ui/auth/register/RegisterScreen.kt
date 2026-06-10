@@ -41,13 +41,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import turmaA.grupoB.LinkStage.R
-import turmaA.grupoB.LinkStage.ui.theme.AdvisorPurple
 import turmaA.grupoB.LinkStage.ui.theme.CompanyGreen
 import turmaA.grupoB.LinkStage.ui.theme.Fade2
 import turmaA.grupoB.LinkStage.ui.theme.LinkStageTheme
@@ -85,14 +85,14 @@ fun RegisterScreen(
             Spacer(modifier = Modifier.height(32.dp))
 
             Text(
-                text = "Criar Conta",
+                text = stringResource(R.string.register_title),
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
                 color = Color.Black
             )
 
             Text(
-                text = "Seleciona o teu perfil",
+                text = stringResource(R.string.register_subtitle),
                 style = MaterialTheme.typography.bodyMedium,
                 color = Color.Gray
             )
@@ -100,12 +100,12 @@ fun RegisterScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             ProfileCard(
-                title = "Estudante",
+                title = stringResource(R.string.register_profile_student),
                 description = listOf(
-                    "Pesquisa de vagas",
-                    "Candidaturas online",
-                    "Registo de atividades",
-                    "Relatório final"
+                    stringResource(R.string.register_profile_student_f1),
+                    stringResource(R.string.register_profile_student_f2),
+                    stringResource(R.string.register_profile_student_f3),
+                    stringResource(R.string.register_profile_student_f4)
                 ),
                 icon = Icons.Outlined.AutoStories,
                 color = MediumBlue,
@@ -116,23 +116,12 @@ fun RegisterScreen(
             Spacer(modifier = Modifier.height(12.dp))
 
             ProfileCard(
-                title = "Orientador",
-                description = listOf("Monitorização de atividades"),
-                icon = Icons.Outlined.Person,
-                color = AdvisorPurple,
-                isSelected = selectedProfile == "Orientador",
-                onClick = { selectedProfile = "Orientador" }
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            ProfileCard(
-                title = "Instituição",
+                title = stringResource(R.string.register_profile_institution),
                 description = listOf(
-                    "Publicar vagas",
-                    "Gestão de candidatos",
-                    "Acompanhamento de estágio",
-                    "Avaliações"
+                    stringResource(R.string.register_profile_institution_f1),
+                    stringResource(R.string.register_profile_institution_f2),
+                    stringResource(R.string.register_profile_institution_f3),
+                    stringResource(R.string.register_profile_institution_f4)
                 ),
                 icon = Icons.Outlined.BusinessCenter,
                 color = CompanyGreen,
@@ -144,7 +133,7 @@ fun RegisterScreen(
             Spacer(modifier = Modifier.height(32.dp))
 
             Column(modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)) {
-                val isContinueEnabled = selectedProfile.isNotEmpty() && selectedProfile != "Orientador"
+                val isContinueEnabled = selectedProfile.isNotEmpty()
                 
                 Box(
                     modifier = Modifier
@@ -168,7 +157,7 @@ fun RegisterScreen(
                         contentPadding = PaddingValues()
                     ) {
                         Text(
-                            text = "Continuar",
+                            text = stringResource(R.string.register_continue),
                             color = if (isContinueEnabled) Color.White else Color.Gray.copy(alpha = 0.8f),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
@@ -191,7 +180,7 @@ fun RegisterScreen(
                     contentPadding = PaddingValues()
                 ) {
                     Text(
-                        text = "Voltar",
+                        text = stringResource(R.string.register_back),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
                     )

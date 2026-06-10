@@ -40,6 +40,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -49,6 +50,7 @@ import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.Fade2
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
+import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.theme.Red
 import java.time.LocalDate
 
@@ -109,23 +111,23 @@ fun CreateCheckpointDialog(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        text = "Criar Ponto de Entrega",
+                        text = stringResource(R.string.checkpoint_create_title),
                         color = DarkBlue,
                         fontWeight = FontWeight.Bold,
                         fontSize = 17.sp,
                     )
                     IconButton(onClick = onDismiss) {
-                        Icon(Icons.Default.Close, contentDescription = "Fechar", tint = DarkBlue)
+                        Icon(Icons.Default.Close, contentDescription = stringResource(R.string.common_close), tint = DarkBlue)
                     }
                 }
 
                 // Title field
-                SectionLabel("Título")
+                SectionLabel(stringResource(R.string.checkpoint_title_label))
                 OutlinedTextField(
                     value = title,
                     onValueChange = { title = it; titleError = false },
                     modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text("Ex: Relatório intercalar", color = DarkGrey, fontSize = 14.sp) },
+                    placeholder = { Text(stringResource(R.string.checkpoint_title_placeholder), color = DarkGrey, fontSize = 14.sp) },
                     singleLine = true,
                     shape = RoundedCornerShape(10.dp),
                     isError = titleError,
@@ -137,16 +139,16 @@ fun CreateCheckpointDialog(
                     ),
                 )
                 if (titleError) {
-                    Text("Campo obrigatório.", color = Red, fontSize = 12.sp)
+                    Text(stringResource(R.string.checkpoint_title_error), color = Red, fontSize = 12.sp)
                 }
 
                 // Description field
-                SectionLabel("Descrição")
+                SectionLabel(stringResource(R.string.checkpoint_desc_label))
                 OutlinedTextField(
                     value = description,
                     onValueChange = { description = it },
                     modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text("Descreva o que deve ser entregue...", color = DarkGrey, fontSize = 14.sp) },
+                    placeholder = { Text(stringResource(R.string.checkpoint_desc_placeholder), color = DarkGrey, fontSize = 14.sp) },
                     minLines = 3,
                     maxLines = 6,
                     shape = RoundedCornerShape(10.dp),
@@ -159,7 +161,7 @@ fun CreateCheckpointDialog(
                 )
 
                 // Date field
-                SectionLabel("Data limite")
+                SectionLabel(stringResource(R.string.checkpoint_deadline_label))
                 OutlinedTextField(
                     value = dateText,
                     onValueChange = { newValue ->
@@ -178,7 +180,7 @@ fun CreateCheckpointDialog(
                         }
                     },
                     modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text("dd/mm/aaaa", color = DarkGrey, fontSize = 14.sp) },
+                    placeholder = { Text(stringResource(R.string.checkpoint_deadline_placeholder), color = DarkGrey, fontSize = 14.sp) },
                     singleLine = true,
                     leadingIcon = {
                         Icon(
@@ -199,7 +201,7 @@ fun CreateCheckpointDialog(
                     ),
                 )
                 if (dateError) {
-                    Text("Data inválida. Use o formato dd/mm/aaaa.", color = Red, fontSize = 12.sp)
+                    Text(stringResource(R.string.checkpoint_deadline_error), color = Red, fontSize = 12.sp)
                 }
 
                 // Info card
@@ -220,7 +222,7 @@ fun CreateCheckpointDialog(
                             modifier = Modifier.size(16.dp),
                         )
                         Text(
-                            text = "O aluno será notificado e verá este ponto de entrega identificado como definido pelo orientador.",
+                            text = stringResource(R.string.checkpoint_info),
                             color = DarkGrey,
                             fontSize = 11.sp,
                             lineHeight = 16.sp,
@@ -242,7 +244,7 @@ fun CreateCheckpointDialog(
                         shape = RoundedCornerShape(10.dp),
                         border = BorderStroke(1.dp, Fade2),
                     ) {
-                        Text("Cancelar", color = DarkBlue, fontWeight = FontWeight.SemiBold)
+                        Text(stringResource(R.string.common_cancel), color = DarkBlue, fontWeight = FontWeight.SemiBold)
                     }
                     Button(
                         onClick = {
@@ -259,7 +261,7 @@ fun CreateCheckpointDialog(
                         shape = RoundedCornerShape(10.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = DarkBlue),
                     ) {
-                        Text("Criar", color = Color.White, fontWeight = FontWeight.SemiBold)
+                        Text(stringResource(R.string.checkpoint_create_button), color = Color.White, fontWeight = FontWeight.SemiBold)
                     }
                 }
             }

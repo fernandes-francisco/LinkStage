@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -49,7 +50,7 @@ fun RegisterSkillsScreen(
     var showSuccessDialog by remember { mutableStateOf(false) }
 
     SuccessDialog(
-        message = "A sua conta foi criada com sucesso. Pode agora iniciar sessão.",
+        message = stringResource(R.string.register_data_success_message),
         show = showSuccessDialog,
         onConfirm = { onRegisterClick(mySkills.toList()) }
     )
@@ -61,14 +62,14 @@ fun RegisterSkillsScreen(
             title = {
                 Column {
                     Text(
-                        text = "Adicionar Skill",
+                        text = stringResource(R.string.register_skills_dialog_title),
                         color = DarkBlue,
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "Adiciona uma nova habilidade técnica ou interpessoal para o teu perfil.",
+                        text = stringResource(R.string.register_skills_dialog_desc),
                         color = Color.Gray,
                         fontSize = 12.sp,
                         lineHeight = 16.sp
@@ -79,7 +80,7 @@ fun RegisterSkillsScreen(
                 Column {
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "Skill",
+                        text = stringResource(R.string.register_skills_dialog_label),
                         color = DarkBlue,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Medium
@@ -88,7 +89,7 @@ fun RegisterSkillsScreen(
                     TextField(
                         value = newSkillName,
                         onValueChange = { newSkillName = it },
-                        placeholder = { Text("Insere aqui a tua skill.", color = Color.Gray, fontSize = 14.sp) },
+                        placeholder = { Text(stringResource(R.string.register_skills_dialog_placeholder), color = Color.Gray, fontSize = 14.sp) },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
                         colors = TextFieldDefaults.colors(
@@ -106,11 +107,11 @@ fun RegisterSkillsScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         TextButton(onClick = { showAddSkillDialog = false }) {
-                            Text("Cancelar", color = DarkBlue, fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
+                            Text(stringResource(R.string.dialog_cancel), color = DarkBlue, fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
                         }
                         Spacer(modifier = Modifier.width(16.dp))
                         LinkStageButton(
-                            text = "Guardar",
+                            text = stringResource(R.string.register_skills_dialog_save),
                             onClick = {
                                 if (newSkillName.isNotBlank()) {
                                     mySkills.add(newSkillName.trim())
@@ -152,14 +153,14 @@ fun RegisterSkillsScreen(
             Spacer(modifier = Modifier.height(32.dp))
 
             Text(
-                text = "Criar Conta",
+                text = stringResource(R.string.register_title),
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
                 color = Color.Black
             )
 
             Text(
-                text = "Passo 2 de 2 - Definir skills",
+                text = stringResource(R.string.register_skills_step),
                 style = MaterialTheme.typography.bodyMedium,
                 color = Color.Gray
             )
@@ -170,7 +171,7 @@ fun RegisterSkillsScreen(
             TextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
-                placeholder = { Text("Pesquisar skills", color = Color.Gray) },
+                placeholder = { Text(stringResource(R.string.register_skills_search), color = Color.Gray) },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(10.dp),
                 colors = TextFieldDefaults.colors(
@@ -190,7 +191,7 @@ fun RegisterSkillsScreen(
             // My Skills
             Column(modifier = Modifier.fillMaxWidth()) {
                 Text(
-                    text = "As suas skills",
+                    text = stringResource(R.string.register_skills_yours),
                     fontWeight = FontWeight.Bold,
                     color = Color.Black,
                     fontSize = 14.sp
@@ -198,7 +199,7 @@ fun RegisterSkillsScreen(
                 Spacer(modifier = Modifier.height(8.dp))
                 if (mySkills.isEmpty()) {
                     Text(
-                        text = "Ainda não adicionaste nenhuma skill.",
+                        text = stringResource(R.string.register_skills_empty),
                         color = Color.Gray,
                         fontSize = 12.sp,
                         modifier = Modifier.padding(vertical = 8.dp)
@@ -233,7 +234,7 @@ fun RegisterSkillsScreen(
             // Other Skills
             Column(modifier = Modifier.fillMaxWidth()) {
                 Text(
-                    text = "Sugestões de skills",
+                    text = stringResource(R.string.register_skills_suggestions),
                     fontWeight = FontWeight.Bold,
                     color = Color.Black,
                     fontSize = 14.sp
@@ -266,7 +267,7 @@ fun RegisterSkillsScreen(
                 border = BorderStroke(1.dp, DarkBlue),
                 colors = ButtonDefaults.outlinedButtonColors(contentColor = DarkBlue)
             ) {
-                Text("Adicionar skill personalizada", fontSize = 14.sp)
+                Text(stringResource(R.string.register_skills_add_custom), fontSize = 14.sp)
             }
 
             Spacer(modifier = Modifier.weight(1f))
@@ -274,14 +275,14 @@ fun RegisterSkillsScreen(
             // Bottom Buttons
             Column(modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)) {
                 LinkStageButton(
-                    text = "Registar",
+                    text = stringResource(R.string.register_skills_register),
                     onClick = { showSuccessDialog = true }
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
 
                 LinkStageOutlinedButton(
-                    text = "Voltar",
+                    text = stringResource(R.string.register_back),
                     onClick = onBackClick
                 )
             }

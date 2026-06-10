@@ -46,12 +46,14 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.instituicao.InstituicaoRoutes
 import turmaA.grupoB.LinkStage.ui.instituicao.sampleInstitutionInternships
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
@@ -71,7 +73,7 @@ fun EvaluationSubmittedScreen(
         ?: sampleInstitutionInternships.first()
 
     val evaluatorName = "Prof. Tiago Alexandre"
-    val evaluatorRole = "Instituição Escolar"
+    val evaluatorRole = "School Institution"
     val submittedGrade = 15.5f
     val submittedObservation = "O aluno demonstrou um bom desempenho ao longo do estágio, com destaque para a capacidade de trabalho em equipa e a proatividade."
 
@@ -115,7 +117,7 @@ fun EvaluationSubmittedScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = "Avaliação submetida",
+                text = stringResource(R.string.eval_submitted_title),
                 color = DarkBlue,
                 fontWeight = FontWeight.Bold,
                 fontSize = 22.sp,
@@ -125,8 +127,7 @@ fun EvaluationSubmittedScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "A sua avaliação foi registada com sucesso. " +
-                    "O orientador escolar será notificado para atribuir a nota final ao aluno.",
+                text = stringResource(R.string.eval_submitted_message),
                 color = DarkGrey,
                 fontSize = 14.sp,
                 textAlign = TextAlign.Center,
@@ -209,7 +210,7 @@ fun EvaluationSubmittedScreen(
                                 .padding(horizontal = 10.dp, vertical = 4.dp),
                         ) {
                             Text(
-                                text = "${formatGrade(submittedGrade)} valores",
+                                text = stringResource(R.string.final_grade_values, formatGrade(submittedGrade)),
                                 color = DarkBlue,
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 13.sp,
@@ -220,7 +221,7 @@ fun EvaluationSubmittedScreen(
                     HorizontalDivider(color = BorderGrey)
 
                     Text(
-                        text = "Observação registada:",
+                        text = stringResource(R.string.eval_observation_label),
                         color = DarkGrey,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.SemiBold,
@@ -255,13 +256,13 @@ fun EvaluationSubmittedScreen(
                     )
                     Column(modifier = Modifier.padding(start = 12.dp)) {
                         Text(
-                            text = "Próximo passo",
+                            text = stringResource(R.string.eval_next_step),
                             color = DarkBlue,
                             fontWeight = FontWeight.Bold,
                             fontSize = 13.sp,
                         )
                         Text(
-                            text = "O orientador escolar foi notificado e irá atribuir a nota final.",
+                            text = stringResource(R.string.eval_next_step_message),
                             color = DarkGrey,
                             fontSize = 12.sp,
                             lineHeight = 18.sp,
@@ -289,7 +290,7 @@ fun EvaluationSubmittedScreen(
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
             ) {
                 Text(
-                    text = "Ver estágio",
+                    text = stringResource(R.string.eval_view_internship),
                     color = Color.White,
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 15.sp,
@@ -310,7 +311,7 @@ fun EvaluationSubmittedScreen(
                 colors = ButtonDefaults.outlinedButtonColors(contentColor = DarkBlue),
             ) {
                 Text(
-                    text = "Voltar ao início",
+                    text = stringResource(R.string.eval_back_home),
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 15.sp,
                 )

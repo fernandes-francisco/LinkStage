@@ -56,6 +56,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -63,6 +64,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
+import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
 import turmaA.grupoB.LinkStage.ui.common.LinkStageButton
 import turmaA.grupoB.LinkStage.ui.common.LinkStageDialog
@@ -127,7 +129,7 @@ fun OffersAlunoScreen(
             Column(modifier = Modifier.background(BackgroundLight)) {
                 CommonTopBar()
                 Text(
-                    text = "Descobre Oportunidades",
+                    text = stringResource(R.string.discover_title),
                     style = MaterialTheme.typography.headlineSmall.copy(
                         fontWeight = FontWeight.Bold,
                         color = DarkBlue,
@@ -239,12 +241,29 @@ fun FilterModal(
     var duration by remember { mutableStateOf(currentFilters.duration) }
     var deadline by remember { mutableStateOf(currentFilters.deadline) }
 
-    val workModelOptions = listOf("Tempo Inteiro", "Tempo Parcial", "Remoto", "Híbrido")
-    val durationOptions = listOf("3 Meses", "6 Meses", "9 Meses", "12 Meses", "+12 Meses")
-    val deadlineOptions = listOf("1 Semana", "2 Semanas", "1 Mês", "3 Meses", "Sem limite")
+    val workModelOptions = listOf(
+        stringResource(R.string.filter_fulltime),
+        stringResource(R.string.filter_parttime),
+        stringResource(R.string.filter_remote),
+        stringResource(R.string.filter_hybrid),
+    )
+    val durationOptions = listOf(
+        stringResource(R.string.filter_3months),
+        stringResource(R.string.filter_6months),
+        stringResource(R.string.filter_9months),
+        stringResource(R.string.filter_12months),
+        stringResource(R.string.filter_12months_plus),
+    )
+    val deadlineOptions = listOf(
+        stringResource(R.string.filter_1week),
+        stringResource(R.string.filter_2weeks),
+        stringResource(R.string.filter_1month),
+        stringResource(R.string.filter_3months),
+        stringResource(R.string.filter_no_limit),
+    )
 
     LinkStageDialog(
-        title = "Filtros",
+        title = stringResource(R.string.filter_title),
         onConfirm = {
             onApply(
                 DiscoverFilters(
@@ -257,8 +276,8 @@ fun FilterModal(
             )
         },
         onDismiss = onDismiss,
-        confirmText = "Filtrar",
-        dismissText = "Cancelar",
+        confirmText = stringResource(R.string.filter_apply),
+        dismissText = stringResource(R.string.dialog_cancel),
         content = {
             Column(
                 modifier = Modifier
@@ -268,11 +287,11 @@ fun FilterModal(
             ) {
                 // Campo 1 — Área de atuação
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    SectionLabel("Área de atuação")
+                    SectionLabel(stringResource(R.string.filter_area))
                     OutlinedTextField(
                         value = area,
                         onValueChange = { area = it },
-                        placeholder = { Text("Escreva aqui.", color = DarkGrey, fontSize = 14.sp) },
+                        placeholder = { Text(stringResource(R.string.common_write_here), color = DarkGrey, fontSize = 14.sp) },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(10.dp),
                         colors = OutlinedTextFieldDefaults.colors(
@@ -287,11 +306,11 @@ fun FilterModal(
 
                 // Campo 2 — Localização
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    SectionLabel("Localização")
+                    SectionLabel(stringResource(R.string.filter_location))
                     OutlinedTextField(
                         value = location,
                         onValueChange = { location = it },
-                        placeholder = { Text("Escreva aqui.", color = DarkGrey, fontSize = 14.sp) },
+                        placeholder = { Text(stringResource(R.string.common_write_here), color = DarkGrey, fontSize = 14.sp) },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(10.dp),
                         colors = OutlinedTextFieldDefaults.colors(
@@ -306,10 +325,10 @@ fun FilterModal(
 
                 // Campo 3 — Modelo de trabalho
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    SectionLabel("Modelo de trabalho")
+                    SectionLabel(stringResource(R.string.filter_work_model))
                     FilterDropdown(
                         value = workModel,
-                        placeholder = "Seleciona um modelo.",
+                        placeholder = stringResource(R.string.filter_select_model),
                         options = workModelOptions,
                         onOptionSelected = { workModel = it },
                     )
@@ -317,10 +336,10 @@ fun FilterModal(
 
                 // Campo 4 — Duração
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    SectionLabel("Duração")
+                    SectionLabel(stringResource(R.string.filter_duration))
                     FilterDropdown(
                         value = duration,
-                        placeholder = "Seleciona uma duração.",
+                        placeholder = stringResource(R.string.filter_select_duration),
                         options = durationOptions,
                         onOptionSelected = { duration = it },
                     )
@@ -328,10 +347,10 @@ fun FilterModal(
 
                 // Campo 5 — Data Limite
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    SectionLabel("Data Limite")
+                    SectionLabel(stringResource(R.string.filter_deadline))
                     FilterDropdown(
                         value = deadline,
-                        placeholder = "Seleciona uma duração.",
+                        placeholder = stringResource(R.string.filter_select_duration),
                         options = deadlineOptions,
                         onOptionSelected = { deadline = it },
                     )
@@ -375,7 +394,7 @@ private fun SearchBarWithFilter(
             value = query,
             onValueChange = onQueryChange,
             modifier = Modifier.weight(1f),
-            placeholder = { Text("Pesquisar...", color = DarkGrey) },
+            placeholder = { Text(stringResource(R.string.common_search), color = DarkGrey) },
             leadingIcon = {
                 Icon(
                     Icons.Outlined.Search,
@@ -415,7 +434,7 @@ private fun SearchBarWithFilter(
             ) {
                 Icon(
                     Icons.Outlined.FilterList,
-                    contentDescription = "Filtros",
+                    contentDescription = stringResource(R.string.discover_filters),
                     tint = Color.White,
                     modifier = Modifier.size(22.dp),
                 )
@@ -484,7 +503,7 @@ private fun OfferCard(
                 ) {
                     Icon(
                         imageVector = Icons.Outlined.FavoriteBorder,
-                        contentDescription = if (isFav) "Remover favorito" else "Adicionar favorito",
+                        contentDescription = if (isFav) stringResource(R.string.offer_remove_favorite) else stringResource(R.string.offer_add_favorite),
                         tint = if (isFav) LightBlue else DarkGrey,
                     )
                 }
@@ -501,7 +520,7 @@ private fun OfferCard(
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
-                    text = "Publicada ${offer.publishedAgo}",
+                    text = stringResource(R.string.discover_published_ago, offer.publishedAgo),
                     style = MaterialTheme.typography.labelSmall,
                     color = DarkGrey,
                 )

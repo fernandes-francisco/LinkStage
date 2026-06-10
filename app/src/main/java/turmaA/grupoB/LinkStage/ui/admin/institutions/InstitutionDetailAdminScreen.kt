@@ -40,11 +40,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.admin.InstitutionStatus
 import turmaA.grupoB.LinkStage.ui.admin.sampleInstitutions
 import turmaA.grupoB.LinkStage.ui.admin.sampleMentors
@@ -88,17 +90,17 @@ fun InstitutionDetailAdminScreen(
 
     if (showDeleteDialog) {
         LinkStageDialog(
-            title = "Remover Instituição",
+            title = stringResource(R.string.admin_institution_remove),
             onConfirm = {
                 showDeleteDialog = false
                 onBack()
             },
             onDismiss = { showDeleteDialog = false },
-            confirmText = "Remover",
-            dismissText = "Cancelar",
+            confirmText = stringResource(R.string.common_remove),
+            dismissText = stringResource(R.string.dialog_cancel),
             content = {
                 Text(
-                    text = "Tens a certeza que pretendes remover a instituição \"${institution.name}\"? Esta ação não pode ser desfeita.",
+                    text = stringResource(R.string.admin_institution_remove_confirm, institution.name),
                     color = DarkGrey,
                     lineHeight = 22.sp,
                 )
@@ -108,9 +110,9 @@ fun InstitutionDetailAdminScreen(
 
     if (showApproveDialog) {
         ConfirmationDialog(
-            title = "Aprovar instituição?",
-            body = "Ao aprovar, \"${institution.name}\" terá acesso imediato à plataforma LinkStage.",
-            confirmLabel = "Aprovar",
+            title = stringResource(R.string.admin_approve_title),
+            body = stringResource(R.string.admin_approve_body, institution.name),
+            confirmLabel = stringResource(R.string.admin_approve_button),
             confirmBrush = SolidColor(Green),
             isDanger = false,
             onConfirm = {
@@ -123,9 +125,9 @@ fun InstitutionDetailAdminScreen(
 
     if (showRejectDialog) {
         ConfirmationDialog(
-            title = "Rejeitar pedido?",
-            body = "\"${institution.name}\" será notificada da rejeição e poderá corrigir os seus dados e resubmeter o pedido.",
-            confirmLabel = "Rejeitar",
+            title = stringResource(R.string.admin_reject_title),
+            body = stringResource(R.string.admin_reject_body, institution.name),
+            confirmLabel = stringResource(R.string.admin_reject_button),
             isDanger = true,
             onConfirm = {
                 showRejectDialog = false
@@ -136,7 +138,7 @@ fun InstitutionDetailAdminScreen(
     }
 
     Scaffold(
-        topBar = { SecondaryTopBar(title = "Detalhes da Instituição", onBack = onBack) },
+        topBar = { SecondaryTopBar(title = stringResource(R.string.admin_institution_detail_title), onBack = onBack) },
         containerColor = BackgroundLight,
         bottomBar = {
             if (institution.status == InstitutionStatus.APPROVED) {
@@ -147,7 +149,7 @@ fun InstitutionDetailAdminScreen(
                         .padding(16.dp)
                 ) {
                     LinkStageButton(
-                        text = "Remover Instituição",
+                        text = stringResource(R.string.admin_institution_remove),
                         onClick = { showDeleteDialog = true },
                         height = 50.dp,
                         brush = SolidColor(Red)
@@ -238,19 +240,19 @@ fun InstitutionDetailAdminScreen(
             ) {
                 StatCard(
                     value = "${institution.studentsCount}",
-                    label = "Alunos",
+                    label = stringResource(R.string.admin_detail_students_label),
                     valueColor = DarkBlue,
                     modifier = Modifier.weight(1f),
                 )
                 StatCard(
                     value = "${institution.mentorsCount}",
-                    label = "Orientadores",
+                    label = stringResource(R.string.admin_detail_mentors_label),
                     valueColor = DarkBlue,
                     modifier = Modifier.weight(1f),
                 )
                 StatCard(
                     value = "${institution.activeInternshipsCount}",
-                    label = "Estágios ativos",
+                    label = stringResource(R.string.admin_detail_active_internships),
                     valueColor = LightBlue,
                     modifier = Modifier.weight(1f),
                 )
@@ -259,22 +261,22 @@ fun InstitutionDetailAdminScreen(
             Spacer(modifier = Modifier.height(12.dp))
 
             // Contact Information
-            ContentSection(title = "Informação de Contacto") {
+            ContentSection(title = stringResource(R.string.admin_detail_contact_info)) {
                 Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
-                    DetailRow("Email", institution.email)
-                    DetailRow("Website", institution.website)
-                    DetailRow("Localização", institution.location)
+                    DetailRow(stringResource(R.string.admin_detail_email), institution.email)
+                    DetailRow(stringResource(R.string.admin_detail_website), institution.website)
+                    DetailRow(stringResource(R.string.admin_detail_location), institution.location)
                 }
             }
 
             Spacer(modifier = Modifier.height(12.dp))
 
             // Recent Students
-            ContentSection(title = "Alunos Recentes") {
+            ContentSection(title = stringResource(R.string.admin_detail_recent_students)) {
                 Column(modifier = Modifier.padding(vertical = 8.dp)) {
                     if (relatedStudents.isEmpty()) {
                         Text(
-                            text = "Sem alunos registados",
+                            text = stringResource(R.string.admin_institution_no_students),
                             color = DarkGrey,
                             fontSize = 13.sp,
                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
@@ -294,11 +296,11 @@ fun InstitutionDetailAdminScreen(
             Spacer(modifier = Modifier.height(12.dp))
 
             // Mentors
-            ContentSection(title = "Orientadores") {
+            ContentSection(title = stringResource(R.string.admin_detail_mentors_label)) {
                 Column(modifier = Modifier.padding(vertical = 8.dp)) {
                     if (relatedMentors.isEmpty()) {
                         Text(
-                            text = "Sem orientadores registados",
+                            text = stringResource(R.string.admin_institution_no_mentors),
                             color = DarkGrey,
                             fontSize = 13.sp,
                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
@@ -338,13 +340,13 @@ fun InstitutionDetailAdminScreen(
                         )
                         Column(modifier = Modifier.padding(start = 12.dp)) {
                             Text(
-                                text = "Pedido de registo pendente",
+                                text = stringResource(R.string.admin_institution_pending_title),
                                 color = DarkBlue,
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 14.sp,
                             )
                             Text(
-                                text = "Esta instituição aguarda aprovação para aceder à plataforma.",
+                                text = stringResource(R.string.admin_institution_pending_message),
                                 color = DarkGrey,
                                 fontSize = 12.sp,
                                 lineHeight = 18.sp,
@@ -372,7 +374,7 @@ fun InstitutionDetailAdminScreen(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "Aprovar instituição",
+                        text = stringResource(R.string.admin_institution_approve),
                         color = Color.White,
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 15.sp,
@@ -399,7 +401,7 @@ fun InstitutionDetailAdminScreen(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "Rejeitar pedido",
+                        text = stringResource(R.string.admin_institution_reject),
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 15.sp,
                     )

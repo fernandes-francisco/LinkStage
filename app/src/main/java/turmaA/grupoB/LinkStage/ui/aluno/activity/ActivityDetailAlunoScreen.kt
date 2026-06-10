@@ -42,11 +42,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.common.CheckItem
 import turmaA.grupoB.LinkStage.ui.common.ContentSection
 import turmaA.grupoB.LinkStage.ui.common.ContentSectionColored
@@ -105,17 +107,17 @@ fun ActivityDetailAlunoScreen(
 
     if (showConfirmDialog) {
         LinkStageDialog(
-            title = "Submeter Atividade?",
+            title = stringResource(R.string.activity_submit_title),
             onConfirm = {
                 hasSubmitted = true
                 showConfirmDialog = false
             },
             onDismiss = { showConfirmDialog = false },
-            confirmText = "Submeter",
-            dismissText = "Cancelar",
+            confirmText = stringResource(R.string.activity_submit),
+            dismissText = stringResource(R.string.dialog_cancel),
             content = {
                 Text(
-                    "Tens a certeza que queres submeter esta atividade? Esta ação não pode ser desfeita.",
+                    stringResource(R.string.activity_submit_message),
                     color = DarkGrey,
                     lineHeight = 22.sp,
                 )
@@ -128,7 +130,7 @@ fun ActivityDetailAlunoScreen(
             .fillMaxSize()
             .background(BackgroundLight),
     ) {
-        SecondaryTopBar(title = "Detalhes da Atividade", onBack = onBack)
+        SecondaryTopBar(title = stringResource(R.string.activity_detail_title), onBack = onBack)
 
         Column(
             modifier = Modifier
@@ -191,7 +193,7 @@ fun ActivityDetailAlunoScreen(
                 ) {
                     Icon(Icons.Outlined.Schedule, contentDescription = null, tint = LightBlue, modifier = Modifier.size(16.dp))
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text("Prazo de Entrega", fontSize = 13.sp, color = DarkGrey)
+                    Text(stringResource(R.string.activity_delivery_date), fontSize = 13.sp, color = DarkGrey)
                     Spacer(modifier = Modifier.weight(1f))
                     Text(
                         formatDateUppercase(activityLog.date),
@@ -204,7 +206,7 @@ fun ActivityDetailAlunoScreen(
                 Spacer(modifier = Modifier.height(4.dp))
 
                 // Descrição
-                ContentSection(title = "Descrição") {
+                ContentSection(title = stringResource(R.string.activity_description)) {
                     Text(
                         text = activityLog.description,
                         fontSize = 14.sp,
@@ -218,7 +220,7 @@ fun ActivityDetailAlunoScreen(
 
                 // Requisitos
                 if (activityLog.requirements.isNotEmpty()) {
-                    ContentSectionColored(title = "Requisitos") {
+                    ContentSectionColored(title = stringResource(R.string.activity_requirements)) {
                         activityLog.requirements.forEach { req ->
                             CheckItem(text = req)
                         }
@@ -227,7 +229,7 @@ fun ActivityDetailAlunoScreen(
                 }
 
                 // Anexos
-                ContentSection(title = "Anexos") {
+                ContentSection(title = stringResource(R.string.activity_attachments)) {
                     Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
                         if (hasSubmitted) {
                             Row(
@@ -241,8 +243,8 @@ fun ActivityDetailAlunoScreen(
                             ) {
                                 Icon(Icons.Outlined.Description, contentDescription = null, tint = LightBlue)
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Text("Documento submetido", fontSize = 13.sp, color = DarkBlue, modifier = Modifier.weight(1f))
-                                Text("Submetido", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = LightBlue)
+                                Text(stringResource(R.string.activity_doc_submitted), fontSize = 13.sp, color = DarkBlue, modifier = Modifier.weight(1f))
+                                Text(stringResource(R.string.activity_doc_status), fontSize = 12.sp, fontWeight = FontWeight.Bold, color = LightBlue)
                             }
                         } else if (fileUri != null) {
                             Row(
@@ -262,7 +264,7 @@ fun ActivityDetailAlunoScreen(
                                     Icon(Icons.Outlined.Description, contentDescription = null, tint = LightBlue)
                                     Spacer(modifier = Modifier.width(8.dp))
                                     Text(
-                                        fileName ?: "ficheiro",
+                                        fileName ?: stringResource(R.string.common_file),
                                         fontSize = 13.sp,
                                         color = DarkBlue,
                                         fontWeight = FontWeight.Medium,
@@ -271,7 +273,7 @@ fun ActivityDetailAlunoScreen(
                                     )
                                 }
                                 IconButton(onClick = { fileUri = null; fileName = null }) {
-                                    Icon(Icons.Default.Close, contentDescription = "Remover", tint = DarkGrey)
+                                    Icon(Icons.Default.Close, contentDescription = stringResource(R.string.common_remove), tint = DarkGrey)
                                 }
                             }
                         } else {
@@ -296,8 +298,8 @@ fun ActivityDetailAlunoScreen(
                                         tint = DarkGrey,
                                         modifier = Modifier.size(40.dp),
                                     )
-                                    Text("Selecionar Ficheiros", fontWeight = FontWeight.Bold, color = DarkBlue, fontSize = 14.sp)
-                                    Text("PDF, DOCX até 10MB", color = DarkGrey, fontSize = 12.sp)
+                                    Text(stringResource(R.string.activity_select_files), fontWeight = FontWeight.Bold, color = DarkBlue, fontSize = 14.sp)
+                                    Text(stringResource(R.string.apply_file_format), color = DarkGrey, fontSize = 12.sp)
                                 }
                             }
                         }
@@ -309,7 +311,7 @@ fun ActivityDetailAlunoScreen(
 
             // Submit button
             LinkStageButton(
-                text = if (hasSubmitted) "Atividade Submetida ✓" else "Submeter",
+                text = if (hasSubmitted) stringResource(R.string.activity_submitted) else stringResource(R.string.activity_submit),
                 onClick = { if (canSubmit) showConfirmDialog = true },
                 modifier = Modifier
                     .fillMaxWidth()
