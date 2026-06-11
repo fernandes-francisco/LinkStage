@@ -276,6 +276,7 @@ fun EditSkillsScreen(
 }
 
 @Preview(showSystemUi = true)
+@Suppress("ViewModelConstructorInComposable")
 @Composable
 private fun EditSkillsScreenPreview() {
     MaterialTheme {

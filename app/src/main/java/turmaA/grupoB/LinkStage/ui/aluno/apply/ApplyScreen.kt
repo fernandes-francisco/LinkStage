@@ -654,6 +654,7 @@ private fun ReviewRow(
 // region Preview
 
 @Preview(showSystemUi = true)
+@Suppress("ViewModelConstructorInComposable")
 @Composable
 private fun ApplyScreenPreview() {
     MaterialTheme {
