@@ -44,7 +44,11 @@ class SettingsViewModel : ViewModel() {
 
     fun changeLanguage(lang: String) {
         _currentLanguage.value = lang
-        val tag = if (lang == "PT") "pt" else "en"
+        val tag = when (lang) {
+            "portugal", "PT" -> "pt"
+            "gb", "EN" -> "en"
+            else -> if (lang == "PT") "pt" else "en"
+        }
         AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(tag))
     }
 
