@@ -92,8 +92,8 @@ class FlagsRepositoryTest {
     private class TestRepository(
         private val service: CountriesService
     ) {
-        suspend fun getFlag(country: String): Imgs {
-            return service.getFlagByName(country)
+        suspend fun getFlag(country: String): Imgs? {
+            return service.getFlagByName(country).firstOrNull()?.flags
         }
     }
 }

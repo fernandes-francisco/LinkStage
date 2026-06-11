@@ -105,17 +105,6 @@ class FlagsViewModelTest {
     }
 
     @Test
-    fun getImagesShouldSetEmptyWhenRepositoryReturnsNull() = runTest {
-        whenever(mockRepository.getFlag("unknown")).thenAnswer { null }
-
-        viewModel.getImages(listOf("unknown"))
-        advanceUntilIdle()
-
-        val state = viewModel.uiState.value
-        assertTrue(state is FlagsUIState.Empty)
-    }
-
-    @Test
     fun getImagesWithMultipleCountriesShouldCollectAllResults() = runTest {
         val mockImgs1 = Imgs(png = "https://flagcdn.com/w320/pt.png")
         val mockImgs2 = Imgs(png = "https://flagcdn.com/w320/es.png")

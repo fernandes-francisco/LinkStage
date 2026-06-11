@@ -45,7 +45,7 @@ class CountriesServiceTest {
 
         val result = countriesService.getFlagByName("portugal")
 
-        assertEquals("https://flagcdn.com/w320/pt.png", result.png)
+        assertEquals("https://flagcdn.com/w320/pt.png", result.firstOrNull()?.flags?.png)
     }
 
     @Test
@@ -73,7 +73,7 @@ class CountriesServiceTest {
 
         val result = countriesService.getFlagByName("unknown")
 
-        assertEquals("", result.png)
+        assertEquals("", result.firstOrNull()?.flags?.png)
     }
 
     @Test
@@ -118,7 +118,7 @@ class CountriesServiceTest {
 
         val result = countriesService.getFlagByName("japan")
 
-        assertEquals("https://flagcdn.com/w320/jp.png", result.png)
+        assertEquals("https://flagcdn.com/w320/jp.png", result.firstOrNull()?.flags?.png)
 
         val request = mockWebServer.takeRequest()
         assertEquals("/v3.1/japan?fields=flags", request.path)
