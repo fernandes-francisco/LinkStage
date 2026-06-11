@@ -12,15 +12,12 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import turmaA.grupoB.LinkStage.data.remote.api.CountriesService
 import turmaA.grupoB.LinkStage.data.remote.model.Imgs
+import turmaA.grupoB.LinkStage.data.repository.flags.FlagsRepository
 import java.net.HttpURLConnection
 
 class FlagsRepositoryTest {
 
     private lateinit var mockWebServer: MockWebServer
-
-    companion object {
-        private const val AUTH_HEADER = "Bearer test-restcountries-key"
-    }
 
     @Before
     fun setup() {
@@ -33,13 +30,13 @@ class FlagsRepositoryTest {
         mockWebServer.shutdown()
     }
 
-    private fun createTestRepository(): TestRepository {
+    private fun createTestRepository(): FlagsRepository {
         val service = Retrofit.Builder()
             .baseUrl(mockWebServer.url("/"))
             .addConverterFactory(GsonConverterFactory.create())
             .build()
             .create(CountriesService::class.java)
-        return TestRepository(service)
+        return FlagsRepository(service)
     }
 
     @Test
@@ -54,6 +51,19 @@ class FlagsRepositoryTest {
         val result = repository.getFlag("france")
 
         assertEquals(Imgs(png = "https://flagcdn.com/w320/fr.png"), result)
+    }
+
+    @Test
+    fun getFlagShouldUseDirectFallbackWhenApiFailsForKnownCountry() = runTest {
+        mockWebServer.enqueue(
+            MockResponse()
+                .setResponseCode(HttpURLConnection.HTTP_INTERNAL_ERROR)
+        )
+
+        val repository = createTestRepository()
+        val result = repository.getFlag("portugal")
+
+        assertEquals(Imgs(png = "https://flagcdn.com/w320/pt.png"), result)
     }
 
     @Test
@@ -80,7 +90,7 @@ class FlagsRepositoryTest {
         val repository = createTestRepository()
 
         try {
-            repository.getFlag("portugal")
+            repository.getFlag("unknownland")
             throw AssertionError("Expected exception on network failure")
         } catch (e: Exception) {
             assertTrue(
@@ -90,14 +100,6 @@ class FlagsRepositoryTest {
                 e is java.net.SocketException ||
                 e is retrofit2.HttpException
             )
-        }
-    }
-
-    private class TestRepository(
-        private val service: CountriesService
-    ) {
-        suspend fun getFlag(country: String): Imgs? {
-            return service.getFlagByName(country, authorization = AUTH_HEADER).firstOrNull()?.flags
         }
     }
 }
