@@ -7,9 +7,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import turmaA.grupoB.LinkStage.ui.aluno.settings.LoggedUser
-import turmaA.grupoB.LinkStage.util.DebugLogger
-
-private const val TAG = "SettingsViewModel"
 
 class SettingsViewModel : ViewModel() {
 
@@ -46,14 +43,12 @@ class SettingsViewModel : ViewModel() {
     val user: StateFlow<LoggedUser> = _user.asStateFlow()
 
     fun changeLanguage(lang: String) {
-        DebugLogger.d(TAG, "changeLanguage called with lang=$lang")
         _currentLanguage.value = lang
         val tag = when (lang) {
             "portugal", "PT" -> "pt"
             "gb", "EN" -> "en"
             else -> if (lang == "PT") "pt" else "en"
         }
-        DebugLogger.d(TAG, "setting app locale tag=$tag")
         AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(tag))
     }
 
@@ -92,12 +87,9 @@ class SettingsViewModel : ViewModel() {
     companion object {
         private fun resolveCurrentLanguage(): String {
             val locales = AppCompatDelegate.getApplicationLocales()
-            DebugLogger.d(TAG, "resolveCurrentLanguage locales=$locales")
             if (locales.isEmpty) return "EN"
             val tag = locales[0]?.language ?: return "EN"
-            val resolved = if (tag == "pt") "PT" else "EN"
-            DebugLogger.d(TAG, "resolvedCurrentLanguage=$resolved from tag=$tag")
-            return resolved
+            return if (tag == "pt") "PT" else "EN"
         }
     }
 }
