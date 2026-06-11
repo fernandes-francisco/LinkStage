@@ -43,7 +43,7 @@ class FlagsRepositoryTest {
         mockWebServer.enqueue(
             MockResponse()
                 .setResponseCode(HttpURLConnection.HTTP_OK)
-                .setBody("""{"png": "https://flagcdn.com/w320/fr.png"}""")
+                .setBody("""[{"flags": {"png": "https://flagcdn.com/w320/fr.png"}}]""")
         )
 
         val repository = createTestRepository()

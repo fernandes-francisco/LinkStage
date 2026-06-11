@@ -40,7 +40,7 @@ class CountriesServiceTest {
         mockWebServer.enqueue(
             MockResponse()
                 .setResponseCode(HttpURLConnection.HTTP_OK)
-                .setBody("""[{"png": "https://flagcdn.com/w320/pt.png"}]""")
+                .setBody("""[{"flags": {"png": "https://flagcdn.com/w320/pt.png"}}]""")
         )
 
         val result = countriesService.getFlagByName("portugal")
@@ -53,13 +53,13 @@ class CountriesServiceTest {
         mockWebServer.enqueue(
             MockResponse()
                 .setResponseCode(HttpURLConnection.HTTP_OK)
-                .setBody("""[{"png": "https://flagcdn.com/w320/de.png"}]""")
+                .setBody("""[{"flags": {"png": "https://flagcdn.com/w320/de.png"}}]""")
         )
 
         countriesService.getFlagByName("germany")
 
         val request: RecordedRequest = mockWebServer.takeRequest()
-        assertEquals("/v3.1/germany?fields=flags", request.path)
+        assertEquals("/v3.1/name/germany?fields=flags", request.path)
         assertEquals("GET", request.method)
     }
 
@@ -68,7 +68,7 @@ class CountriesServiceTest {
         mockWebServer.enqueue(
             MockResponse()
                 .setResponseCode(HttpURLConnection.HTTP_OK)
-                .setBody("""[{"png": ""}]""")
+                .setBody("""[{"flags": {"png": ""}}]""")
         )
 
         val result = countriesService.getFlagByName("unknown")
@@ -113,7 +113,7 @@ class CountriesServiceTest {
         mockWebServer.enqueue(
             MockResponse()
                 .setResponseCode(HttpURLConnection.HTTP_OK)
-                .setBody("""[{"png": "https://flagcdn.com/w320/jp.png"}]""")
+                .setBody("""[{"flags": {"png": "https://flagcdn.com/w320/jp.png"}}]""")
         )
 
         val result = countriesService.getFlagByName("japan")
@@ -121,6 +121,6 @@ class CountriesServiceTest {
         assertEquals("https://flagcdn.com/w320/jp.png", result.firstOrNull()?.flags?.png)
 
         val request = mockWebServer.takeRequest()
-        assertEquals("/v3.1/japan?fields=flags", request.path)
+        assertEquals("/v3.1/name/japan?fields=flags", request.path)
     }
 }
