@@ -18,6 +18,10 @@ class FlagsRepositoryTest {
 
     private lateinit var mockWebServer: MockWebServer
 
+    companion object {
+        private const val AUTH_HEADER = "Bearer test-restcountries-key"
+    }
+
     @Before
     fun setup() {
         mockWebServer = MockWebServer()
@@ -93,7 +97,7 @@ class FlagsRepositoryTest {
         private val service: CountriesService
     ) {
         suspend fun getFlag(country: String): Imgs? {
-            return service.getFlagByName(country).firstOrNull()?.flags
+            return service.getFlagByName(country, authorization = AUTH_HEADER).firstOrNull()?.flags
         }
     }
 }

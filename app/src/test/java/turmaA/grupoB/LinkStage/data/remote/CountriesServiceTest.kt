@@ -18,6 +18,8 @@ class CountriesServiceTest {
     private lateinit var mockWebServer: MockWebServer
     private lateinit var countriesService: CountriesService
 
+    private val authHeader = "Bearer test-restcountries-key"
+
     @Before
     fun setup() {
         mockWebServer = MockWebServer()
@@ -43,7 +45,7 @@ class CountriesServiceTest {
                 .setBody("""[{"flags": {"png": "https://flagcdn.com/w320/pt.png"}}]""")
         )
 
-        val result = countriesService.getFlagByName("portugal")
+        val result = countriesService.getFlagByName("portugal", authorization = authHeader)
 
         assertEquals("https://flagcdn.com/w320/pt.png", result.firstOrNull()?.flags?.png)
     }
@@ -56,11 +58,12 @@ class CountriesServiceTest {
                 .setBody("""[{"flags": {"png": "https://flagcdn.com/w320/de.png"}}]""")
         )
 
-        countriesService.getFlagByName("germany")
+        countriesService.getFlagByName("germany", authorization = authHeader)
 
         val request: RecordedRequest = mockWebServer.takeRequest()
-        assertEquals("/v3.1/name/germany?fields=flags", request.path)
+        assertEquals("/countries/v5?q=germany&fields=flags", request.path)
         assertEquals("GET", request.method)
+        assertEquals(authHeader, request.getHeader("Authorization"))
     }
 
     @Test
@@ -71,7 +74,7 @@ class CountriesServiceTest {
                 .setBody("""[{"flags": {"png": ""}}]""")
         )
 
-        val result = countriesService.getFlagByName("unknown")
+        val result = countriesService.getFlagByName("unknown", authorization = authHeader)
 
         assertEquals("", result.firstOrNull()?.flags?.png)
     }
@@ -85,7 +88,7 @@ class CountriesServiceTest {
         )
 
         try {
-            countriesService.getFlagByName("nonexistent")
+            countriesService.getFlagByName("nonexistent", authorization = authHeader)
             throw AssertionError("Expected HttpException to be thrown")
         } catch (e: retrofit2.HttpException) {
             assertEquals(404, e.code())
@@ -101,7 +104,7 @@ class CountriesServiceTest {
         )
 
         try {
-            countriesService.getFlagByName("portugal")
+            countriesService.getFlagByName("portugal", authorization = authHeader)
             throw AssertionError("Expected HttpException to be thrown")
         } catch (e: retrofit2.HttpException) {
             assertEquals(500, e.code())
@@ -116,11 +119,12 @@ class CountriesServiceTest {
                 .setBody("""[{"flags": {"png": "https://flagcdn.com/w320/jp.png"}}]""")
         )
 
-        val result = countriesService.getFlagByName("japan")
+        val result = countriesService.getFlagByName("japan", authorization = authHeader)
 
         assertEquals("https://flagcdn.com/w320/jp.png", result.firstOrNull()?.flags?.png)
 
         val request = mockWebServer.takeRequest()
-        assertEquals("/v3.1/name/japan?fields=flags", request.path)
+        assertEquals("/countries/v5?q=japan&fields=flags", request.path)
+        assertEquals(authHeader, request.getHeader("Authorization"))
     }
 }

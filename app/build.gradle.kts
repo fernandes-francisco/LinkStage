@@ -42,6 +42,12 @@ android {
             "SUPABASE_ANON_KEY",
             "\"${localProperties.getProperty("SUPABASE_ANON_KEY", "")}\""
         )
+
+        buildConfigField(
+            "String",
+            "RESTCOUNTRIES_API_KEY",
+            "\"${localProperties.getProperty("RESTCOUNTRIES_API_KEY", "")}\""
+        )
     }
 
     buildTypes {
