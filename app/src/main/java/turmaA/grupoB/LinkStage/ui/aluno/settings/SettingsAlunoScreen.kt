@@ -410,42 +410,56 @@ private fun LanguageToggle(
     onSelect: (String) -> Unit,
     uiState: FlagsUIState
 ) {
+    val languages = listOf("PT" to "portugal", "EN" to "gb")
+
     Row(
         modifier = Modifier
             .clip(RoundedCornerShape(8.dp))
             .border(1.dp, BorderGrey, RoundedCornerShape(8.dp)),
     ) {
-        listOf("portugal", "gb").forEach { lang ->
-            val isSelected = lang == selectedLang
+        languages.forEach { (langCode, countryName) ->
+            val isSelected = langCode == selectedLang
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(7.dp))
                     .background(if (isSelected) DarkBlue else Color.Transparent)
-                    .clickable { onSelect(lang) }
+                    .clickable { onSelect(langCode) }
                     .padding(horizontal = 16.dp, vertical = 6.dp),
                 contentAlignment = Alignment.Center,
-            ) { when (uiState){
-                is FlagsUIState.Error ->  Text(
-                    text = if(lang == "portugal") "PT" else "EN",
-                    style = MaterialTheme.typography.labelMedium.copy(
-                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                    ),
-                    color = if (isSelected) Color.White else DarkGrey,
-                )
-                is FlagsUIState.Success -> {
-                    val index = listOf("portugal", "gb").indexOf(lang)
-                    AsyncImage(
-                        model = uiState.imgs.getOrNull(index)?.png,
-                        contentDescription = lang,
-                        modifier = Modifier
-                            .size(24.dp)
-                            .clip(RoundedCornerShape(4.dp))
-                    )
+            ) {
+                when (uiState) {
+                    is FlagsUIState.Success -> {
+                        val index = languages.indexOf(langCode to countryName)
+                        val flagUrl = uiState.imgs.getOrNull(index)?.png
+                        if (!flagUrl.isNullOrEmpty()) {
+                            AsyncImage(
+                                model = flagUrl,
+                                contentDescription = langCode,
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .clip(RoundedCornerShape(4.dp))
+                            )
+                        } else {
+                            Text(
+                                text = langCode,
+                                style = MaterialTheme.typography.labelMedium.copy(
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                ),
+                                color = if (isSelected) Color.White else DarkGrey,
+                            )
+                        }
+                    }
+
+                    else -> {
+                        Text(
+                            text = langCode,
+                            style = MaterialTheme.typography.labelMedium.copy(
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                            ),
+                            color = if (isSelected) Color.White else DarkGrey,
+                        )
+                    }
                 }
-
-                else -> {}
-            }
-
             }
         }
     }
