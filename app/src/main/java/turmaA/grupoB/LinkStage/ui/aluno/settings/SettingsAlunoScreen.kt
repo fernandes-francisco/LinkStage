@@ -1,6 +1,6 @@
 package turmaA.grupoB.LinkStage.ui.aluno.settings
 
-import android.util.Log
+import androidx.activity.compose.BackHandler
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -91,6 +91,9 @@ import turmaA.grupoB.LinkStage.viewmodel.SettingsViewModel
 import turmaA.grupoB.LinkStage.viewmodel.flags.FlagsUIState
 import turmaA.grupoB.LinkStage.viewmodel.flags.FlagsViewModel
 import turmaA.grupoB.LinkStage.viewmodel.flags.FlagsViewModelFactory
+import turmaA.grupoB.LinkStage.util.DebugLogger
+
+private const val TAG = "SettingsAlunoScreen"
 
 // region Data models
 
@@ -118,6 +121,7 @@ fun SettingsAlunoScreen(
     val flagsUIState by flagsViewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     LaunchedEffect(Unit) {
+        DebugLogger.d(TAG, "loading flags for currentLanguage=$currentLanguage")
         flagsViewModel.getImages(listOf("portugal", "gb"))
     }
     var showLogoutDialog by remember { mutableStateOf(false) }
@@ -257,7 +261,10 @@ fun SettingsAlunoScreen(
                 )
                 LanguageToggle(
                     selectedLang = currentLanguage,
-                    onSelect = { settingsViewModel.changeLanguage(it) },
+                    onSelect = { lang ->
+                        DebugLogger.d(TAG, "language toggle selected lang=$lang")
+                        settingsViewModel.changeLanguage(lang)
+                    },
                     uiState = flagsUIState
                 )
             }
@@ -417,6 +424,7 @@ private fun LanguageToggle(
     ) {
         listOf("portugal", "gb").forEach { lang ->
             val isSelected = lang == selectedLang
+            DebugLogger.d(TAG, "LanguageToggle lang=$lang selectedLang=$selectedLang isSelected=$isSelected uiState=${uiState::class.simpleName}")
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(7.dp))
