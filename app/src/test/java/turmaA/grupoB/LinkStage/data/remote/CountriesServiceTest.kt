@@ -47,6 +47,8 @@ class CountriesServiceTest {
 
         val result = countriesService.getFlagByName("portugal", authorization = authHeader)
 
+        mockWebServer.takeRequest()
+
         assertEquals("https://flagcdn.com/w320/pt.png", result.firstOrNull()?.flags?.png)
     }
 
@@ -76,6 +78,8 @@ class CountriesServiceTest {
 
         val result = countriesService.getFlagByName("unknown", authorization = authHeader)
 
+        mockWebServer.takeRequest()
+
         assertEquals("", result.firstOrNull()?.flags?.png)
     }
 
@@ -93,6 +97,8 @@ class CountriesServiceTest {
         } catch (e: retrofit2.HttpException) {
             assertEquals(404, e.code())
         }
+
+        mockWebServer.takeRequest()
     }
 
     @Test
@@ -109,6 +115,8 @@ class CountriesServiceTest {
         } catch (e: retrofit2.HttpException) {
             assertEquals(500, e.code())
         }
+
+        mockWebServer.takeRequest()
     }
 
     @Test
