@@ -105,7 +105,7 @@ fun AppNavigation(
                             popUpTo(Routes.LOGIN) { inclusive = true }
                         }
                     } else {
-                        navController.navigate(Routes.INSTITUICAO_MAIN) {
+                        navController.navigate(Routes.ORIENTADOR_MAIN) {
                             popUpTo(Routes.LOGIN) { inclusive = true }
                         }
                     }
