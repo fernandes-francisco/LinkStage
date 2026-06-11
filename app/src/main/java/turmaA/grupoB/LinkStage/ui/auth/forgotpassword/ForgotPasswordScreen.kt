@@ -33,6 +33,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -86,7 +87,7 @@ fun ForgotPasswordScreen(
             Spacer(modifier = Modifier.height(20.dp))
 
             Text(
-                text = "Recuperar Palavra-passe",
+                text = stringResource(R.string.forgot_password_title),
                 color = DarkBlue,
                 style = MaterialTheme.typography.bodyLarge,
                 fontSize = 18.sp
@@ -95,7 +96,7 @@ fun ForgotPasswordScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = "Introduza o seu e-mail para receber um link de recuperação.",
+                text = stringResource(R.string.forgot_password_subtitle),
                 color = Color.Gray,
                 style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center,
@@ -106,7 +107,7 @@ fun ForgotPasswordScreen(
 
             Column(modifier = Modifier.fillMaxWidth()) {
                 Text(
-                    text = "E-mail",
+                    text = stringResource(R.string.login_email_label),
                     color = Color.DarkGray,
                     fontWeight = FontWeight.Medium,
                     style = MaterialTheme.typography.bodyMedium
@@ -115,7 +116,7 @@ fun ForgotPasswordScreen(
                 TextField(
                     value = email,
                     onValueChange = { email = it },
-                    placeholder = { Text("Introduza o seu E-mail", color = Color.Gray) },
+                    placeholder = { Text(stringResource(R.string.login_email_placeholder), color = Color.Gray) },
                     modifier = Modifier.fillMaxWidth().height(56.dp),
                     shape = RoundedCornerShape(10.dp),
                     colors = TextFieldDefaults.colors(
@@ -131,7 +132,7 @@ fun ForgotPasswordScreen(
                 )
                 if (!isEmailValid) {
                     Text(
-                        text = "E-mail inválido. Use o formato nome@dominio.com",
+                        text = stringResource(R.string.login_email_error),
                         color = Red,
                         fontSize = 12.sp,
                         modifier = Modifier.padding(start = 4.dp, top = 4.dp)
@@ -163,7 +164,7 @@ fun ForgotPasswordScreen(
                         contentPadding = PaddingValues()
                     ) {
                         Text(
-                            text = "Enviar Link",
+                            text = stringResource(R.string.forgot_password_send),
                             color = if (isEnabled) Color.White else Color.Gray.copy(alpha = 0.8f),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
@@ -185,7 +186,7 @@ fun ForgotPasswordScreen(
                     )
                 ) {
                     Text(
-                        text = "Voltar",
+                        text = stringResource(R.string.common_back),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
                     )

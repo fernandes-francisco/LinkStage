@@ -13,11 +13,14 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
+import turmaA.grupoB.LinkStage.R
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
@@ -26,6 +29,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import androidx.lifecycle.viewmodel.compose.viewModel
 import turmaA.grupoB.LinkStage.ui.common.PrivacyPolicyScreen
 import turmaA.grupoB.LinkStage.ui.aluno.chat.ChatScreen
 import turmaA.grupoB.LinkStage.ui.aluno.chat.Conversation
@@ -48,6 +52,7 @@ import turmaA.grupoB.LinkStage.ui.instituicao.settings.NotificationsInstituicaoS
 import turmaA.grupoB.LinkStage.ui.instituicao.settings.SettingsInstituicaoScreen
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
+import turmaA.grupoB.LinkStage.viewmodel.InstitutionHomeViewModel
 
 object InstituicaoRoutes {
     const val HOME = "instituicao_home"
@@ -80,22 +85,23 @@ object InstituicaoRoutes {
 }
 
 private data class InstituicaoTab(
-    val title: String,
+    @StringRes val titleResId: Int,
     val icon: ImageVector,
     val route: String,
 )
 
 private val instituicaoTabs = listOf(
-    InstituicaoTab("Início", Icons.Outlined.Home, InstituicaoRoutes.HOME),
-    InstituicaoTab("Ofertas", Icons.Outlined.Work, InstituicaoRoutes.OFFERS),
-    InstituicaoTab("Atividade", Icons.Outlined.CalendarMonth, InstituicaoRoutes.ACTIVITY),
-    InstituicaoTab("Mensagens", Icons.AutoMirrored.Outlined.Chat, InstituicaoRoutes.MESSAGES),
-    InstituicaoTab("Definições", Icons.Outlined.Settings, InstituicaoRoutes.SETTINGS),
+    InstituicaoTab(R.string.tab_home, Icons.Outlined.Home, InstituicaoRoutes.HOME),
+    InstituicaoTab(R.string.tab_offers, Icons.Outlined.Work, InstituicaoRoutes.OFFERS),
+    InstituicaoTab(R.string.tab_activity, Icons.Outlined.CalendarMonth, InstituicaoRoutes.ACTIVITY),
+    InstituicaoTab(R.string.tab_messages, Icons.AutoMirrored.Outlined.Chat, InstituicaoRoutes.MESSAGES),
+    InstituicaoTab(R.string.tab_settings, Icons.Outlined.Settings, InstituicaoRoutes.SETTINGS),
 )
 
 @Composable
 fun InstituicaoMainScreen(onLogout: () -> Unit = {}) {
     val navController = rememberNavController()
+    val institutionHomeViewModel: InstitutionHomeViewModel = viewModel()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
@@ -123,8 +129,8 @@ fun InstituicaoMainScreen(onLogout: () -> Unit = {}) {
                                     restoreState = true
                                 }
                             },
-                            icon = { Icon(tab.icon, contentDescription = tab.title) },
-                            label = { Text(tab.title) },
+                            icon = { Icon(tab.icon, contentDescription = stringResource(tab.titleResId)) },
+                            label = { Text(stringResource(tab.titleResId)) },
                             colors = NavigationBarItemDefaults.colors(
                                 selectedIconColor = LightBlue,
                                 selectedTextColor = LightBlue,
@@ -144,7 +150,10 @@ fun InstituicaoMainScreen(onLogout: () -> Unit = {}) {
             modifier = Modifier.padding(innerPadding),
         ) {
             composable(InstituicaoRoutes.HOME) {
-                HomeInstituicaoScreen(navController = navController)
+                HomeInstituicaoScreen(
+                    navController = navController,
+                    institutionHomeViewModel = institutionHomeViewModel
+                )
             }
             composable(InstituicaoRoutes.OFFERS) {
                 OffersInstituicaoScreen(navController = navController)
@@ -267,6 +276,7 @@ fun InstituicaoMainScreen(onLogout: () -> Unit = {}) {
                 InternshipDetailInstituicaoScreen(
                     internshipId = internshipId,
                     navController = navController,
+                    institutionHomeViewModel = institutionHomeViewModel
                 )
             }
             composable(

@@ -29,9 +29,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import turmaA.grupoB.LinkStage.R
 import androidx.navigation.compose.rememberNavController
 import turmaA.grupoB.LinkStage.ui.admin.InstitutionStatus
 import turmaA.grupoB.LinkStage.ui.common.LinkStageLogo
@@ -79,7 +81,7 @@ fun InstitutionPendingScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = "Conta em análise",
+                text = stringResource(R.string.institution_pending_title),
                 color = DarkBlue,
                 fontWeight = FontWeight.Bold,
                 fontSize = 22.sp,
@@ -89,8 +91,7 @@ fun InstitutionPendingScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "O seu pedido de registo foi submetido e encontra-se a ser analisado pela equipa LinkStage. " +
-                    "Será notificado assim que a decisão for tomada.",
+                text = stringResource(R.string.institution_pending_message),
                 color = DarkGrey,
                 fontSize = 14.sp,
                 textAlign = TextAlign.Center,
@@ -115,7 +116,7 @@ fun InstitutionPendingScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = "Pedido rejeitado",
+                text = stringResource(R.string.institution_rejected_title),
                 color = Red,
                 fontWeight = FontWeight.Bold,
                 fontSize = 22.sp,
@@ -125,8 +126,7 @@ fun InstitutionPendingScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "O seu pedido de registo foi rejeitado. Por favor, reveja os seus dados " +
-                    "e submeta um novo pedido de registo.",
+                text = stringResource(R.string.institution_rejected_message),
                 color = DarkGrey,
                 fontSize = 14.sp,
                 textAlign = TextAlign.Center,
@@ -149,7 +149,7 @@ fun InstitutionPendingScreen(
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
             ) {
                 Text(
-                    text = "Corrigir e resubmeter",
+                    text = stringResource(R.string.institution_rejected_button),
                     color = Color.White,
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 15.sp,
@@ -167,7 +167,7 @@ fun InstitutionPendingScreen(
             },
         ) {
             Text(
-                text = "Terminar sessão",
+                text = stringResource(R.string.institution_logout),
                 color = DarkGrey,
                 fontSize = 13.sp,
             )

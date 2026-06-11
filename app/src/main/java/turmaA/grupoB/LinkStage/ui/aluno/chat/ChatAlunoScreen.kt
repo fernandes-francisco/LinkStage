@@ -44,10 +44,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
 import turmaA.grupoB.LinkStage.ui.common.LinkStageDialog
 import turmaA.grupoB.LinkStage.ui.common.LinkStageLogo
@@ -150,17 +152,17 @@ private fun MessagesListScreen(
 
     if (conversationToDelete != null) {
         LinkStageDialog(
-            title = "Apagar Conversa",
+            title = stringResource(R.string.chat_delete_title),
             onConfirm = {
                 currentConversations = currentConversations.filter { it.id != conversationToDelete!!.id }
                 conversationToDelete = null
             },
             onDismiss = { conversationToDelete = null },
-            confirmText = "Apagar",
-            dismissText = "Cancelar",
+            confirmText = stringResource(R.string.chat_delete_button),
+            dismissText = stringResource(R.string.dialog_cancel),
             content = {
                 Text(
-                    text = "Tens a certeza que pretendes apagar a conversa com ${conversationToDelete!!.name}?",
+                    text = stringResource(R.string.chat_delete_confirm, conversationToDelete!!.name),
                     color = DarkGrey,
                     lineHeight = 22.sp,
                 )
@@ -177,14 +179,14 @@ private fun MessagesListScreen(
                 contentColor = Color.White,
                 shape = RoundedCornerShape(16.dp),
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Nova mensagem")
+                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.chat_new_message))
             }
         },
         topBar = {
             Column(modifier = Modifier.background(BackgroundLight)) {
                 CommonTopBar()
                 Text(
-                    text = "Mensagens",
+                    text = stringResource(R.string.tab_messages),
                     style = MaterialTheme.typography.headlineSmall.copy(
                         fontWeight = FontWeight.Bold,
                         color = DarkBlue,
@@ -338,14 +340,14 @@ private fun NewMessageModal(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Nova Mensagem",
+                        text = stringResource(R.string.chat_new_message),
                         style = MaterialTheme.typography.titleLarge.copy(
                             fontWeight = FontWeight.Bold,
                             color = DarkBlue
                         )
                     )
                     IconButton(onClick = onDismiss) {
-                        Icon(Icons.Default.Close, contentDescription = "Fechar", tint = DarkGrey)
+                        Icon(Icons.Default.Close, contentDescription = stringResource(R.string.common_close), tint = DarkGrey)
                     }
                 }
 
@@ -356,7 +358,7 @@ private fun NewMessageModal(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 20.dp),
-                    placeholder = { Text("Pesquisar contactos...", color = DarkGrey, fontSize = 14.sp) },
+                    placeholder = { Text(stringResource(R.string.chat_search_contacts), color = DarkGrey, fontSize = 14.sp) },
                     leadingIcon = { Icon(Icons.Outlined.Search, null, tint = DarkGrey) },
                     shape = RoundedCornerShape(12.dp),
                     colors = OutlinedTextFieldDefaults.colors(
@@ -445,9 +447,9 @@ private fun MessagesSearchBar(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp),
-        placeholder = { Text("Pesquisar...", color = DarkGrey) },
+        placeholder = { Text(stringResource(R.string.common_search), color = DarkGrey) },
         leadingIcon = {
-            Icon(Icons.Outlined.Search, contentDescription = "Pesquisar", tint = DarkGrey)
+            Icon(Icons.Outlined.Search, contentDescription = stringResource(R.string.common_search), tint = DarkGrey)
         },
         shape = RoundedCornerShape(12.dp),
         colors = OutlinedTextFieldDefaults.colors(

@@ -140,7 +140,7 @@ fun OfferDetailInstituicaoScreen(
             title = "Remover oferta?",
             body = "Esta ação é irreversível. Todas as candidaturas associadas serão removidas.",
             confirmLabel = "Remover",
-            isDanger = true,
+            isDanger = false,
             onConfirm = {
                 showDeleteDialog = false
                 navController.popBackStack()

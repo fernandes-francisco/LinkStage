@@ -43,12 +43,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.orientador.EvaluationState
 import turmaA.grupoB.LinkStage.ui.orientador.InternshipType
 import turmaA.grupoB.LinkStage.ui.orientador.OrientadorRoutes
@@ -115,7 +117,7 @@ fun FinalGradeSubmittedScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = "Nota final atribuída",
+                text = stringResource(R.string.final_grade_title),
                 color = DarkBlue,
                 fontWeight = FontWeight.Bold,
                 fontSize = 22.sp,
@@ -125,8 +127,7 @@ fun FinalGradeSubmittedScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "O processo de avaliação foi concluído com sucesso. " +
-                    "O aluno foi notificado e pode agora consultar a sua nota final.",
+                text = stringResource(R.string.final_grade_message),
                 color = DarkGrey,
                 fontSize = 14.sp,
                 textAlign = TextAlign.Center,
@@ -192,12 +193,12 @@ fun FinalGradeSubmittedScreen(
                         HorizontalDivider(color = Color.White.copy(alpha = 0.2f))
 
                         Text(
-                            text = "Nota Final",
+                            text = stringResource(R.string.final_grade_label),
                             color = Color.White.copy(alpha = 0.75f),
                             fontSize = 13.sp,
                         )
                         Text(
-                            text = "${formatGrade(finalGrade)} valores",
+                            text = stringResource(R.string.final_grade_values, formatGrade(finalGrade)),
                             color = Color.White,
                             fontWeight = FontWeight.Bold,
                             fontSize = 42.sp,
@@ -210,7 +211,7 @@ fun FinalGradeSubmittedScreen(
                                 .padding(horizontal = 14.dp, vertical = 6.dp),
                         ) {
                             Text(
-                                text = "Estágio Concluído",
+                                text = stringResource(R.string.final_grade_completed),
                                 color = Color.White,
                                 fontWeight = FontWeight.SemiBold,
                                 fontSize = 12.sp,
@@ -223,7 +224,7 @@ fun FinalGradeSubmittedScreen(
             // Title
             item {
                 Text(
-                    text = "Resumo de avaliações",
+                    text = stringResource(R.string.final_grade_summary),
                     color = DarkBlue,
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp,
@@ -237,7 +238,7 @@ fun FinalGradeSubmittedScreen(
                     if (evaluation.companyResponsibleGrade != null) {
                         item {
                             EvaluationReadOnlyCard(
-                                role = "Responsável da Empresa",
+                                role = stringResource(R.string.eval_role_company_responsible),
                                 name = evaluation.companyResponsibleName,
                                 grade = evaluation.companyResponsibleGrade,
                                 observation = evaluation.companyResponsibleObservation,
@@ -247,7 +248,7 @@ fun FinalGradeSubmittedScreen(
                     if (evaluation.companyMentorGrade != null) {
                         item {
                             EvaluationReadOnlyCard(
-                                role = "Orientador de Empresa",
+                                role = stringResource(R.string.eval_role_company_mentor),
                                 name = evaluation.companyMentorName,
                                 grade = evaluation.companyMentorGrade,
                                 observation = evaluation.companyMentorObservation,
@@ -259,7 +260,7 @@ fun FinalGradeSubmittedScreen(
                     if (evaluation.institutionGrade != null) {
                         item {
                             EvaluationReadOnlyCard(
-                                role = "Instituição Escolar",
+                                role = stringResource(R.string.eval_role_institution),
                                 name = evaluation.institutionName,
                                 grade = evaluation.institutionGrade,
                                 observation = evaluation.institutionObservation,
@@ -272,7 +273,7 @@ fun FinalGradeSubmittedScreen(
             // Final grade card (highlighted)
             item {
                 EvaluationReadOnlyCard(
-                    role = "Orientador Escolar — Nota Final",
+                    role = stringResource(R.string.eval_role_school_mentor),
                     name = evaluation.schoolMentorName,
                     grade = evaluation.schoolMentorGrade!!,
                     observation = evaluation.schoolMentorObservation,
@@ -300,7 +301,7 @@ fun FinalGradeSubmittedScreen(
                         colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
                     ) {
                         Text(
-                            text = "Ver ficha do aluno",
+                            text = stringResource(R.string.final_grade_view_student),
                             color = Color.White,
                             fontWeight = FontWeight.SemiBold,
                             fontSize = 15.sp,
@@ -321,7 +322,7 @@ fun FinalGradeSubmittedScreen(
                         colors = ButtonDefaults.outlinedButtonColors(contentColor = DarkBlue),
                     ) {
                         Text(
-                            text = "Voltar ao início",
+                            text = stringResource(R.string.eval_back_home),
                             fontWeight = FontWeight.SemiBold,
                             fontSize = 15.sp,
                         )

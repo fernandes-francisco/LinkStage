@@ -49,12 +49,14 @@ import turmaA.grupoB.LinkStage.ui.admin.AdminMentor
 import turmaA.grupoB.LinkStage.ui.admin.sampleMentors
 import turmaA.grupoB.LinkStage.ui.aluno.chat.avatarColors
 import turmaA.grupoB.LinkStage.ui.common.ConfirmationDialog
+import turmaA.grupoB.LinkStage.ui.common.LinkStageButton
 import turmaA.grupoB.LinkStage.ui.instituicao.InstituicaoRoutes
 import turmaA.grupoB.LinkStage.ui.instituicao.sampleInstitutionInternships
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.Fade1
+import turmaA.grupoB.LinkStage.ui.theme.Fade2
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.ui.theme.Red
 
@@ -111,6 +113,22 @@ fun AssignMentorInstituicaoScreen(
                         )
                     )
                 }
+            }
+        },
+        bottomBar = {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.White)
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+            ) {
+                LinkStageButton(
+                    text = "Atribuir",
+                    onClick = { showConfirmDialog = true },
+                    enabled = selectedMentor != null,
+                    height = 50.dp,
+                    brush = Fade2
+                )
             }
         }
     ) { paddingValues ->
@@ -170,29 +188,6 @@ fun AssignMentorInstituicaoScreen(
                             selectedMentor = if (selectedMentor?.id == mentor.id) null else mentor
                         },
                     )
-                }
-            }
-
-            // Bottom button
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color.White)
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
-            ) {
-                Button(
-                    onClick = { showConfirmDialog = true },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(50.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    enabled = selectedMentor != null,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = DarkBlue,
-                        disabledContainerColor = DarkGrey,
-                    ),
-                ) {
-                    Text("Atribuir", fontWeight = FontWeight.Bold, fontSize = 15.sp)
                 }
             }
         }

@@ -37,10 +37,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
@@ -79,12 +81,12 @@ fun NotificationsAlunoScreen(
             IconButton(onClick = onBack) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Voltar",
+                    contentDescription = stringResource(R.string.common_back_content_desc),
                     tint = DarkBlue
                 )
             }
             Text(
-                text = "Notificações",
+                text = stringResource(R.string.notifications_title),
                 style = MaterialTheme.typography.headlineSmall.copy(
                     fontWeight = FontWeight.Bold,
                     color = DarkBlue
@@ -104,8 +106,8 @@ fun NotificationsAlunoScreen(
                 borderColor = DarkBlue.copy(alpha = 0.1f)
             ) {
                 NotificationRow(
-                    title = "Desativar todas as notificações",
-                    subtitle = "Silenciar avisos temporariamente",
+                    title = stringResource(R.string.notif_disable_all),
+                    subtitle = stringResource(R.string.notif_disable_subtitle),
                     checked = !enabled,
                     onCheckedChange = { settingsViewModel.toggleNotifications(!it) }
                 )
@@ -115,7 +117,7 @@ fun NotificationsAlunoScreen(
                 // Alertas de Candidaturas Section
                 Column {
                     Text(
-                        "ALERTAS DE CANDIDATURAS",
+                        stringResource(R.string.notif_section_applications),
                         style = MaterialTheme.typography.labelSmall,
                         color = DarkGrey,
                         fontWeight = FontWeight.Bold,
@@ -123,15 +125,15 @@ fun NotificationsAlunoScreen(
                     )
                     NotificationSection {
                         NotificationRow(
-                            title = "Estado da Candidatura",
-                            subtitle = "Alertas de candidaturas aceites ou rejeitadas",
+                            title = stringResource(R.string.notif_application_status),
+                            subtitle = stringResource(R.string.notif_application_status_sub),
                             checked = candidaturas,
                             onCheckedChange = { settingsViewModel.toggleNotifCandidaturas(it) }
                         )
                         HorizontalDivider(color = BorderGrey.copy(alpha = 0.5f), modifier = Modifier.padding(horizontal = 16.dp))
                         NotificationRow(
-                            title = "Orientador Atribuído",
-                            subtitle = "Saber quando lhe é atribuído um docente",
+                            title = stringResource(R.string.notif_advisor_assigned),
+                            subtitle = stringResource(R.string.notif_advisor_assigned_sub),
                             checked = orientador, 
                             onCheckedChange = { settingsViewModel.toggleNotifOrientador(it) }
                         )
@@ -141,7 +143,7 @@ fun NotificationsAlunoScreen(
                 // Comunicação e Progresso Section
                 Column {
                     Text(
-                        "COMUNICAÇÃO E PROGRESSO",
+                        stringResource(R.string.notif_section_communication),
                         style = MaterialTheme.typography.labelSmall,
                         color = DarkGrey,
                         fontWeight = FontWeight.Bold,
@@ -149,15 +151,15 @@ fun NotificationsAlunoScreen(
                     )
                     NotificationSection {
                         NotificationRow(
-                            title = "Novas Mensagens (Chat)",
-                            subtitle = "Notificar quando receber mensagens de utilizadores",
+                            title = stringResource(R.string.notif_new_messages),
+                            subtitle = stringResource(R.string.notif_new_messages_sub),
                             checked = mensagens,
                             onCheckedChange = { settingsViewModel.toggleNotifMensagens(it) }
                         )
                         HorizontalDivider(color = BorderGrey.copy(alpha = 0.5f), modifier = Modifier.padding(horizontal = 16.dp))
                         NotificationRow(
-                            title = "Avaliação Concluída",
-                            subtitle = "Alertar quando a classificação final estiver disponível",
+                            title = stringResource(R.string.notif_evaluation_completed),
+                            subtitle = stringResource(R.string.notif_evaluation_completed_sub),
                             checked = avaliacao,
                             onCheckedChange = { settingsViewModel.toggleNotifAvaliacao(it) }
                         )
@@ -167,7 +169,7 @@ fun NotificationsAlunoScreen(
                 // Atividade Section
                 Column {
                     Text(
-                        "REGISTO DE ATIVIDADE",
+                        stringResource(R.string.notif_section_activity),
                         style = MaterialTheme.typography.labelSmall,
                         color = DarkGrey,
                         fontWeight = FontWeight.Bold,
@@ -175,8 +177,8 @@ fun NotificationsAlunoScreen(
                     )
                     NotificationSection {
                         NotificationRow(
-                            title = "Lembretes Diários",
-                            subtitle = "Lembrar de registar novas atividades no diário",
+                            title = stringResource(R.string.notif_daily_reminders),
+                            subtitle = stringResource(R.string.notif_daily_reminders_sub),
                             checked = lembretes,
                             onCheckedChange = { settingsViewModel.toggleNotifLembretes(it) }
                         )
@@ -198,7 +200,7 @@ fun NotificationsAlunoScreen(
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        "As notificações estão silenciadas",
+                        stringResource(R.string.notif_silenced),
                         style = MaterialTheme.typography.bodyMedium,
                         color = DarkGrey
                     )
@@ -218,7 +220,7 @@ fun NotificationsAlunoScreen(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "Guardar Alterações",
+                    text = stringResource(R.string.notif_save_changes),
                     color = Color.White,
                     style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold)
                 )

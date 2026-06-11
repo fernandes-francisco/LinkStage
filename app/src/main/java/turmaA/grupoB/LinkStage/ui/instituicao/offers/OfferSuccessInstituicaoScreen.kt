@@ -135,7 +135,7 @@ fun OfferSuccessInstituicaoScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "Oferta de estágio\ncriada com sucesso!",
+            text = if (offerId == "new") "Oferta de estágio\ncriada com sucesso!" else "Oferta de estágio\natualizada com sucesso!",
             color = DarkBlue,
             fontWeight = FontWeight.Bold,
             fontSize = 20.sp,

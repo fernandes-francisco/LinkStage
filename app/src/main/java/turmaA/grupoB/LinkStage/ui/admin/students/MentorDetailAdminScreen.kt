@@ -34,10 +34,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.admin.sampleMentors
 import turmaA.grupoB.LinkStage.ui.admin.sampleStudents
 import turmaA.grupoB.LinkStage.ui.common.ContentSection
@@ -70,17 +72,17 @@ fun MentorDetailAdminScreen(
 
     if (showDeleteDialog) {
         LinkStageDialog(
-            title = "Remover Orientador",
+            title = stringResource(R.string.admin_mentor_remove),
             onConfirm = {
                 showDeleteDialog = false
                 onBack()
             },
             onDismiss = { showDeleteDialog = false },
-            confirmText = "Remover",
-            dismissText = "Cancelar",
+            confirmText = stringResource(R.string.common_remove),
+            dismissText = stringResource(R.string.dialog_cancel),
             content = {
                 Text(
-                    text = "Tens a certeza que queres remover \"${mentor.name}\"? Esta ação não pode ser revertida.",
+                    text = stringResource(R.string.admin_mentor_remove_confirm, mentor.name),
                     color = DarkGrey,
                     lineHeight = 22.sp,
                 )
@@ -89,7 +91,7 @@ fun MentorDetailAdminScreen(
     }
 
     Scaffold(
-        topBar = { SecondaryTopBar(title = "Detalhes do Orientador", onBack = onBack) },
+        topBar = { SecondaryTopBar(title = stringResource(R.string.admin_mentor_detail_title), onBack = onBack) },
         containerColor = BackgroundLight,
         bottomBar = {
             Box(
@@ -99,7 +101,7 @@ fun MentorDetailAdminScreen(
                     .padding(16.dp)
             ) {
                 LinkStageButton(
-                    text = "Remover Orientador",
+                    text = stringResource(R.string.admin_mentor_remove),
                     onClick = { showDeleteDialog = true },
                     height = 50.dp,
                     brush = SolidColor(Red)
@@ -163,23 +165,23 @@ fun MentorDetailAdminScreen(
             }
 
             // Information
-            ContentSection(title = "Informação") {
+            ContentSection(title = stringResource(R.string.admin_mentor_information)) {
                 Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
-                    DetailRow("Departamento", mentor.department)
-                    DetailRow("Telemóvel", mentor.phone)
-                    DetailRow("Alunos ativos", "${mentor.activeStudentsCount}")
-                    DetailRow("Registado", mentor.registeredAgo)
+                    DetailRow(stringResource(R.string.admin_detail_department), mentor.department)
+                    DetailRow(stringResource(R.string.admin_detail_phone), mentor.phone)
+                    DetailRow(stringResource(R.string.admin_detail_active_students), "${mentor.activeStudentsCount}")
+                    DetailRow(stringResource(R.string.admin_detail_registered), mentor.registeredAgo)
                 }
             }
 
             Spacer(modifier = Modifier.height(12.dp))
 
             // Supervised Students
-            ContentSection(title = "Alunos Orientados") {
+            ContentSection(title = stringResource(R.string.admin_detail_supervised_students)) {
                 Column(modifier = Modifier.padding(vertical = 8.dp)) {
                     if (supervisedStudents.isEmpty()) {
                         Text(
-                            text = "Sem alunos atribuídos",
+                            text = stringResource(R.string.admin_mentor_no_students),
                             color = DarkGrey,
                             fontSize = 13.sp,
                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),

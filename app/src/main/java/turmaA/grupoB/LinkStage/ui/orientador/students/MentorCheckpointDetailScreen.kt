@@ -32,6 +32,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -42,6 +43,7 @@ import turmaA.grupoB.LinkStage.ui.orientador.formatCheckpointDateLong
 import turmaA.grupoB.LinkStage.ui.orientador.sampleMentorActivityLogs
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
+import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 
@@ -55,7 +57,7 @@ fun MentorCheckpointDetailScreen(
     Scaffold(
         topBar = {
             SecondaryTopBar(
-                title = "Detalhes da Atividade",
+                title = stringResource(R.string.advisor_checkpoint_title),
                 onBack = { navController.popBackStack() }
             )
         },
@@ -87,7 +89,7 @@ fun MentorCheckpointDetailScreen(
                         modifier = Modifier.size(14.dp),
                     )
                     Text(
-                        text = "Definido pelo orientador" +
+                        text = stringResource(R.string.advisor_checkpoint_defined_by) +
                             if (activityLog.createdByName.isNotEmpty()) " — ${activityLog.createdByName}" else "",
                         fontSize = 12.sp,
                         color = LightBlue,
@@ -119,7 +121,7 @@ fun MentorCheckpointDetailScreen(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "Data da entrega",
+                        text = stringResource(R.string.advisor_checkpoint_delivery_date),
                         color = DarkGrey,
                         fontSize = 13.sp,
                         modifier = Modifier.weight(1f),
@@ -136,7 +138,7 @@ fun MentorCheckpointDetailScreen(
             Spacer(modifier = Modifier.height(12.dp))
 
             // Description
-            ContentSection(title = "Descrição da entrega") {
+            ContentSection(title = stringResource(R.string.advisor_checkpoint_description)) {
                 Text(
                     text = activityLog.description,
                     fontSize = 14.sp,
@@ -150,7 +152,7 @@ fun MentorCheckpointDetailScreen(
 
             // Attachments
             if (activityLog.submittedFiles.isNotEmpty()) {
-                ContentSection(title = "Anexos") {
+                ContentSection(title = stringResource(R.string.advisor_checkpoint_attachments)) {
                     Column(modifier = Modifier.padding(vertical = 8.dp)) {
                         activityLog.submittedFiles.forEach { file ->
                             ExpandableFileRow(file = file)
@@ -163,7 +165,7 @@ fun MentorCheckpointDetailScreen(
 
             // Viewers section
             if (activityLog.viewers.isNotEmpty()) {
-                ContentSection(title = "Revisto por") {
+                ContentSection(title = stringResource(R.string.advisor_checkpoint_reviewed_by)) {
                     Column(
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp),

@@ -11,9 +11,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.Fade2
@@ -23,7 +25,7 @@ import turmaA.grupoB.LinkStage.ui.theme.Red
 fun ConfirmationDialog(
     title: String,
     body: String,
-    confirmLabel: String = "Confirmar",
+    confirmLabel: String = stringResource(R.string.common_confirm),
     confirmBrush: Brush = Fade2,
     isDanger: Boolean = false,
     onConfirm: () -> Unit,
@@ -62,7 +64,7 @@ fun ConfirmationDialog(
                 modifier = Modifier.height(40.dp)
             ) {
                 Text(
-                    text = "Cancelar",
+                    text = stringResource(R.string.dialog_cancel),
                     color = DarkGrey,
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 14.sp

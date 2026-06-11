@@ -45,12 +45,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
 import turmaA.grupoB.LinkStage.ui.common.LinkStageButton
 import turmaA.grupoB.LinkStage.ui.common.LinkStageDialog
@@ -90,7 +92,6 @@ fun SettingsInstituicaoScreen(
         ChangePasswordDialog(
             onDismiss = { showPasswordDialog = false },
             onConfirm = { _ ->
-                // Lógica de update
                 showPasswordDialog = false
             }
         )
@@ -110,7 +111,7 @@ fun SettingsInstituicaoScreen(
             horizontalAlignment = Alignment.Start,
         ) {
             Text(
-                text = "Definições",
+                text = stringResource(R.string.settings_title),
                 style = MaterialTheme.typography.headlineSmall.copy(
                     fontWeight = FontWeight.Bold,
                     color = DarkBlue,
@@ -155,7 +156,7 @@ fun SettingsInstituicaoScreen(
                 HorizontalDivider(color = BorderGrey)
 
                 SettingsRowItem(
-                    label = "Políticas de Privacidade",
+                    label = stringResource(R.string.settings_privacy_policy),
                     onClick = onPrivacyPolicyClick,
                 )
             }
@@ -163,12 +164,12 @@ fun SettingsInstituicaoScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             // Settings section
-            SettingsSectionHeader(title = "Configurações")
+            SettingsSectionHeader(title = stringResource(R.string.settings_section_config))
 
             SettingsCard(modifier = Modifier.padding(horizontal = 20.dp)) {
                 SettingsRowItem(
                     icon = Icons.Outlined.Settings,
-                    label = "Alterar Palavra-Passe",
+                    label = stringResource(R.string.settings_change_password),
                     onClick = { showPasswordDialog = true },
                 )
 
@@ -179,7 +180,7 @@ fun SettingsInstituicaoScreen(
 
                 SettingsRowItem(
                     icon = Icons.Outlined.Settings,
-                    label = "Notificações",
+                    label = stringResource(R.string.settings_notifications),
                     onClick = onNotificationsClick,
                 )
 
@@ -203,7 +204,7 @@ fun SettingsInstituicaoScreen(
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        text = "Idioma",
+                        text = stringResource(R.string.settings_language),
                         style = MaterialTheme.typography.bodyLarge,
                         color = DarkBlue,
                         modifier = Modifier.weight(1f),
@@ -218,7 +219,7 @@ fun SettingsInstituicaoScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             // App version section
-            SettingsSectionHeader(title = "Versão da APP")
+            SettingsSectionHeader(title = stringResource(R.string.settings_section_version))
 
             SettingsCard(modifier = Modifier.padding(horizontal = 20.dp)) {
                 Row(
@@ -235,7 +236,7 @@ fun SettingsInstituicaoScreen(
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        text = "V1.0.0 - Android 36 / Kotlin / Supabase",
+                        text = stringResource(R.string.settings_version),
                         style = MaterialTheme.typography.bodySmall,
                         color = DarkGrey,
                     )
@@ -246,7 +247,7 @@ fun SettingsInstituicaoScreen(
 
             // Logout button
             LinkStageButton(
-                text = "Terminar Sessão",
+                text = stringResource(R.string.settings_logout),
                 onClick = { showLogoutDialog = true },
                 modifier = Modifier.padding(horizontal = 20.dp),
                 height = 52.dp,
@@ -391,14 +392,14 @@ private fun LogoutConfirmDialog(
     onDismiss: () -> Unit,
 ) {
     LinkStageDialog(
-        title = "Terminar Sessão",
+        title = stringResource(R.string.settings_logout),
         onConfirm = onConfirm,
         onDismiss = onDismiss,
-        confirmText = "Terminar",
-        dismissText = "Cancelar",
+        confirmText = stringResource(R.string.settings_logout_button),
+        dismissText = stringResource(R.string.common_cancel),
         content = {
             Text(
-                text = "Tem a certeza que pretende terminar sessão?",
+                text = stringResource(R.string.settings_logout_confirm),
                 color = DarkGrey,
             )
         }
@@ -429,15 +430,15 @@ fun ChangePasswordDialog(
 
     LinkStageDialog(
         onDismiss = onDismiss,
-        title = "Alterar Palavra-passe",
+        title = stringResource(R.string.settings_change_password_title),
         onConfirm = { onConfirm(password) },
-        confirmText = "Atualizar",
-        dismissText = "Cancelar",
+        confirmText = stringResource(R.string.settings_update_button),
+        dismissText = stringResource(R.string.common_cancel),
         confirmEnabled = isEnabled,
         content = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Column {
-                    Text("Nova Palavra-passe", style = MaterialTheme.typography.labelMedium, color = DarkGrey)
+                    Text(stringResource(R.string.settings_new_password), style = MaterialTheme.typography.labelMedium, color = DarkGrey)
                     Spacer(modifier = Modifier.height(4.dp))
                     OutlinedTextField(
                         value = password,
@@ -455,7 +456,7 @@ fun ChangePasswordDialog(
                 }
 
                 Column {
-                    Text("Confirmar Palavra-passe", style = MaterialTheme.typography.labelMedium, color = DarkGrey)
+                    Text(stringResource(R.string.settings_confirm_password), style = MaterialTheme.typography.labelMedium, color = DarkGrey)
                     Spacer(modifier = Modifier.height(4.dp))
                     OutlinedTextField(
                         value = confirmPassword,
@@ -475,9 +476,9 @@ fun ChangePasswordDialog(
 
                 if (password.isNotEmpty()) {
                     Column {
-                        ValidationItem(text = "Incluir um número", isValid = hasNumber)
-                        ValidationItem(text = "Incluir maiúsculas e minúsculas", isValid = hasUpperAndLower)
-                        ValidationItem(text = "Mínimo 8 caracteres", isValid = hasMinLength)
+                        ValidationItem(text = stringResource(R.string.validation_number), isValid = hasNumber)
+                        ValidationItem(text = stringResource(R.string.validation_case), isValid = hasUpperAndLower)
+                        ValidationItem(text = stringResource(R.string.validation_length), isValid = hasMinLength)
                     }
                 }
             }

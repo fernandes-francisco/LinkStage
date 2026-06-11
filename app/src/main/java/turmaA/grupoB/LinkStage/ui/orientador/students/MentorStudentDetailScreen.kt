@@ -73,6 +73,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import androidx.lifecycle.viewmodel.compose.viewModel
 import turmaA.grupoB.LinkStage.ui.admin.AdminStudent
 import turmaA.grupoB.LinkStage.ui.admin.avatarColors
 import turmaA.grupoB.LinkStage.ui.aluno.activity.ActivityLogCard
@@ -106,16 +107,24 @@ import turmaA.grupoB.LinkStage.ui.theme.Green
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.ui.theme.MediumBlue
 import turmaA.grupoB.LinkStage.ui.theme.Red
+import turmaA.grupoB.LinkStage.viewmodel.AdvisorHomeViewModel
 
 @Composable
 fun MentorStudentDetailScreen(
     studentId: String,
     navController: NavController,
+    advisorHomeViewModel: AdvisorHomeViewModel = viewModel(),
 ) {
     val student = sampleMentorStudents.find { it.id == studentId } ?: return
     val evaluation = sampleEvaluation
     var selectedTab by remember { mutableIntStateOf(0) }
     var showCreateCheckpointDialog by remember { mutableStateOf(false) }
+
+    LaunchedEffect(selectedTab) {
+        if (selectedTab == 2 && evaluation.state == EvaluationState.READY_FOR_FINAL) {
+            advisorHomeViewModel.setHasSeenEvaluations(true)
+        }
+    }
 
     if (showCreateCheckpointDialog) {
         CreateCheckpointDialog(

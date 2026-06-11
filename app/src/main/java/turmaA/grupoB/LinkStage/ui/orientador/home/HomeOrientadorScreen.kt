@@ -31,6 +31,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -44,6 +45,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.rememberNavController
@@ -69,16 +71,22 @@ import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.Fade3
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.ui.theme.MediumBlue
+import turmaA.grupoB.LinkStage.viewmodel.AdvisorHomeViewModel
 
 @Composable
 fun HomeOrientadorScreen(
     navController: NavController,
     modifier: Modifier = Modifier,
+    advisorHomeViewModel: AdvisorHomeViewModel = viewModel(),
 ) {
     val evaluation = sampleEvaluation
-    var showEvaluationModal by remember {
-        mutableStateOf(evaluation.state == EvaluationState.READY_FOR_FINAL && !evaluation.hasSeenNotification)
-    }
+    val hasSeenResult by advisorHomeViewModel.hasSeenEvaluations.collectAsState()
+    val hasDismissedModal by advisorHomeViewModel.hasDismissedEvaluationModal.collectAsState()
+
+    val showEvaluationModal = evaluation.state == EvaluationState.READY_FOR_FINAL && 
+            !evaluation.hasSeenNotification && 
+            !hasSeenResult && 
+            !hasDismissedModal
 
     if (showEvaluationModal) {
         val (modalTitle, modalMessage) = when (evaluation.internshipType) {
@@ -98,9 +106,10 @@ fun HomeOrientadorScreen(
             message = modalMessage,
             actionLabel = "Ver avaliações",
             onAction = {
+                advisorHomeViewModel.setHasSeenEvaluations(true)
                 navController.navigate(OrientadorRoutes.mentorStudentDetail("s1"))
             },
-            onDismiss = { showEvaluationModal = false },
+            onDismiss = { advisorHomeViewModel.setHasDismissedEvaluationModal(true) },
         )
     }
 
@@ -130,13 +139,14 @@ fun HomeOrientadorScreen(
             )
         }
 
-        if (evaluation.state == EvaluationState.READY_FOR_FINAL) {
+        if (evaluation.state == EvaluationState.READY_FOR_FINAL && !hasSeenResult) {
             EvaluationPendingCard(
                 title = "Nota final pendente",
                 message = "Todas as avaliações foram submetidas. Atribua a nota final.",
                 actionLabel = "Atribuir nota final",
                 isDanger = true,
                 onClick = {
+                    advisorHomeViewModel.setHasSeenEvaluations(true)
                     navController.navigate(OrientadorRoutes.mentorStudentDetail("s1"))
                 },
             )

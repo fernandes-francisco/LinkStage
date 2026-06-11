@@ -24,10 +24,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.common.LinkStageButton
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
@@ -55,7 +57,7 @@ fun ReportSuccessScreen(
         Spacer(modifier = Modifier.height(24.dp))
 
         Text(
-            text = "Relatório Submetido!",
+            text = stringResource(R.string.report_success_title),
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
             color = DarkBlue,
@@ -65,7 +67,7 @@ fun ReportSuccessScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "O teu estágio foi terminado com sucesso. Aguarda agora pela nota final, receberás uma notificação assim que estiver disponível.",
+            text = stringResource(R.string.report_success_message),
             fontSize = 16.sp,
             color = Color(0xFF737373),
             textAlign = TextAlign.Center,
@@ -76,7 +78,7 @@ fun ReportSuccessScreen(
         Spacer(modifier = Modifier.height(48.dp))
 
         LinkStageButton(
-            text = "Voltar",
+            text = stringResource(R.string.common_back),
             onClick = onNavigateBack,
             modifier = Modifier.fillMaxWidth(0.8f)
         )

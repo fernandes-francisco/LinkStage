@@ -37,6 +37,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -51,6 +52,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.rememberNavController
@@ -71,6 +73,7 @@ import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.ui.theme.Red
+import turmaA.grupoB.LinkStage.viewmodel.InstitutionHomeViewModel
 
 private val sampleInstitutionOffers = listOf(
     OfferItem("1", "Designer de Produto", "ESTG-IPVC", "Tempo Inteiro", "5h atras", Color(0xFF1565C0), "E", duration = "6 Meses", area = "Design", location = "Porto"),
@@ -81,6 +84,7 @@ private val sampleInstitutionOffers = listOf(
 fun HomeInstituicaoScreen(
     navController: NavController,
     modifier: Modifier = Modifier,
+    institutionHomeViewModel: InstitutionHomeViewModel = viewModel(),
 ) {
     val internships = turmaA.grupoB.LinkStage.ui.instituicao.sampleInstitutionInternships
     val activeOffersCount = 5
@@ -105,22 +109,27 @@ fun HomeInstituicaoScreen(
             hasSeenNotification = false,
         )
     }
-    var showEvaluationModal by remember {
-        mutableStateOf(evaluation?.state == EvaluationState.PENDING && evaluation.hasSeenNotification == false)
-    }
 
-    if (showEvaluationModal && evaluation?.state == EvaluationState.PENDING) {
+    val hasSeenResult by institutionHomeViewModel.hasSeenEvaluations.collectAsState()
+    val hasDismissedModal by institutionHomeViewModel.hasDismissedEvaluationModal.collectAsState()
+
+    val showEvaluationModal = evaluation?.state == EvaluationState.PENDING && 
+            !hasSeenResult && 
+            !hasDismissedModal
+
+    if (showEvaluationModal) {
         EvaluationNotificationModal(
             title = "Estágio Concluído",
             message = "O estágio foi concluído. A avaliação institucional encontra-se pendente. " +
                 "Por favor, submeta a sua avaliação para que o processo possa avançar.",
             actionLabel = "Submeter avaliação",
             onAction = {
+                institutionHomeViewModel.setHasSeenEvaluations(true)
                 navController.navigate(
                     InstituicaoRoutes.internshipDetailRoute(evaluation.internshipId)
                 )
             },
-            onDismiss = { showEvaluationModal = false },
+            onDismiss = { institutionHomeViewModel.setHasDismissedEvaluationModal(true) },
         )
     }
 
@@ -158,13 +167,14 @@ fun HomeInstituicaoScreen(
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState()),
         ) {
-            if (evaluation?.state == EvaluationState.PENDING) {
+            if (evaluation?.state == EvaluationState.PENDING && !hasSeenResult) {
                 EvaluationPendingCard(
                     title = "Avaliação pendente",
                     message = "O estágio foi concluído e aguarda a avaliação institucional.",
                     actionLabel = "Submeter avaliação",
                     isDanger = false,
                     onClick = {
+                        institutionHomeViewModel.setHasSeenEvaluations(true)
                         navController.navigate(
                             InstituicaoRoutes.internshipDetailRoute(evaluation.internshipId)
                         )

@@ -32,6 +32,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -39,6 +40,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
@@ -110,9 +112,9 @@ fun PasswordField(
 @Composable
 fun PasswordRequirementsIndicator(password: String) {
     val requirements = listOf(
-        "Mínimo 8 caracteres" to (password.length >= 8),
-        "Pelo menos uma maiúscula" to password.any { it.isUpperCase() },
-        "Pelo menos um número" to password.any { it.isDigit() },
+        stringResource(R.string.validation_length) to (password.length >= 8),
+        stringResource(R.string.validation_case) to password.any { it.isUpperCase() },
+        stringResource(R.string.validation_number) to password.any { it.isDigit() },
     )
 
     Card(
@@ -164,7 +166,7 @@ private fun PasswordFieldPreview() {
             label = "Nova password",
             value = "Test1",
             onValueChange = {},
-            error = "A password deve ter pelo menos 8 caracteres.",
+            error = "Error",
         )
         Spacer(modifier = Modifier.height(12.dp))
         PasswordRequirementsIndicator(password = "Test1")

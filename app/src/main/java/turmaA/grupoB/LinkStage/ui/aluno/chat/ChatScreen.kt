@@ -66,6 +66,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import turmaA.grupoB.LinkStage.ui.common.LinkStageDialog
+import androidx.compose.ui.res.stringResource
+import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
@@ -286,7 +288,7 @@ private fun ChatTopBar(
                     modifier = Modifier
                         .weight(1f)
                         .padding(horizontal = 8.dp),
-                    placeholder = { Text("Pesquisar...", color = DarkGrey) },
+                    placeholder = { Text(stringResource(R.string.common_search), color = DarkGrey) },
                     singleLine = true,
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = Color.Transparent,
@@ -351,7 +353,7 @@ private fun ChatTopBar(
                         .border(1.dp, BorderGrey, RoundedCornerShape(8.dp))
                 ) {
                     DropdownMenuItem(
-                        text = { Text("Pesquisar na conversa") },
+                        text = { Text(stringResource(R.string.chat_menu_search)) },
                         leadingIcon = { Icon(Icons.Default.Search, null) },
                         onClick = {
                             showMenu = false
@@ -359,14 +361,14 @@ private fun ChatTopBar(
                         }
                     )
                     DropdownMenuItem(
-                        text = { Text(if (isMuted) "Ativar notificações" else "Silenciar notificações") },
+                        text = { Text(if (isMuted) stringResource(R.string.chat_menu_unmute) else stringResource(R.string.chat_menu_mute)) },
                         onClick = {
                             showMenu = false
                             onMute()
                         }
                     )
                     DropdownMenuItem(
-                        text = { Text("Limpar histórico de mensagens") },
+                        text = { Text(stringResource(R.string.chat_menu_clear)) },
                         onClick = {
                             showMenu = false
                             onClearHistory()
@@ -383,15 +385,18 @@ private fun MuteNotificationsDialog(
     onDismiss: () -> Unit,
     onConfirm: (String) -> Unit
 ) {
-    var selectedOption by remember { mutableStateOf("8 horas") }
-    val options = listOf("8 horas", "1 semana", "Sempre")
+    val option8h = stringResource(R.string.chat_mute_8hours)
+    val option1w = stringResource(R.string.chat_mute_1week)
+    val optionAlways = stringResource(R.string.chat_mute_always)
+    var selectedOption by remember { mutableStateOf(option8h) }
+    val options = listOf(option8h, option1w, optionAlways)
 
     LinkStageDialog(
         onDismiss = onDismiss,
-        title = "Silenciar Notificações",
+        title = stringResource(R.string.chat_mute_title),
         onConfirm = { onConfirm(selectedOption) },
-        confirmText = "Silenciar",
-        dismissText = "Cancelar",
+        confirmText = stringResource(R.string.chat_mute_button),
+        dismissText = stringResource(R.string.dialog_cancel),
         content = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 options.forEach { option ->

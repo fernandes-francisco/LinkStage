@@ -27,10 +27,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.common.LinkStageButton
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
@@ -89,7 +91,7 @@ fun ApplySuccessScreen(
         Spacer(modifier = Modifier.height(20.dp))
 
         Text(
-            text = "Candidatura realizada\ncom sucesso",
+            text = stringResource(R.string.apply_success),
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
             color = DarkBlue,
@@ -100,7 +102,7 @@ fun ApplySuccessScreen(
         Spacer(modifier = Modifier.height(48.dp))
 
         LinkStageButton(
-            text = "Voltar",
+            text = stringResource(R.string.common_back),
             onClick = onNavigateBack
         )
     }

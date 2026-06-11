@@ -22,10 +22,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
@@ -93,7 +95,7 @@ fun EvaluationReadOnlyCard(
                         .padding(horizontal = 10.dp, vertical = 4.dp),
                 ) {
                     Text(
-                        text = "${formatGrade(grade)} valores",
+                        text = stringResource(R.string.final_grade_values, formatGrade(grade)),
                         color = DarkBlue,
                         fontWeight = FontWeight.Bold,
                         fontSize = 13.sp,
@@ -107,14 +109,14 @@ fun EvaluationReadOnlyCard(
             )
 
             Text(
-                text = "Observação:",
+                text = stringResource(R.string.eval_observation),
                 color = DarkGrey,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.SemiBold,
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = observation ?: "Sem observação.",
+                text = observation ?: stringResource(R.string.eval_no_observation),
                 color = DarkBlue,
                 fontSize = 13.sp,
                 lineHeight = 19.sp,

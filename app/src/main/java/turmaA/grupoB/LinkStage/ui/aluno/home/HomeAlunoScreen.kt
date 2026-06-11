@@ -1,5 +1,6 @@
 package turmaA.grupoB.LinkStage.ui.aluno.home
 
+import androidx.annotation.StringRes
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
@@ -41,10 +42,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.aluno.AlunoRoutes
 import turmaA.grupoB.LinkStage.ui.aluno.activity.ApplicationCard
 import turmaA.grupoB.LinkStage.ui.aluno.activity.InternshipHeader
@@ -67,10 +70,10 @@ import turmaA.grupoB.LinkStage.viewmodel.HomeViewModel
 
 // region Data models
 
-enum class ApplicationStatus(val label: String) {
-    ACCEPTED("Aceite"),
-    REJECTED("Recusado"),
-    PENDING("Pendente"),
+enum class ApplicationStatus(@StringRes val labelRes: Int) {
+    ACCEPTED(R.string.applications_filter_accepted),
+    REJECTED(R.string.applications_filter_rejected),
+    PENDING(R.string.applications_filter_pending),
 }
 
 data class Entrega(
@@ -100,6 +103,8 @@ fun HomeAlunoScreen(
     val activeInternship by homeViewModel.activeInternship.collectAsState()
     val recentApplications by homeViewModel.recentApplications.collectAsState()
     val recentConversations by homeViewModel.recentConversations.collectAsState()
+    val hasSeenResult by homeViewModel.hasSeenEvaluationResult.collectAsState()
+    val hasDismissedModal by homeViewModel.hasDismissedEvaluationModal.collectAsState()
 
     // Evaluation sample data for demo
     val evaluation: InternshipEvaluation? = remember {
@@ -119,19 +124,21 @@ fun HomeAlunoScreen(
             hasSeenNotification = false,
         )
     }
-    var showEvaluationModal by remember { mutableStateOf(evaluation?.state == EvaluationState.COMPLETED && evaluation.hasSeenNotification == false) }
-    var hasSeenResult by remember { mutableStateOf(false) }
 
-    if (showEvaluationModal && evaluation?.state == EvaluationState.COMPLETED) {
+    val showEvaluationModal = evaluation?.state == EvaluationState.COMPLETED &&
+            !hasSeenResult &&
+            !hasDismissedModal
+
+    if (showEvaluationModal) {
         EvaluationNotificationModal(
-            title = "Resultado do Estágio Disponível",
-            message = "A sua nota final foi atribuída. Pode agora consultar o resultado do seu estágio.",
-            actionLabel = "Ver resultado",
+            title = stringResource(R.string.home_eval_result_title),
+            message = stringResource(R.string.home_eval_result_message),
+            actionLabel = stringResource(R.string.home_result_action),
             onAction = {
+                homeViewModel.setHasSeenEvaluationResult(true)
                 navController.navigate(AlunoRoutes.internshipResultRoute(evaluation.internshipId))
-                hasSeenResult = true
             },
-            onDismiss = { showEvaluationModal = false },
+            onDismiss = { homeViewModel.setHasDismissedEvaluationModal(true) },
         )
     }
 
@@ -148,14 +155,14 @@ fun HomeAlunoScreen(
                 .padding(horizontal = 20.dp, vertical = 12.dp)
         ) {
             Text(
-                "Olá, $userName",
+                stringResource(R.string.home_greeting, userName),
                 style = MaterialTheme.typography.headlineLarge.copy(
                     fontWeight = FontWeight.Bold,
                     color = DarkBlue,
                 ),
             )
             Text(
-                "Bem-vindo de volta ao LinkStage.",
+                stringResource(R.string.home_welcome),
                 style = MaterialTheme.typography.bodyMedium,
                 color = DarkGrey
             )
@@ -163,13 +170,13 @@ fun HomeAlunoScreen(
 
         if (evaluation?.state == EvaluationState.COMPLETED && !hasSeenResult) {
             EvaluationPendingCard(
-                title = "Resultado disponível",
-                message = "A sua nota final encontra-se disponível para consulta.",
-                actionLabel = "Ver resultado",
+                title = stringResource(R.string.home_result_available),
+                message = stringResource(R.string.home_result_message),
+                actionLabel = stringResource(R.string.home_result_action),
                 isDanger = false,
                 onClick = {
+                    homeViewModel.setHasSeenEvaluationResult(true)
                     navController.navigate(AlunoRoutes.internshipResultRoute(evaluation.internshipId))
-                    hasSeenResult = true
                 },
             )
             Spacer(modifier = Modifier.height(8.dp))
@@ -192,7 +199,7 @@ fun HomeAlunoScreen(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    "DEBUG — Modo Estágio",
+                    stringResource(R.string.home_debug_mode),
                     style = MaterialTheme.typography.labelMedium,
                     color = DarkGrey,
                     modifier = Modifier.weight(1f),
@@ -223,8 +230,8 @@ fun HomeAlunoScreen(
                 LaunchedEffect(Unit) { animationStarted = true }
 
                 HomeSectionCard(
-                    title = "Estágio Ativo",
-                    actionText = "Ver detalhes",
+                    title = stringResource(R.string.home_active_internship),
+                    actionText = stringResource(R.string.home_view_details),
                     onAction = { navController.navigate(AlunoRoutes.ACTIVITY) }
                 ) {
                     InternshipHeader(
@@ -237,8 +244,8 @@ fun HomeAlunoScreen(
             } else {
                 // State A: No internship — show recent applications
                 HomeSectionCard(
-                    title = "Estado das candidaturas",
-                    actionText = "Ver todas",
+                    title = stringResource(R.string.home_applications_title),
+                    actionText = stringResource(R.string.common_view_all),
                     onAction = { navController.navigate(AlunoRoutes.ACTIVITY) }
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -249,12 +256,12 @@ fun HomeAlunoScreen(
                 }
 
                 HomeSectionCard(
-                    title = "Descobre Oportunidades",
-                    actionText = "Explorar",
+                    title = stringResource(R.string.home_discover_title),
+                    actionText = stringResource(R.string.home_discover_action),
                     onAction = { navController.navigate(AlunoRoutes.DISCOVER) }
                 ) {
                     Text(
-                        "Encontra o estágio ideal para o teu perfil e dá o próximo passo na tua carreira.",
+                        stringResource(R.string.home_discover_message),
                         style = MaterialTheme.typography.bodyMedium,
                         color = DarkGrey,
                         modifier = Modifier.padding(bottom = 8.dp)
@@ -264,8 +271,8 @@ fun HomeAlunoScreen(
 
             // Recent messages — both states
             HomeSectionCard(
-                title = "Mensagens Recentes",
-                actionText = "Ver todas",
+                title = stringResource(R.string.home_recent_messages),
+                actionText = stringResource(R.string.common_view_all),
                 onAction = { navController.navigate(AlunoRoutes.MESSAGES) }
             ) {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -323,7 +330,7 @@ private fun EntregasCard(entregas: List<Entrega>) {
     ) {
         Column {
             Text(
-                "Próximas entregas",
+                stringResource(R.string.home_deliveries),
                 style = MaterialTheme.typography.titleMedium.copy(
                     fontWeight = FontWeight.SemiBold,
                     color = Color.White,
