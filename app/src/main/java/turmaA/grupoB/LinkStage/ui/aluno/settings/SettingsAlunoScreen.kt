@@ -1,5 +1,7 @@
 package turmaA.grupoB.LinkStage.ui.aluno.settings
 
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -9,6 +11,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -43,6 +46,7 @@ import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -55,6 +59,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -63,7 +68,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
+import turmaA.grupoB.LinkStage.data.repository.flags.FlagsRepository
 import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
 import turmaA.grupoB.LinkStage.ui.common.LinkStageButton
 import turmaA.grupoB.LinkStage.ui.common.LinkStageDialog
@@ -78,6 +86,9 @@ import turmaA.grupoB.LinkStage.ui.theme.Fade2
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.ui.theme.Red
 import turmaA.grupoB.LinkStage.viewmodel.SettingsViewModel
+import turmaA.grupoB.LinkStage.viewmodel.flags.FlagsUIState
+import turmaA.grupoB.LinkStage.viewmodel.flags.FlagsViewModel
+import turmaA.grupoB.LinkStage.viewmodel.flags.FlagsViewModelFactory
 
 // region Data models
 
@@ -95,10 +106,18 @@ fun SettingsAlunoScreen(
     onNotificationsClick: () -> Unit = {},
     onPrivacyPolicyClick: () -> Unit = {},
     settingsViewModel: SettingsViewModel = viewModel(),
+    flagsViewModel: FlagsViewModel = viewModel(factory = FlagsViewModelFactory(FlagsRepository()))
 ) {
+
+
+
     val user by settingsViewModel.user.collectAsState()
     val currentLanguage by settingsViewModel.currentLanguage.collectAsState()
-
+    val flagsUIState by flagsViewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    LaunchedEffect(Unit) {
+        flagsViewModel.getImages(listOf("portugal", "gb"))
+    }
     var showLogoutDialog by remember { mutableStateOf(false) }
     var showPasswordDialog by remember { mutableStateOf(false) }
 
@@ -238,6 +257,7 @@ fun SettingsAlunoScreen(
                 LanguageToggle(
                     selectedLang = currentLanguage,
                     onSelect = { settingsViewModel.changeLanguage(it) },
+                    uiState = flagsUIState
                 )
             }
         }
@@ -387,13 +407,14 @@ private fun SettingsRowItem(
 private fun LanguageToggle(
     selectedLang: String,
     onSelect: (String) -> Unit,
+    uiState: FlagsUIState
 ) {
     Row(
         modifier = Modifier
             .clip(RoundedCornerShape(8.dp))
             .border(1.dp, BorderGrey, RoundedCornerShape(8.dp)),
     ) {
-        listOf("PT", "EN").forEach { lang ->
+        listOf("portugal", "gb").forEach { lang ->
             val isSelected = lang == selectedLang
             Box(
                 modifier = Modifier
@@ -402,14 +423,28 @@ private fun LanguageToggle(
                     .clickable { onSelect(lang) }
                     .padding(horizontal = 16.dp, vertical = 6.dp),
                 contentAlignment = Alignment.Center,
-            ) {
-                Text(
-                    text = lang,
+            ) { when (uiState){
+                is FlagsUIState.Error ->  Text(
+                    text = if(lang == "portugal") "PT" else "EN",
                     style = MaterialTheme.typography.labelMedium.copy(
                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
                     ),
                     color = if (isSelected) Color.White else DarkGrey,
                 )
+                is FlagsUIState.Success -> {
+                    val index = listOf("portugal", "gb").indexOf(lang)
+                    AsyncImage(
+                        model = uiState.imgs.getOrNull(index)?.png,
+                        contentDescription = lang,
+                        modifier = Modifier
+                            .size(24.dp)
+                            .clip(RoundedCornerShape(4.dp))
+                    )
+                }
+
+                else -> {}
+            }
+
             }
         }
     }
