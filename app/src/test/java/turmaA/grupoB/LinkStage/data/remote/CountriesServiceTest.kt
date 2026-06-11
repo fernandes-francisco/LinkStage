@@ -40,7 +40,7 @@ class CountriesServiceTest {
         mockWebServer.enqueue(
             MockResponse()
                 .setResponseCode(HttpURLConnection.HTTP_OK)
-                .setBody("""{"png": "https://flagcdn.com/w320/pt.png"}""")
+                .setBody("""[{"png": "https://flagcdn.com/w320/pt.png"}]""")
         )
 
         val result = countriesService.getFlagByName("portugal")
@@ -53,7 +53,7 @@ class CountriesServiceTest {
         mockWebServer.enqueue(
             MockResponse()
                 .setResponseCode(HttpURLConnection.HTTP_OK)
-                .setBody("""{"png": "https://flagcdn.com/w320/de.png"}""")
+                .setBody("""[{"png": "https://flagcdn.com/w320/de.png"}]""")
         )
 
         countriesService.getFlagByName("germany")
@@ -68,7 +68,7 @@ class CountriesServiceTest {
         mockWebServer.enqueue(
             MockResponse()
                 .setResponseCode(HttpURLConnection.HTTP_OK)
-                .setBody("""{"png": ""}""")
+                .setBody("""[{"png": ""}]""")
         )
 
         val result = countriesService.getFlagByName("unknown")
@@ -113,7 +113,7 @@ class CountriesServiceTest {
         mockWebServer.enqueue(
             MockResponse()
                 .setResponseCode(HttpURLConnection.HTTP_OK)
-                .setBody("""{"png": "https://flagcdn.com/w320/jp.png"}""")
+                .setBody("""[{"png": "https://flagcdn.com/w320/jp.png"}]""")
         )
 
         val result = countriesService.getFlagByName("japan")
