@@ -416,7 +416,11 @@ private fun LanguageToggle(
             .border(1.dp, BorderGrey, RoundedCornerShape(8.dp)),
     ) {
         listOf("portugal", "gb").forEach { lang ->
-            val isSelected = lang == selectedLang
+            val isSelected = when (selectedLang) {
+                "PT", "portugal" -> lang == "portugal"
+                "EN", "gb" -> lang == "gb"
+                else -> lang == selectedLang
+            }
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(7.dp))
