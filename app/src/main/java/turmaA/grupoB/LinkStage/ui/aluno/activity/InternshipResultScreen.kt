@@ -37,10 +37,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import androidx.lifecycle.viewmodel.compose.viewModel
+import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.common.SecondaryTopBar
 import turmaA.grupoB.LinkStage.ui.common.formatGrade
 import turmaA.grupoB.LinkStage.ui.orientador.EvaluationState
@@ -84,7 +86,7 @@ fun InternshipResultScreen(
     Scaffold(
         topBar = {
             SecondaryTopBar(
-                title = "Resultado do Estágio",
+                title = stringResource(R.string.result_internship_title),
                 onBack = { navController.popBackStack() }
             )
         },
@@ -105,7 +107,7 @@ fun InternshipResultScreen(
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
-                        text = "Voltar ao Início",
+                        text = stringResource(R.string.result_back_home),
                         color = Color.White,
                         fontWeight = FontWeight.SemiBold,
                     )
@@ -148,7 +150,7 @@ fun InternshipResultScreen(
                     Column {
                         Text("Designer de Produto", color = DarkBlue, fontWeight = FontWeight.Bold, fontSize = 17.sp)
                         Text("Viana S.T.Arts", color = LightBlue, fontSize = 14.sp)
-                        Text("Concluído", color = LightBlue, fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
+                        Text(stringResource(R.string.activity_status_completed), color = LightBlue, fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
                     }
                 }
             }
@@ -174,7 +176,7 @@ fun InternshipResultScreen(
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         Text(
-                            text = "Nota Final",
+                            text = stringResource(R.string.report_final_grade),
                             color = Color.White.copy(alpha = 0.8f),
                             fontSize = 14.sp,
                         )
@@ -187,7 +189,7 @@ fun InternshipResultScreen(
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "em 20 valores",
+                            text = stringResource(R.string.report_out_of_20),
                             color = Color.White.copy(alpha = 0.7f),
                             fontSize = 13.sp,
                         )
@@ -201,7 +203,7 @@ fun InternshipResultScreen(
             if (evaluation.schoolMentorGrade != null) {
                 EvaluationCard(
                     mentorName = evaluation.schoolMentorName,
-                    mentorRole = "Orientador Escolar (Nota Final)",
+                    mentorRole = stringResource(R.string.eval_role_school_mentor_short),
                     observation = evaluation.schoolMentorObservation ?: "",
                     grade = formatGrade(evaluation.schoolMentorGrade),
                 )
@@ -211,7 +213,7 @@ fun InternshipResultScreen(
             if (evaluation.companyResponsibleGrade != null) {
                 EvaluationCard(
                     mentorName = evaluation.companyResponsibleName,
-                    mentorRole = "Responsável da Empresa",
+                    mentorRole = stringResource(R.string.eval_role_company_responsible),
                     observation = evaluation.companyResponsibleObservation ?: "",
                     grade = formatGrade(evaluation.companyResponsibleGrade),
                 )
@@ -221,7 +223,7 @@ fun InternshipResultScreen(
             if (evaluation.companyMentorGrade != null && evaluation.companyMentorName.isNotEmpty()) {
                 EvaluationCard(
                     mentorName = evaluation.companyMentorName,
-                    mentorRole = "Orientador de Empresa",
+                    mentorRole = stringResource(R.string.eval_role_company_mentor),
                     observation = evaluation.companyMentorObservation ?: "",
                     grade = formatGrade(evaluation.companyMentorGrade),
                 )
@@ -231,7 +233,7 @@ fun InternshipResultScreen(
             if (evaluation.institutionGrade != null) {
                 EvaluationCard(
                     mentorName = evaluation.institutionName,
-                    mentorRole = "Instituição Escolar",
+                    mentorRole = stringResource(R.string.eval_role_institution),
                     observation = evaluation.institutionObservation ?: "",
                     grade = formatGrade(evaluation.institutionGrade),
                 )
@@ -285,7 +287,7 @@ private fun EvaluationCard(
                         .background(LightBlue.copy(alpha = 0.15f))
                         .padding(horizontal = 10.dp, vertical = 4.dp),
                 ) {
-                    Text("$grade valores", color = DarkBlue, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                    Text(stringResource(R.string.result_grade_values, grade), color = DarkBlue, fontWeight = FontWeight.Bold, fontSize = 13.sp)
                 }
             }
 
@@ -293,7 +295,7 @@ private fun EvaluationCard(
             HorizontalDivider(color = BorderGrey)
             Spacer(modifier = Modifier.height(8.dp))
 
-            Text("Observações", color = DarkGrey, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+            Text(stringResource(R.string.result_observations), color = DarkGrey, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
             Spacer(modifier = Modifier.height(4.dp))
             Text(observation, color = DarkBlue, fontSize = 14.sp, lineHeight = 20.sp)
         }

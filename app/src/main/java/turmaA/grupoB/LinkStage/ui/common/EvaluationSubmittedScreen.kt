@@ -56,6 +56,7 @@ import androidx.navigation.compose.rememberNavController
 import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.instituicao.InstituicaoRoutes
 import turmaA.grupoB.LinkStage.ui.instituicao.sampleInstitutionInternships
+import androidx.compose.ui.platform.LocalContext
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
@@ -69,8 +70,9 @@ fun EvaluationSubmittedScreen(
     internshipId: String,
     navController: NavController,
 ) {
-    val internship = sampleInstitutionInternships.find { it.id == internshipId }
-        ?: sampleInstitutionInternships.first()
+    val context = LocalContext.current
+    val internship = sampleInstitutionInternships(context).find { it.id == internshipId }
+        ?: sampleInstitutionInternships(context).first()
 
     val evaluatorName = "Prof. Tiago Alexandre"
     val evaluatorRole = "School Institution"

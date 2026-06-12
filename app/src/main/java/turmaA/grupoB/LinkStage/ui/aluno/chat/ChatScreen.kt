@@ -104,27 +104,31 @@ private fun ChatScreenPreview() {
     }
 }
 
-// region Sample data
+@Composable
+fun getSampleMessages(): Map<String, List<ChatMessage>> {
+    val yesterdayLabel = stringResource(R.string.time_yesterday)
+    val daysAgoLabel = stringResource(R.string.time_days_ago, "2")
 
-private val sampleMessages = mapOf(
-    "1" to listOf(
-        ChatMessage("m1", "Olá! Tens alguma dúvida?", false, "22:40"),
-        ChatMessage("m2", "Sim, tenho uma pergunta sobre o estágio.", true, "22:41"),
-        ChatMessage("m3", "Boa pergunta.", false, "22:42"),
-    ),
-    "2" to listOf(
-        ChatMessage("m1", "Viste o email que enviei?", false, "Ontem 18:00"),
-        ChatMessage("m2", "Como assim?", true, "Ontem 18:05"),
-    ),
-    "3" to listOf(
-        ChatMessage("m1", "O relatório foi submetido.", true, "2d atrás"),
-        ChatMessage("m2", "Nota-se.", false, "2d atrás"),
-    ),
-    "4" to listOf(
-        ChatMessage("m1", "Precisamos de actualizar a dashboard.", false, "22:40"),
-        ChatMessage("m2", "Altera a dashboard", true, "22:42"),
-    ),
-)
+    return mapOf(
+        "1" to listOf(
+            ChatMessage("m1", "Olá! Tens alguma dúvida?", false, "22:40"),
+            ChatMessage("m2", "Sim, tenho uma pergunta sobre o estágio.", true, "22:41"),
+            ChatMessage("m3", "Boa pergunta.", false, "22:42"),
+        ),
+        "2" to listOf(
+            ChatMessage("m1", "Viste o email que enviei?", false, "$yesterdayLabel 18:00"),
+            ChatMessage("m2", "Como assim?", true, "$yesterdayLabel 18:05"),
+        ),
+        "3" to listOf(
+            ChatMessage("m1", "O relatório foi submetido.", true, daysAgoLabel),
+            ChatMessage("m2", "Nota-se.", false, daysAgoLabel),
+        ),
+        "4" to listOf(
+            ChatMessage("m1", "Precisamos de actualizar a dashboard.", false, "22:40"),
+            ChatMessage("m2", "Altera a dashboard", true, "22:42"),
+        ),
+    )
+}
 
 // endregion
 
@@ -136,6 +140,7 @@ fun ChatScreen(
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val sampleMessages = getSampleMessages()
     val initialMessages = sampleMessages[conversation.id] ?: emptyList()
     val messages = remember { mutableStateListOf(*initialMessages.toTypedArray()) }
     var inputText by remember { mutableStateOf("") }
@@ -153,6 +158,7 @@ fun ChatScreen(
     }
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
+    val nowLabel = stringResource(R.string.time_now)
 
     LaunchedEffect(messages.size) {
         if (messages.isNotEmpty()) {
@@ -168,7 +174,7 @@ fun ChatScreen(
                 id = "new_${messages.size}",
                 text = text,
                 isSentByMe = true,
-                time = "Agora",
+                time = nowLabel,
             )
         )
         inputText = ""
@@ -276,7 +282,7 @@ private fun ChatTopBar(
             IconButton(onClick = onBack) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Voltar",
+                    contentDescription = stringResource(R.string.common_back_content_desc),
                     tint = DarkBlue,
                 )
             }
@@ -299,7 +305,7 @@ private fun ChatTopBar(
                     shape = RoundedCornerShape(20.dp),
                     trailingIcon = {
                         IconButton(onClick = { onSearchQueryChange("") }) {
-                            Icon(Icons.Default.Close, contentDescription = "Limpar", tint = DarkGrey)
+                            Icon(Icons.Default.Close, contentDescription = stringResource(R.string.common_clear), tint = DarkGrey)
                         }
                     }
                 )
@@ -329,7 +335,7 @@ private fun ChatTopBar(
                         overflow = TextOverflow.Ellipsis,
                     )
                     Text(
-                        text = "Online",
+                        text = stringResource(R.string.chat_online),
                         style = MaterialTheme.typography.labelSmall,
                         color = Color(0xFF4CAF50),
                     )
@@ -340,7 +346,7 @@ private fun ChatTopBar(
                 IconButton(onClick = { showMenu = true }) {
                     Icon(
                         imageVector = Icons.Default.MoreVert,
-                        contentDescription = "Mais opções",
+                        contentDescription = stringResource(R.string.common_more_options),
                         tint = DarkGrey,
                     )
                 }
@@ -482,7 +488,7 @@ private fun ChatInputBar(
                 modifier = Modifier.weight(1f),
                 placeholder = {
                     Text(
-                        "Escreve uma mensagem...",
+                        stringResource(R.string.chat_input_placeholder),
                         style = MaterialTheme.typography.bodyMedium,
                         color = DarkGrey,
                     )
@@ -511,7 +517,7 @@ private fun ChatInputBar(
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.Send,
-                    contentDescription = "Enviar",
+                    contentDescription = stringResource(R.string.common_send),
                     tint = Color.White,
                     modifier = Modifier.size(20.dp),
                 )

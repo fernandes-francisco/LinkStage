@@ -54,6 +54,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -61,10 +62,11 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.admin.AdminInstitution
 import turmaA.grupoB.LinkStage.ui.admin.AdminRoutes
 import turmaA.grupoB.LinkStage.ui.admin.InstitutionStatus
-import turmaA.grupoB.LinkStage.ui.admin.sampleInstitutions
+import turmaA.grupoB.LinkStage.ui.admin.sampleInstitutionsList
 import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
 import turmaA.grupoB.LinkStage.viewmodel.admin.AdminInstitutionsUiState
 import turmaA.grupoB.LinkStage.viewmodel.admin.AdminInstitutionsViewModel
@@ -99,7 +101,7 @@ fun InstitutionsAdminScreen(
     }
     val pendingInstitutions = when (val state = institutionsUiState) {
         is AdminInstitutionsUiState.Success -> state.pendingInstitutions
-        else -> sampleInstitutions.filter { it.status == InstitutionStatus.PENDING_APPROVAL }
+        else -> sampleInstitutionsList.filter { it.status == InstitutionStatus.PENDING_APPROVAL }
     }
 
     LaunchedEffect(Unit) {
@@ -145,7 +147,7 @@ fun InstitutionsAdminScreen(
         )
     }
 
-    val pendingLabel = if (pendingInstitutions.isNotEmpty()) "Pendentes (${pendingInstitutions.size})" else "Pendentes"
+    val pendingLabel = if (pendingInstitutions.isNotEmpty()) stringResource(R.string.admin_institution_tab_pending, pendingInstitutions.size) else stringResource(R.string.admin_institution_badge_pending)
 
     Scaffold(
         modifier = modifier,
@@ -154,7 +156,7 @@ fun InstitutionsAdminScreen(
             Column(modifier = Modifier.background(BackgroundLight)) {
                 CommonTopBar()
                 Text(
-                    text = "Instituições",
+                    text = stringResource(R.string.admin_institutions_title),
                     style = MaterialTheme.typography.headlineSmall.copy(
                         fontWeight = FontWeight.Bold,
                         color = DarkBlue,
@@ -168,7 +170,7 @@ fun InstitutionsAdminScreen(
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 LinkStageTabRow(
-                    tabs = listOf("Aprovadas", pendingLabel),
+                    tabs = listOf(stringResource(R.string.admin_institution_tab_approved), pendingLabel),
                     selectedIndex = selectedTab,
                     onTabSelected = { selectedTab = it },
                 )
@@ -181,7 +183,7 @@ fun InstitutionsAdminScreen(
                 contentColor = Color.White,
                 shape = RoundedCornerShape(16.dp),
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Adicionar Instituição")
+                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.admin_inst_add))
             }
         },
     ) { innerPadding ->
@@ -205,8 +207,8 @@ fun InstitutionsAdminScreen(
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
-                        text = if (tab == 0) "Não existem instituições aprovadas."
-                        else "Não existem pedidos de registo pendentes.",
+                        text = if (tab == 0) stringResource(R.string.admin_inst_empty_approved)
+                        else stringResource(R.string.admin_inst_empty_pending),
                         color = DarkGrey,
                         fontSize = 16.sp,
                     )
@@ -242,7 +244,7 @@ private fun filteredInstitutionLocations(uiState: AdminInstitutionsUiState): Lis
     is AdminInstitutionsUiState.Success -> (uiState.approvedInstitutions + uiState.pendingInstitutions)
         .map { it.location }
         .distinct()
-    else -> sampleInstitutions.map { it.location }.distinct()
+    else -> sampleInstitutionsList.map { it.location }.distinct()
 }
 
 @Composable
@@ -262,7 +264,7 @@ private fun SearchBarWithFilter(
             value = query,
             onValueChange = onQueryChange,
             modifier = Modifier.weight(1f),
-            placeholder = { Text("Pesquisar instituições...", color = DarkGrey) },
+            placeholder = { Text(stringResource(R.string.admin_inst_search), color = DarkGrey) },
             leadingIcon = {
                 Icon(Icons.Outlined.Search, contentDescription = null, tint = DarkGrey)
             },
@@ -286,7 +288,7 @@ private fun SearchBarWithFilter(
         ) {
             Icon(
                 Icons.Outlined.FilterList,
-                contentDescription = "Filtros",
+                contentDescription = stringResource(R.string.discover_filters),
                 tint = Color.White,
                 modifier = Modifier.size(22.dp),
             )
@@ -307,30 +309,34 @@ private fun InstitutionFilterDialog(
     var location by remember { mutableStateOf(currentLocation) }
     var typeExpanded by remember { mutableStateOf(false) }
 
-    val typeOptions = listOf("Todas", "Instituição de Ensino", "Instituição Empresarial")
-    val locationOptions = locationOptions.ifEmpty { sampleInstitutions.map { it.location }.distinct() }
+    val allLabel = stringResource(R.string.admin_inst_filter_all)
+    val schoolLabel = stringResource(R.string.admin_inst_filter_school)
+    val companyLabel = stringResource(R.string.admin_inst_filter_company)
+    val typeOptions = listOf(
+        "" to allLabel,
+        "Instituição de Ensino" to schoolLabel,
+        "Instituição Empresarial" to companyLabel,
+    )
+    val locationOptions = locationOptions.ifEmpty { sampleInstitutionsList.map { it.location }.distinct() }
 
     LinkStageDialog(
-        title = "Filtros",
+        title = stringResource(R.string.filter_title),
         onConfirm = {
-            onApply(
-                if (type == "Todas") "" else type,
-                location,
-            )
+            onApply(type, location)
         },
         onDismiss = onDismiss,
-        confirmText = "Filtrar",
-        dismissText = "Cancelar",
+        confirmText = stringResource(R.string.filter_apply),
+        dismissText = stringResource(R.string.common_cancel),
         content = {
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    SectionLabel("Tipo")
+                    SectionLabel(stringResource(R.string.admin_inst_filter_type))
                     ExposedDropdownMenuBox(
                         expanded = typeExpanded,
                         onExpandedChange = { typeExpanded = it },
                     ) {
                         OutlinedTextField(
-                            value = type.ifEmpty { "Todas" },
+                            value = typeOptions.firstOrNull { it.first == type }?.second ?: allLabel,
                             onValueChange = {},
                             readOnly = true,
                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = typeExpanded) },
@@ -350,16 +356,11 @@ private fun InstitutionFilterDialog(
                             expanded = typeExpanded,
                             onDismissRequest = { typeExpanded = false },
                         ) {
-                            typeOptions.forEach { option ->
+                            typeOptions.forEach { (key, label) ->
                                 DropdownMenuItem(
-                                    text = { Text(option) },
+                                    text = { Text(label) },
                                     onClick = {
-                                        type = when (option) {
-                                            "Todas" -> ""
-                                            "Instituição de Ensino" -> "Instituição de Ensino"
-                                            "Instituição Empresarial" -> "Instituição Empresarial"
-                                            else -> option
-                                        }
+                                        type = key
                                         typeExpanded = false
                                     },
                                 )
@@ -369,11 +370,11 @@ private fun InstitutionFilterDialog(
                 }
 
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    SectionLabel("Localização")
+                    SectionLabel(stringResource(R.string.filter_location))
                     OutlinedTextField(
                         value = location,
                         onValueChange = { location = it },
-                        placeholder = { Text("Escreva aqui.", color = DarkGrey, fontSize = 14.sp) },
+                        placeholder = { Text(stringResource(R.string.common_write_here), color = DarkGrey, fontSize = 14.sp) },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(10.dp),
                         colors = OutlinedTextFieldDefaults.colors(
@@ -438,12 +439,12 @@ private fun InstitutionListItem(
                 Spacer(modifier = Modifier.height(4.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(
-                        text = "${institution.studentsCount} alunos",
+                        text = stringResource(R.string.admin_inst_students_count, institution.studentsCount),
                         color = MediumBlue,
                         fontSize = 11.sp,
                     )
                     Text(
-                        text = "${institution.activeInternshipsCount} estágios",
+                        text = stringResource(R.string.admin_inst_internships_count, institution.activeInternshipsCount),
                         color = LightBlue,
                         fontSize = 11.sp,
                     )
@@ -513,7 +514,7 @@ private fun PendingInstitutionListItem(
                     fontSize = 12.sp,
                 )
                 Text(
-                    text = "Submetido ${institution.submittedAt}",
+                    text = stringResource(R.string.admin_inst_submitted, institution.submittedAt),
                     color = DarkGrey,
                     fontSize = 11.sp,
                 )
@@ -542,7 +543,7 @@ private fun PendingInstitutionListItem(
                         .padding(horizontal = 8.dp, vertical = 3.dp),
                 ) {
                     Text(
-                        text = "Pendente",
+                        text = stringResource(R.string.admin_institution_badge_pending),
                         color = Color(0xFFF5C518),
                         fontWeight = FontWeight.Bold,
                         fontSize = 10.sp,
@@ -563,20 +564,23 @@ private fun AddInstitutionDialog(onDismiss: () -> Unit) {
     var email by remember { mutableStateOf("") }
     var typeExpanded by remember { mutableStateOf(false) }
 
-    val types = listOf("Instituição de Ensino", "Instituição Empresarial")
+    val types = listOf(
+        "Instituição de Ensino" to stringResource(R.string.admin_inst_filter_school),
+        "Instituição Empresarial" to stringResource(R.string.admin_inst_filter_company),
+    )
 
     LinkStageDialog(
         onDismiss = onDismiss,
-        title = "Adicionar Instituição",
+        title = stringResource(R.string.admin_inst_add_title),
         onConfirm = onDismiss,
-        confirmText = "Adicionar",
-        dismissText = "Cancelar",
+        confirmText = stringResource(R.string.admin_inst_add_button),
+        dismissText = stringResource(R.string.common_cancel),
         content = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
-                    label = { Text("Nome") },
+                    label = { Text(stringResource(R.string.admin_users_name)) },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(10.dp),
                     singleLine = true,
@@ -584,7 +588,7 @@ private fun AddInstitutionDialog(onDismiss: () -> Unit) {
                 OutlinedTextField(
                     value = code,
                     onValueChange = { code = it },
-                    label = { Text("Código") },
+                    label = { Text(stringResource(R.string.admin_inst_add_code)) },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(10.dp),
                     singleLine = true,
@@ -594,10 +598,10 @@ private fun AddInstitutionDialog(onDismiss: () -> Unit) {
                     onExpandedChange = { typeExpanded = it },
                 ) {
                     OutlinedTextField(
-                        value = selectedType,
+                        value = types.firstOrNull { it.first == selectedType }?.second ?: "",
                         onValueChange = {},
                         readOnly = true,
-                        label = { Text("Tipo") },
+                        label = { Text(stringResource(R.string.admin_inst_filter_type)) },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = typeExpanded) },
                         modifier = Modifier
                             .fillMaxWidth()
@@ -608,11 +612,11 @@ private fun AddInstitutionDialog(onDismiss: () -> Unit) {
                         expanded = typeExpanded,
                         onDismissRequest = { typeExpanded = false },
                     ) {
-                        types.forEach { type ->
+                        types.forEach { (key, label) ->
                             DropdownMenuItem(
-                                text = { Text(type) },
+                                text = { Text(label) },
                                 onClick = {
-                                    selectedType = type
+                                    selectedType = key
                                     typeExpanded = false
                                 },
                             )
@@ -622,7 +626,7 @@ private fun AddInstitutionDialog(onDismiss: () -> Unit) {
                 OutlinedTextField(
                     value = location,
                     onValueChange = { location = it },
-                    label = { Text("Localização") },
+                    label = { Text(stringResource(R.string.filter_location)) },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(10.dp),
                     singleLine = true,
@@ -630,7 +634,7 @@ private fun AddInstitutionDialog(onDismiss: () -> Unit) {
                 OutlinedTextField(
                     value = email,
                     onValueChange = { email = it },
-                    label = { Text("Email") },
+                    label = { Text(stringResource(R.string.admin_inst_add_email)) },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(10.dp),
                     singleLine = true,

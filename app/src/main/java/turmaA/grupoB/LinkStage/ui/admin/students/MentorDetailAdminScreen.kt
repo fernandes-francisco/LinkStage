@@ -43,8 +43,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import turmaA.grupoB.LinkStage.R
-import turmaA.grupoB.LinkStage.ui.admin.sampleMentors
-import turmaA.grupoB.LinkStage.ui.admin.sampleStudents
+import turmaA.grupoB.LinkStage.ui.admin.sampleMentorsList
+import turmaA.grupoB.LinkStage.ui.admin.sampleStudentsList
 import turmaA.grupoB.LinkStage.ui.common.ContentSection
 import turmaA.grupoB.LinkStage.viewmodel.admin.AdminMentorDetailUiState
 import turmaA.grupoB.LinkStage.viewmodel.admin.AdminMentorDetailViewModel
@@ -68,11 +68,11 @@ fun MentorDetailAdminScreen(
     val mentorDetailUiState by mentorDetailViewModel.uiState.collectAsState()
     val mentor = when (val state = mentorDetailUiState) {
         is AdminMentorDetailUiState.Success -> state.data.mentor
-        else -> sampleMentors.first()
+        else -> sampleMentorsList.first()
     }
     val supervisedStudents = when (val state = mentorDetailUiState) {
         is AdminMentorDetailUiState.Success -> state.data.supervisedStudents
-        else -> sampleStudents.filter { it.institution == mentor.institution }
+        else -> sampleStudentsList.filter { it.institutionCode == mentor.institution }
     }
 
     LaunchedEffect(mentorId) {

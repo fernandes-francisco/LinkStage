@@ -57,6 +57,7 @@ import turmaA.grupoB.LinkStage.ui.orientador.OrientadorRoutes
 import turmaA.grupoB.LinkStage.ui.orientador.sampleEvaluation
 import turmaA.grupoB.LinkStage.ui.orientador.sampleMentorStudents
 import turmaA.grupoB.LinkStage.ui.orientador.sampleStudentInternship
+import androidx.compose.ui.platform.LocalContext
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
@@ -68,9 +69,10 @@ fun FinalGradeSubmittedScreen(
     internshipId: String,
     navController: NavController,
 ) {
-    val student = sampleMentorStudents.first()
-    val internship = sampleStudentInternship
-    val evaluation = sampleEvaluation.copy(
+    val context = LocalContext.current
+    val student = sampleMentorStudents(context).first()
+    val internship = sampleStudentInternship(context)
+    val evaluation = sampleEvaluation(context).copy(
         state = EvaluationState.COMPLETED,
         schoolMentorGrade = 16f,
         schoolMentorObservation = "Bom desempenho global ao longo do estágio.",

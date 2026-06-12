@@ -23,6 +23,7 @@ import turmaA.grupoB.LinkStage.ui.splash.SplashScreen
 import turmaA.grupoB.LinkStage.ui.instituicao.InstituicaoMainScreen
 import turmaA.grupoB.LinkStage.ui.instituicao.InstitutionPendingScreen
 import turmaA.grupoB.LinkStage.ui.orientador.OrientadorMainScreen
+import turmaA.grupoB.LinkStage.data.remote.model.enums.UserRole
 
 object Routes {
     const val SPLASH = "splash"
@@ -169,14 +170,19 @@ fun AppNavigation(
                 }
             )
         ) { backStackEntry ->
-            val profile = backStackEntry.arguments?.getString("profile") ?: ""
+            val profileStr = backStackEntry.arguments?.getString("profile") ?: ""
+            val profile = try {
+                UserRole.valueOf(profileStr)
+            } catch (_: IllegalArgumentException) {
+                UserRole.STUDENT
+            }
             RegisterDataScreen(
                 selectedProfile = profile,
                 onBackClick = {
                     navController.popBackStack()
                 },
                 onContinueClick = { data ->
-                    if (profile == "Estudante") {
+                    if (profile == UserRole.STUDENT) {
                         navController.navigate(Routes.REGISTER_SKILLS)
                     } else {
                         navController.navigate(Routes.LOGIN) {

@@ -45,7 +45,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import turmaA.grupoB.LinkStage.R
-import turmaA.grupoB.LinkStage.ui.admin.sampleStudents
+import turmaA.grupoB.LinkStage.ui.admin.sampleStudentsList
 import turmaA.grupoB.LinkStage.ui.common.ContentSection
 import turmaA.grupoB.LinkStage.viewmodel.admin.AdminStudentDetailUiState
 import turmaA.grupoB.LinkStage.viewmodel.admin.AdminStudentDetailViewModel
@@ -72,7 +72,7 @@ fun StudentDetailAdminScreen(
     val studentDetailUiState by studentDetailViewModel.uiState.collectAsState()
     val student = when (val state = studentDetailUiState) {
         is AdminStudentDetailUiState.Success -> state.data.student
-        else -> sampleStudents.first()
+        else -> sampleStudentsList.first()
     }
 
     LaunchedEffect(studentId) {
@@ -260,9 +260,17 @@ fun StudentDetailAdminScreen(
             // Recent Applications (placeholder)
             ContentSection(title = stringResource(R.string.admin_detail_recent_applications)) {
                 Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
-                    ApplicationPlaceholderItem("UI/UX Designer", "Viana S.T.Arts", "Pendente")
+                    ApplicationPlaceholderItem(
+                        title = stringResource(R.string.mock_application_designer),
+                        company = stringResource(R.string.mock_company_viana),
+                        status = stringResource(R.string.application_status_pending),
+                    )
                     Spacer(modifier = Modifier.height(8.dp))
-                    ApplicationPlaceholderItem("Frontend Developer", "Pingo Doce", "Em análise")
+                    ApplicationPlaceholderItem(
+                        title = stringResource(R.string.mock_application_frontend),
+                        company = stringResource(R.string.mock_company_pingodoce),
+                        status = stringResource(R.string.application_status_reviewing),
+                    )
                 }
             }
 

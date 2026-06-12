@@ -39,12 +39,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.admin.AdminMentor
 import turmaA.grupoB.LinkStage.ui.admin.sampleMentors
 import turmaA.grupoB.LinkStage.ui.aluno.chat.avatarColors
@@ -52,6 +54,7 @@ import turmaA.grupoB.LinkStage.ui.common.ConfirmationDialog
 import turmaA.grupoB.LinkStage.ui.common.LinkStageButton
 import turmaA.grupoB.LinkStage.ui.instituicao.InstituicaoRoutes
 import turmaA.grupoB.LinkStage.ui.instituicao.sampleInstitutionInternships
+import androidx.compose.ui.platform.LocalContext
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
@@ -66,15 +69,16 @@ fun AssignMentorInstituicaoScreen(
     navController: NavController,
     modifier: Modifier = Modifier,
 ) {
-    val internship = sampleInstitutionInternships.firstOrNull() ?: return
+    val context = LocalContext.current
+    val internship = sampleInstitutionInternships(context).firstOrNull() ?: return
     var selectedMentor by remember { mutableStateOf<AdminMentor?>(null) }
     var showConfirmDialog by remember { mutableStateOf(false) }
 
     if (showConfirmDialog && selectedMentor != null) {
         ConfirmationDialog(
-            title = "Atribuir orientador?",
-            body = "Tem a certeza que pretende atribuir ${selectedMentor!!.name} a este estágio?",
-            confirmLabel = "Atribuir",
+            title = stringResource(R.string.assign_mentor_confirm_title),
+            body = stringResource(R.string.assign_mentor_confirm_body, selectedMentor!!.name),
+            confirmLabel = stringResource(R.string.assign_mentor_confirm_button),
             onConfirm = {
                 showConfirmDialog = false
                 navController.navigate(InstituicaoRoutes.MENTOR_ASSIGNED_SUCCESS) {
@@ -100,12 +104,12 @@ fun AssignMentorInstituicaoScreen(
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Voltar",
+                            contentDescription = stringResource(R.string.common_back_content_desc),
                             tint = DarkBlue
                         )
                     }
                     Text(
-                        text = "Atribuir orientador",
+                        text = stringResource(R.string.assign_mentor_title),
                         style = MaterialTheme.typography.titleLarge.copy(
                             fontWeight = FontWeight.Bold,
                             color = DarkBlue,
@@ -123,7 +127,7 @@ fun AssignMentorInstituicaoScreen(
                     .padding(horizontal = 16.dp, vertical = 12.dp),
             ) {
                 LinkStageButton(
-                    text = "Atribuir",
+                    text = stringResource(R.string.assign_mentor_confirm_button),
                     onClick = { showConfirmDialog = true },
                     enabled = selectedMentor != null,
                     height = 50.dp,
@@ -171,7 +175,7 @@ fun AssignMentorInstituicaoScreen(
             }
 
             Text(
-                text = "Orientadores disponíveis",
+                text = stringResource(R.string.assign_mentor_available_label),
                 color = DarkBlue, fontWeight = FontWeight.Bold, fontSize = 15.sp,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
             )
@@ -180,7 +184,7 @@ fun AssignMentorInstituicaoScreen(
                 modifier = Modifier.weight(1f),
                 contentPadding = PaddingValues(bottom = 8.dp),
             ) {
-                items(sampleMentors, key = { it.id }) { mentor ->
+                items(sampleMentors(context), key = { it.id }) { mentor ->
                     MentorSelectionCard(
                         mentor = mentor,
                         isSelected = selectedMentor?.id == mentor.id,
@@ -228,9 +232,9 @@ private fun MentorSelectionCard(
                 }
                 // Availability badge
                 val (label, color) = if (mentor.isAvailable)
-                    "Disponível!" to Color(0xFF4CAF50)
+                    stringResource(R.string.assign_mentor_available) to Color(0xFF4CAF50)
                 else
-                    "Indisponível" to Red
+                    stringResource(R.string.assign_mentor_unavailable) to Red
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(6.dp))
@@ -253,7 +257,7 @@ private fun MentorSelectionCard(
                 ),
             ) {
                 Text(
-                    text = if (isSelected) "Remover seleção" else "Selecionar orientador",
+                    text = if (isSelected) stringResource(R.string.assign_mentor_remove_selection) else stringResource(R.string.assign_mentor_select),
                     fontWeight = FontWeight.Bold,
                 )
             }

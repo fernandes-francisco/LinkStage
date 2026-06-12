@@ -33,7 +33,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import turmaA.grupoB.LinkStage.ui.common.PrivacyPolicyScreen
 import turmaA.grupoB.LinkStage.ui.aluno.chat.ChatScreen
 import turmaA.grupoB.LinkStage.ui.aluno.chat.Conversation
-import turmaA.grupoB.LinkStage.ui.aluno.chat.sampleContacts
+import turmaA.grupoB.LinkStage.ui.aluno.chat.getSampleContacts
 import turmaA.grupoB.LinkStage.ui.aluno.chat.sampleConversations
 import turmaA.grupoB.LinkStage.ui.instituicao.activity.ActivityInstituicaoScreen
 import turmaA.grupoB.LinkStage.ui.instituicao.activity.AssignMentorInstituicaoScreen
@@ -199,7 +199,8 @@ fun InstituicaoMainScreen(onLogout: () -> Unit = {}) {
                 val existingConversation = sampleConversations.find { it.id == conversationId }
 
                 // Se não existir, procura nos contactos para criar uma nova conversa
-                val conversation = existingConversation ?: sampleContacts.find { it.id == conversationId }?.let { contact ->
+                val contacts = getSampleContacts()
+                val conversation = existingConversation ?: contacts.find { it.id == conversationId }?.let { contact ->
                     Conversation(
                         id = contact.id,
                         name = contact.name,

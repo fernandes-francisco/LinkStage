@@ -22,9 +22,9 @@ import turmaA.grupoB.LinkStage.ui.admin.AdminMentor
 import turmaA.grupoB.LinkStage.ui.admin.AdminStudent
 import turmaA.grupoB.LinkStage.ui.admin.InstitutionStatus
 import turmaA.grupoB.LinkStage.ui.admin.avatarColors
-import turmaA.grupoB.LinkStage.ui.admin.sampleInstitutions
-import turmaA.grupoB.LinkStage.ui.admin.sampleMentors
-import turmaA.grupoB.LinkStage.ui.admin.sampleStudents
+import turmaA.grupoB.LinkStage.ui.admin.sampleInstitutionsList
+import turmaA.grupoB.LinkStage.ui.admin.sampleMentorsList
+import turmaA.grupoB.LinkStage.ui.admin.sampleStudentsList
 import turmaA.grupoB.LinkStage.viewmodel.admin.toAdminStudents
 
 class AdminDashboardViewModel(
@@ -175,9 +175,9 @@ class AdminUsersViewModel(
                 offersById = offersById,
             )
             .takeIf { it.isNotEmpty() }
-            ?: sampleStudents
+            ?: sampleStudentsList
     } catch (_: Exception) {
-        sampleStudents
+        sampleStudentsList
     }
 
     private suspend fun loadMentors(): List<AdminMentor> = try {
@@ -195,9 +195,9 @@ class AdminUsersViewModel(
                 skillsBySupervisorId = emptyMap(),
             )
             .takeIf { it.isNotEmpty() }
-            ?: sampleMentors
+            ?: sampleMentorsList
     } catch (_: Exception) {
-        sampleMentors
+        sampleMentorsList
     }
 }
 
@@ -294,7 +294,7 @@ class AdminMentorDetailViewModel(
                 offersById = emptyMap(),
             )
             .takeIf { it.isNotEmpty() }
-            ?: sampleStudents.filter { it.institution == mentor.institution }
+            ?: sampleStudentsList.filter { it.institution == mentor.institution }
 
         AdminMentorDetailData(
             mentor = mentor,
@@ -369,9 +369,9 @@ class AdminInstitutionsViewModel(
                 )
             }
             .takeIf { it.isNotEmpty() }
-            ?: sampleInstitutions
+            ?: sampleInstitutionsList
     } catch (_: Exception) {
-        sampleInstitutions
+        sampleInstitutionsList
     }
 }
 
@@ -417,7 +417,7 @@ class AdminInstitutionDetailViewModel(
                 internshipsByStudentId = emptyMap(),
                 offersById = emptyMap(),
             )
-            .ifEmpty { sampleStudents }
+            .ifEmpty { sampleStudentsList }
         val relatedMentors = supervisors
             .filter { it.department?.contains(institution.name, ignoreCase = true) == true }
             .toAdminMentors(
@@ -425,7 +425,7 @@ class AdminInstitutionDetailViewModel(
                 activeInternshipsBySupervisorId = emptyMap(),
                 skillsBySupervisorId = emptyMap(),
             )
-            .ifEmpty { sampleMentors }
+            .ifEmpty { sampleMentorsList }
 
         AdminInstitutionDetailData(
             institution = adminInstitution,
@@ -476,7 +476,7 @@ class AdminInternshipDetailViewModel(
                 internshipsByStudentId = mapOf(it.id to listOf(internship)),
                 offersById = mapOf(offer.id to offer),
             ).first()
-        } ?: sampleStudents.first()
+        } ?: sampleStudentsList.first()
         val adminMentor = supervisor?.toAdminMentor(
             profile = profiles[supervisor.userId],
             activeInternshipsBySupervisorId = mapOf(supervisor.id to listOf(internship)),

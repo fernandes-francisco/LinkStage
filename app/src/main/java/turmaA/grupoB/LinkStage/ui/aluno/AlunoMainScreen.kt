@@ -37,7 +37,7 @@ import turmaA.grupoB.LinkStage.ui.aluno.activity.RecentActivityAlunoScreen
 import turmaA.grupoB.LinkStage.ui.aluno.chat.ChatAlunoScreen
 import turmaA.grupoB.LinkStage.ui.aluno.chat.ChatScreen
 import turmaA.grupoB.LinkStage.ui.aluno.chat.sampleConversations
-import turmaA.grupoB.LinkStage.ui.aluno.chat.sampleContacts
+import turmaA.grupoB.LinkStage.ui.aluno.chat.getSampleContacts
 import turmaA.grupoB.LinkStage.ui.aluno.chat.Conversation
 import turmaA.grupoB.LinkStage.ui.aluno.home.HomeAlunoScreen
 import turmaA.grupoB.LinkStage.ui.aluno.notifications.NotificationsAlunoScreen
@@ -299,7 +299,8 @@ fun AlunoMainScreen(onLogout: () -> Unit = {}) {
                 val existingConversation = sampleConversations.find { it.id == conversationId }
                 
                 // Se não existir, procura nos contactos para criar uma nova conversa
-                val conversation = existingConversation ?: sampleContacts.find { it.id == conversationId }?.let { contact ->
+                val contacts = getSampleContacts()
+                val conversation = existingConversation ?: contacts.find { it.id == conversationId }?.let { contact ->
                     Conversation(
                         id = contact.id,
                         name = contact.name,

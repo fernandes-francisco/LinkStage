@@ -52,16 +52,19 @@ import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.viewmodel.ApplyViewModel
 
-val skillCategories = mapOf(
-    "Tecnologia" to listOf("Python", "Java", "C++", "Kotlin", "React", "SQL", "IA", "Machine Learning"),
-    "Gestão" to listOf("Gestão de Projetos", "Gestão de Orçamento", "Liderança", "Planeamento Estratégico"),
-    "Comunicação" to listOf("Comunicação", "Escrita Persuasiva", "Apresentações", "Negociação"),
-    "Interpessoal" to listOf("Trabalho em Grupo", "Resolução de Problemas", "Curiosidade Intelectual", "Adaptabilidade"),
-    "Culinária" to listOf("Cozinha Portuguesa", "Pastelaria", "Gestão de Cozinha", "HACCP"),
-    "Design" to listOf("Figma", "UI/UX", "Illustrator", "Photoshop"),
-    "Mecânica" to listOf("Manutenção Industrial", "AutoCAD", "Soldadura", "Pneumática"),
-    "Saúde" to listOf("Primeiros Socorros", "Cuidados de Saúde", "Anatomia", "Farmacologia"),
-)
+@Composable
+fun getSkillCategories(): Map<String, List<String>> {
+    return mapOf(
+        stringResource(R.string.skill_cat_tech) to listOf("Python", "Java", "C++", "Kotlin", "React", "SQL", "IA", "Machine Learning"),
+        stringResource(R.string.skill_cat_management) to listOf("Gestão de Projetos", "Gestão de Orçamento", "Liderança", "Planeamento Estratégico"),
+        stringResource(R.string.skill_cat_comm) to listOf("Comunicação", "Escrita Persuasiva", "Apresentações", "Negociação"),
+        stringResource(R.string.skill_cat_interpersonal) to listOf("Trabalho em Grupo", "Resolução de Problemas", "Curiosidade Intelectual", "Adaptabilidade"),
+        stringResource(R.string.skill_cat_culinary) to listOf("Cozinha Portuguesa", "Pastelaria", "Gestão de Cozinha", "HACCP"),
+        stringResource(R.string.skill_cat_design) to listOf("Figma", "UI/UX", "Illustrator", "Photoshop"),
+        stringResource(R.string.skill_cat_mechanics) to listOf("Manutenção Industrial", "AutoCAD", "Soldadura", "Pneumática"),
+        stringResource(R.string.skill_cat_health) to listOf("Primeiros Socorros", "Cuidados de Saúde", "Anatomia", "Farmacologia"),
+    )
+}
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -69,6 +72,7 @@ fun EditSkillsScreen(
     viewModel: ApplyViewModel,
     onBack: () -> Unit,
 ) {
+    val skillCategories = getSkillCategories()
     var searchQuery by remember { mutableStateOf("") }
     var showAddSkillDialog by remember { mutableStateOf(false) }
     var newSkillText by remember { mutableStateOf("") }

@@ -50,6 +50,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -57,12 +58,13 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import androidx.lifecycle.viewmodel.compose.viewModel
+import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.admin.AdminMentor
 import turmaA.grupoB.LinkStage.ui.admin.AdminRoutes
 import turmaA.grupoB.LinkStage.ui.admin.AdminStudent
 import turmaA.grupoB.LinkStage.ui.admin.avatarColors
-import turmaA.grupoB.LinkStage.ui.admin.sampleMentors
-import turmaA.grupoB.LinkStage.ui.admin.sampleStudents
+import turmaA.grupoB.LinkStage.ui.admin.sampleMentorsList
+import turmaA.grupoB.LinkStage.ui.admin.sampleStudentsList
 import turmaA.grupoB.LinkStage.viewmodel.admin.AdminUsersUiState
 import turmaA.grupoB.LinkStage.viewmodel.admin.AdminUsersViewModel
 import turmaA.grupoB.LinkStage.viewmodel.admin.AdminUsersViewModelFactory
@@ -155,7 +157,7 @@ fun StudentsAdminScreen(
                 CommonTopBar()
 
                 Text(
-                    text = "Utilizadores",
+                    text = stringResource(R.string.admin_users_title),
                     style = MaterialTheme.typography.headlineSmall.copy(
                         fontWeight = FontWeight.Bold,
                         color = DarkBlue,
@@ -167,12 +169,12 @@ fun StudentsAdminScreen(
                 SearchBarWithFilter(
                     query = searchQuery,
                     onQueryChange = { searchQuery = it },
-                    placeholder = if (selectedTab == 0) "Pesquisar alunos..." else "Pesquisar orientadores...",
+                    placeholder = if (selectedTab == 0) stringResource(R.string.admin_users_search_students) else stringResource(R.string.admin_users_search_advisors),
                     onFilterClick = { showFilterDialog = true },
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 LinkStageTabRow(
-                    tabs = listOf("Alunos", "Orientadores"),
+                    tabs = listOf(stringResource(R.string.admin_tab_students), stringResource(R.string.admin_tab_mentors)),
                     selectedIndex = selectedTab,
                     onTabSelected = { selectedTab = it },
                 )
@@ -202,19 +204,19 @@ fun StudentsAdminScreen(
 private fun filteredStudentInstitutions(uiState: AdminUsersUiState): List<String> = when (uiState) {
     is AdminUsersUiState.Success -> uiState.students.map { it.institution }.distinct()
     is AdminUsersUiState.StudentsSuccess -> uiState.students.map { it.institution }.distinct()
-    else -> sampleStudents.map { it.institution }.distinct()
+    else -> sampleStudentsList.map { it.institution }.distinct()
 }
 
 private fun filteredStudentCourses(uiState: AdminUsersUiState): List<String> = when (uiState) {
     is AdminUsersUiState.Success -> uiState.students.map { it.course }.distinct()
     is AdminUsersUiState.StudentsSuccess -> uiState.students.map { it.course }.distinct()
-    else -> sampleStudents.map { it.course }.distinct()
+    else -> sampleStudentsList.map { it.course }.distinct()
 }
 
 private fun filteredMentorInstitutions(uiState: AdminUsersUiState): List<String> = when (uiState) {
     is AdminUsersUiState.Success -> uiState.mentors.map { it.institution }.distinct()
     is AdminUsersUiState.MentorsSuccess -> uiState.mentors.map { it.institution }.distinct()
-    else -> sampleMentors.map { it.institution }.distinct()
+    else -> sampleMentorsList.map { it.institution }.distinct()
 }
 
 // region Students Tab
@@ -259,7 +261,7 @@ private fun StudentsTabContent(
                 contentColor = Color.White,
                 shape = RoundedCornerShape(16.dp),
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Adicionar Aluno")
+                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.admin_users_add_student))
             }
         },
     ) { innerPadding ->
@@ -276,7 +278,7 @@ private fun StudentsTabContent(
                     InstitutionHeader(
                         name = institution,
                         count = totalStudents,
-                        label = "alunos",
+                        label = stringResource(R.string.admin_users_student_label),
                         isExpanded = isExpanded,
                         onClick = {
                             expandedInstitutions[institution] = !isExpanded
@@ -377,14 +379,14 @@ fun StudentListItem(
                 Column(horizontalAlignment = Alignment.End) {
                     if (student.hasActiveInternship) {
                         Text(
-                            text = "Em estágio",
+                            text = stringResource(R.string.student_status_internship),
                             color = LightBlue,
                             fontWeight = FontWeight.Bold,
                             fontSize = 11.sp,
                         )
                     } else {
                         Text(
-                            text = "${student.applicationCount} candidaturas",
+                            text = stringResource(R.string.admin_users_applications_count, student.applicationCount),
                             color = DarkGrey,
                             fontSize = 11.sp,
                         )
@@ -437,7 +439,7 @@ private fun MentorsTabContent(
                 contentColor = Color.White,
                 shape = RoundedCornerShape(16.dp),
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Adicionar Orientador")
+                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.admin_users_add_mentor))
             }
         },
     ) { innerPadding ->
@@ -453,7 +455,7 @@ private fun MentorsTabContent(
                     InstitutionHeader(
                         name = institution,
                         count = mentors.size,
-                        label = "orientadores",
+                        label = stringResource(R.string.admin_users_mentor_label),
                         isExpanded = isExpanded,
                         onClick = {
                             expandedInstitutions[institution] = !isExpanded
@@ -522,13 +524,13 @@ fun MentorListItem(
             }
             Column(horizontalAlignment = Alignment.End) {
                 Text(
-                    text = "${mentor.activeStudentsCount} alunos",
+                    text = stringResource(R.string.admin_users_active_students_count, mentor.activeStudentsCount),
                     color = LightBlue,
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 12.sp,
                 )
                 Text(
-                    text = "ativos",
+                    text = stringResource(R.string.admin_users_active),
                     color = DarkGrey,
                     fontSize = 11.sp,
                 )
@@ -584,7 +586,7 @@ private fun SearchBarWithFilter(
         ) {
             Icon(
                 Icons.Outlined.FilterList,
-                contentDescription = "Filtros",
+                contentDescription = stringResource(R.string.discover_filters),
                 tint = Color.White,
                 modifier = Modifier.size(22.dp),
             )
@@ -652,32 +654,35 @@ private fun StudentFilterDialog(
     var statusExpanded by remember { mutableStateOf(false) }
     var institutionExpanded by remember { mutableStateOf(false) }
 
-    val statusOptions = listOf("Todos", "Em estágio", "Sem estágio")
-    val institutionOptions = institutionOptions.ifEmpty { sampleStudents.map { it.institution }.distinct() }
-    val courseOptions = courseOptions.ifEmpty { sampleStudents.map { it.course }.distinct() }
+    val allLabel = stringResource(R.string.admin_filter_all)
+    val internshipLabel = stringResource(R.string.student_status_internship)
+    val noInternshipLabel = stringResource(R.string.student_status_no_internship)
+    val statusOptions = listOf(
+        "" to allLabel,
+        "Em estágio" to internshipLabel,
+        "Sem estágio" to noInternshipLabel,
+    )
+    val institutionOptions = institutionOptions.ifEmpty { sampleStudentsList.map { it.institution }.distinct() }
+    val courseOptions = courseOptions.ifEmpty { sampleStudentsList.map { it.course }.distinct() }
 
     LinkStageDialog(
-        title = "Filtros",
+        title = stringResource(R.string.filter_title),
         onConfirm = {
-            onApply(
-                if (status == "Todos") "" else status,
-                institution,
-                course,
-            )
+            onApply(status, institution, course)
         },
         onDismiss = onDismiss,
-        confirmText = "Filtrar",
-        dismissText = "Cancelar",
+        confirmText = stringResource(R.string.filter_apply),
+        dismissText = stringResource(R.string.common_cancel),
         content = {
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    turmaA.grupoB.LinkStage.ui.common.SectionLabel("Estado")
+                    turmaA.grupoB.LinkStage.ui.common.SectionLabel(stringResource(R.string.admin_filter_status))
                     ExposedDropdownMenuBox(
                         expanded = statusExpanded,
                         onExpandedChange = { statusExpanded = it },
                     ) {
                         OutlinedTextField(
-                            value = status.ifEmpty { "Todos" },
+                            value = statusOptions.firstOrNull { it.first == status }?.second ?: allLabel,
                             onValueChange = {},
                             readOnly = true,
                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = statusExpanded) },
@@ -697,11 +702,11 @@ private fun StudentFilterDialog(
                             expanded = statusExpanded,
                             onDismissRequest = { statusExpanded = false },
                         ) {
-                            statusOptions.forEach { option ->
+                            statusOptions.forEach { (key, label) ->
                                 DropdownMenuItem(
-                                    text = { Text(option) },
+                                    text = { Text(label) },
                                     onClick = {
-                                        status = if (option == "Todos") "" else option
+                                        status = key
                                         statusExpanded = false
                                     },
                                 )
@@ -711,13 +716,13 @@ private fun StudentFilterDialog(
                 }
 
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    turmaA.grupoB.LinkStage.ui.common.SectionLabel("Instituição")
+                    turmaA.grupoB.LinkStage.ui.common.SectionLabel(stringResource(R.string.admin_inst_filter_institution))
                     ExposedDropdownMenuBox(
                         expanded = institutionExpanded,
                         onExpandedChange = { institutionExpanded = it },
                     ) {
                         OutlinedTextField(
-                            value = institution.ifEmpty { "Todas" },
+                            value = institution.ifEmpty { allLabel },
                             onValueChange = {},
                             readOnly = true,
                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = institutionExpanded) },
@@ -738,7 +743,7 @@ private fun StudentFilterDialog(
                             onDismissRequest = { institutionExpanded = false },
                         ) {
                             DropdownMenuItem(
-                                text = { Text("Todas") },
+                                text = { Text(allLabel) },
                                 onClick = {
                                     institution = ""
                                     institutionExpanded = false
@@ -762,7 +767,7 @@ private fun StudentFilterDialog(
                     OutlinedTextField(
                         value = course,
                         onValueChange = { course = it },
-                        placeholder = { Text("Escreva aqui.", color = DarkGrey, fontSize = 14.sp) },
+                        placeholder = { Text(stringResource(R.string.common_write_here), color = DarkGrey, fontSize = 14.sp) },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(10.dp),
                         colors = OutlinedTextFieldDefaults.colors(
@@ -792,24 +797,25 @@ private fun MentorFilterDialog(
     var department by remember { mutableStateOf(currentDepartment) }
     var institutionExpanded by remember { mutableStateOf(false) }
 
-    val institutionOptions = institutionOptions.ifEmpty { sampleMentors.map { it.institution }.distinct() }
+    val allLabel = stringResource(R.string.admin_filter_all)
+    val institutionOptions = institutionOptions.ifEmpty { sampleMentorsList.map { it.institution }.distinct() }
 
     LinkStageDialog(
-        title = "Filtros",
+        title = stringResource(R.string.filter_title),
         onConfirm = { onApply(institution, department) },
         onDismiss = onDismiss,
-        confirmText = "Filtrar",
-        dismissText = "Cancelar",
+        confirmText = stringResource(R.string.filter_apply),
+        dismissText = stringResource(R.string.common_cancel),
         content = {
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    turmaA.grupoB.LinkStage.ui.common.SectionLabel("Instituição")
+                    turmaA.grupoB.LinkStage.ui.common.SectionLabel(stringResource(R.string.admin_inst_filter_institution))
                     ExposedDropdownMenuBox(
                         expanded = institutionExpanded,
                         onExpandedChange = { institutionExpanded = it },
                     ) {
                         OutlinedTextField(
-                            value = institution.ifEmpty { "Todas" },
+                            value = institution.ifEmpty { allLabel },
                             onValueChange = {},
                             readOnly = true,
                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = institutionExpanded) },
@@ -830,7 +836,7 @@ private fun MentorFilterDialog(
                             onDismissRequest = { institutionExpanded = false },
                         ) {
                             DropdownMenuItem(
-                                text = { Text("Todas") },
+                                text = { Text(allLabel) },
                                 onClick = {
                                     institution = ""
                                     institutionExpanded = false
@@ -850,11 +856,11 @@ private fun MentorFilterDialog(
                 }
 
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    turmaA.grupoB.LinkStage.ui.common.SectionLabel("Departamento")
+                    turmaA.grupoB.LinkStage.ui.common.SectionLabel(stringResource(R.string.admin_detail_department))
                     OutlinedTextField(
                         value = department,
                         onValueChange = { department = it },
-                        placeholder = { Text("Escreva aqui.", color = DarkGrey, fontSize = 14.sp) },
+                        placeholder = { Text(stringResource(R.string.common_write_here), color = DarkGrey, fontSize = 14.sp) },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(10.dp),
                         colors = OutlinedTextFieldDefaults.colors(
@@ -880,20 +886,24 @@ private fun AddStudentDialog(onDismiss: () -> Unit) {
     var course by remember { mutableStateOf("") }
     var institutionExpanded by remember { mutableStateOf(false) }
 
-    val institutions = listOf("ESTG-IPVC", "ESE-IPVC", "ESDL-IPVC")
+    val institutions = listOf(
+        "ESTG-IPVC" to stringResource(R.string.mock_institution_estg),
+        "ESE-IPVC" to stringResource(R.string.mock_institution_ese),
+        "ESDL-IPVC" to stringResource(R.string.mock_institution_esdl),
+    )
 
     LinkStageDialog(
         onDismiss = onDismiss,
-        title = "Adicionar Aluno",
+        title = stringResource(R.string.admin_users_add_student_title),
         onConfirm = onDismiss,
-        confirmText = "Adicionar",
-        dismissText = "Cancelar",
+        confirmText = stringResource(R.string.admin_inst_add_button),
+        dismissText = stringResource(R.string.common_cancel),
         content = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
-                    label = { Text("Nome") },
+                    label = { Text(stringResource(R.string.admin_users_name)) },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(10.dp),
                     singleLine = true,
@@ -901,7 +911,7 @@ private fun AddStudentDialog(onDismiss: () -> Unit) {
                 OutlinedTextField(
                     value = email,
                     onValueChange = { email = it },
-                    label = { Text("Email") },
+                    label = { Text(stringResource(R.string.admin_inst_add_email)) },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(10.dp),
                     singleLine = true,
@@ -911,10 +921,10 @@ private fun AddStudentDialog(onDismiss: () -> Unit) {
                     onExpandedChange = { institutionExpanded = it },
                 ) {
                     OutlinedTextField(
-                        value = selectedInstitution,
+                        value = institutions.firstOrNull { it.first == selectedInstitution }?.second ?: "",
                         onValueChange = {},
                         readOnly = true,
-                        label = { Text("Instituição") },
+                        label = { Text(stringResource(R.string.admin_inst_filter_institution)) },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = institutionExpanded) },
                         modifier = Modifier
                             .fillMaxWidth()
@@ -925,11 +935,11 @@ private fun AddStudentDialog(onDismiss: () -> Unit) {
                         expanded = institutionExpanded,
                         onDismissRequest = { institutionExpanded = false },
                     ) {
-                        institutions.forEach { inst ->
+                        institutions.forEach { (key, label) ->
                             DropdownMenuItem(
-                                text = { Text(inst) },
+                                text = { Text(label) },
                                 onClick = {
-                                    selectedInstitution = inst
+                                    selectedInstitution = key
                                     institutionExpanded = false
                                 },
                             )
@@ -939,7 +949,7 @@ private fun AddStudentDialog(onDismiss: () -> Unit) {
                 OutlinedTextField(
                     value = course,
                     onValueChange = { course = it },
-                    label = { Text("Curso") },
+                    label = { Text(stringResource(R.string.admin_detail_course)) },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(10.dp),
                     singleLine = true,
@@ -958,20 +968,24 @@ private fun AddMentorDialog(onDismiss: () -> Unit) {
     var department by remember { mutableStateOf("") }
     var institutionExpanded by remember { mutableStateOf(false) }
 
-    val institutions = listOf("ESTG-IPVC", "ESE-IPVC", "ESDL-IPVC")
+    val institutions = listOf(
+        "ESTG-IPVC" to stringResource(R.string.mock_institution_estg),
+        "ESE-IPVC" to stringResource(R.string.mock_institution_ese),
+        "ESDL-IPVC" to stringResource(R.string.mock_institution_esdl),
+    )
 
     LinkStageDialog(
         onDismiss = onDismiss,
-        title = "Adicionar Orientador",
+        title = stringResource(R.string.admin_users_add_mentor_title),
         onConfirm = onDismiss,
-        confirmText = "Adicionar",
-        dismissText = "Cancelar",
+        confirmText = stringResource(R.string.admin_inst_add_button),
+        dismissText = stringResource(R.string.common_cancel),
         content = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
-                    label = { Text("Nome") },
+                    label = { Text(stringResource(R.string.admin_users_name)) },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(10.dp),
                     singleLine = true,
@@ -979,7 +993,7 @@ private fun AddMentorDialog(onDismiss: () -> Unit) {
                 OutlinedTextField(
                     value = email,
                     onValueChange = { email = it },
-                    label = { Text("Email") },
+                    label = { Text(stringResource(R.string.admin_inst_add_email)) },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(10.dp),
                     singleLine = true,
@@ -989,10 +1003,10 @@ private fun AddMentorDialog(onDismiss: () -> Unit) {
                     onExpandedChange = { institutionExpanded = it },
                 ) {
                     OutlinedTextField(
-                        value = selectedInstitution,
+                        value = institutions.firstOrNull { it.first == selectedInstitution }?.second ?: "",
                         onValueChange = {},
                         readOnly = true,
-                        label = { Text("Instituição") },
+                        label = { Text(stringResource(R.string.admin_inst_filter_institution)) },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = institutionExpanded) },
                         modifier = Modifier
                             .fillMaxWidth()
@@ -1003,11 +1017,11 @@ private fun AddMentorDialog(onDismiss: () -> Unit) {
                         expanded = institutionExpanded,
                         onDismissRequest = { institutionExpanded = false },
                     ) {
-                        institutions.forEach { inst ->
+                        institutions.forEach { (key, label) ->
                             DropdownMenuItem(
-                                text = { Text(inst) },
+                                text = { Text(label) },
                                 onClick = {
-                                    selectedInstitution = inst
+                                    selectedInstitution = key
                                     institutionExpanded = false
                                 },
                             )
@@ -1017,7 +1031,7 @@ private fun AddMentorDialog(onDismiss: () -> Unit) {
                 OutlinedTextField(
                     value = department,
                     onValueChange = { department = it },
-                    label = { Text("Departamento") },
+                    label = { Text(stringResource(R.string.admin_detail_department)) },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(10.dp),
                     singleLine = true,

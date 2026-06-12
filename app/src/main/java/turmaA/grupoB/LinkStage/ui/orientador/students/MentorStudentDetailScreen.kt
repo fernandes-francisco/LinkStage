@@ -70,10 +70,12 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import androidx.lifecycle.viewmodel.compose.viewModel
+import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.admin.AdminStudent
 import turmaA.grupoB.LinkStage.ui.admin.avatarColors
 import turmaA.grupoB.LinkStage.ui.aluno.activity.ActivityLogCard
@@ -97,6 +99,7 @@ import turmaA.grupoB.LinkStage.ui.orientador.formatCheckpointDate
 import turmaA.grupoB.LinkStage.ui.orientador.sampleEvaluation
 import turmaA.grupoB.LinkStage.ui.orientador.sampleMentorStudents
 import turmaA.grupoB.LinkStage.ui.orientador.sampleStudentInternship
+import androidx.compose.ui.platform.LocalContext
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
@@ -115,8 +118,9 @@ fun MentorStudentDetailScreen(
     navController: NavController,
     advisorHomeViewModel: AdvisorHomeViewModel = viewModel(),
 ) {
-    val student = sampleMentorStudents.find { it.id == studentId } ?: return
-    val evaluation = sampleEvaluation
+    val context = LocalContext.current
+    val student = sampleMentorStudents(context).find { it.id == studentId } ?: return
+    val evaluation = sampleEvaluation(context)
     var selectedTab by remember { mutableIntStateOf(0) }
     var showCreateCheckpointDialog by remember { mutableStateOf(false) }
 
@@ -138,7 +142,7 @@ fun MentorStudentDetailScreen(
     Scaffold(
         topBar = {
             Column(modifier = Modifier.background(Color.White)) {
-                SecondaryTopBar(title = "Detalhes do Aluno", onBack = { navController.popBackStack() })
+                SecondaryTopBar(title = stringResource(R.string.student_detail_title), onBack = { navController.popBackStack() })
 
                 Row(
                     modifier = Modifier
@@ -165,7 +169,7 @@ fun MentorStudentDetailScreen(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 LinkStageTabRow(
-                    tabs = listOf("Detalhes", "Trabalho", "Avaliar"),
+                    tabs = listOf(stringResource(R.string.common_details), stringResource(R.string.student_detail_tab_work), stringResource(R.string.student_detail_tab_evaluate)),
                     selectedIndex = selectedTab,
                     onTabSelected = { selectedTab = it },
                 )
@@ -180,7 +184,7 @@ fun MentorStudentDetailScreen(
                         .padding(16.dp)
                 ) {
                     LinkStageButton(
-                        text = "Enviar mensagem",
+                        text = stringResource(R.string.common_send_message),
                         onClick = {
                             navController.navigate(OrientadorRoutes.chatRoute(student.id))
                         },
@@ -198,7 +202,7 @@ fun MentorStudentDetailScreen(
                     contentColor = Color.White,
                     shape = CircleShape,
                 ) {
-                    Icon(Icons.Default.Add, contentDescription = "Criar ponto de entrega")
+                    Icon(Icons.Default.Add, contentDescription = stringResource(R.string.institution_create_checkpoint))
                 }
             }
         },
@@ -233,11 +237,11 @@ private fun StudentDetailsTab(
     ) {
         Spacer(modifier = Modifier.height(16.dp))
 
-        InfoField(label = "Instituição", value = student.institution, trailingBadge = "ipvc")
-        InfoFieldWithIcon(label = "Curso", value = student.course, icon = Icons.AutoMirrored.Outlined.MenuBook)
-        InfoFieldWithIcon(label = "Média atual (0-20)", value = "${student.gpa}", icon = Icons.Outlined.Grade)
-        InfoFieldWithIcon(label = "Email", value = student.email, icon = Icons.Outlined.Email)
-        InfoFieldWithIcon(label = "Telemóvel", value = student.phone, icon = Icons.Outlined.Phone)
+        InfoField(label = stringResource(R.string.advisor_institution), value = student.institution, trailingBadge = "ipvc")
+        InfoFieldWithIcon(label = stringResource(R.string.admin_detail_course), value = student.course, icon = Icons.AutoMirrored.Outlined.MenuBook)
+        InfoFieldWithIcon(label = stringResource(R.string.app_detail_gpa), value = "${student.gpa}", icon = Icons.Outlined.Grade)
+        InfoFieldWithIcon(label = stringResource(R.string.admin_detail_email), value = student.email, icon = Icons.Outlined.Email)
+        InfoFieldWithIcon(label = stringResource(R.string.admin_detail_phone), value = student.phone, icon = Icons.Outlined.Phone)
 
         Spacer(modifier = Modifier.height(12.dp))
 
@@ -251,7 +255,7 @@ private fun StudentDetailsTab(
                 elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    SectionLabel("Competências do Aluno")
+                    SectionLabel(stringResource(R.string.student_detail_skills))
                     Spacer(modifier = Modifier.height(8.dp))
                     student.skills.forEach { skill ->
                         Text("• $skill", color = DarkGrey, fontSize = 14.sp)
@@ -323,7 +327,8 @@ private fun InfoFieldWithIcon(label: String, value: String, icon: ImageVector) {
 
 @Composable
 private fun StudentWorkTab(navController: NavController) {
-    val internship = sampleStudentInternship
+    val context = LocalContext.current
+    val internship = sampleStudentInternship(context)
     val progress = calculateInternshipProgress(internship.startDate, internship.endDate)
 
     var animationStarted by remember { mutableStateOf(false) }
@@ -349,7 +354,7 @@ private fun StudentWorkTab(navController: NavController) {
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "Atividade Recente",
+            text = stringResource(R.string.activity_recent),
             style = MaterialTheme.typography.titleLarge.copy(
                 fontWeight = FontWeight.Bold,
                 color = DarkBlue,
@@ -382,7 +387,8 @@ private fun StudentEvaluateTab(
     evaluation: InternshipEvaluation,
     navController: NavController,
 ) {
-    val internship = sampleStudentInternship
+    val context = LocalContext.current
+    val internship = sampleStudentInternship(context)
     val progress = calculateInternshipProgress(internship.startDate, internship.endDate)
 
     var animationStarted by remember { mutableStateOf(false) }
@@ -439,7 +445,7 @@ private fun PendingStateCard() {
             )
             Spacer(modifier = Modifier.height(12.dp))
             Text(
-                text = "Estágio não concluído",
+                text = stringResource(R.string.advisor_eval_pending_title),
                 color = DarkBlue,
                 fontWeight = FontWeight.Bold,
                 fontSize = 16.sp,
@@ -447,7 +453,7 @@ private fun PendingStateCard() {
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "O estágio ainda não foi concluído. A avaliação ficará disponível quando o estágio terminar.",
+                text = stringResource(R.string.advisor_eval_pending_message),
                 color = DarkGrey,
                 fontSize = 13.sp,
                 textAlign = TextAlign.Center,
@@ -480,13 +486,13 @@ private fun PartialStateContent(evaluation: InternshipEvaluation) {
             Spacer(modifier = Modifier.width(10.dp))
             Column {
                 Text(
-                    text = "Avaliação em progresso",
+                    text = stringResource(R.string.advisor_eval_partial_title),
                     color = DarkBlue,
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp,
                 )
                 Text(
-                    text = "Aguarda-se a submissão de todas as avaliações da empresa.",
+                    text = stringResource(R.string.advisor_eval_partial_message),
                     color = DarkGrey,
                     fontSize = 12.sp,
                     lineHeight = 18.sp,
@@ -499,7 +505,7 @@ private fun PartialStateContent(evaluation: InternshipEvaluation) {
 
     if (evaluation.companyResponsibleGrade != null) {
         EvaluationReadOnlyCard(
-            role = "Responsável da Empresa",
+            role = stringResource(R.string.eval_role_company_responsible),
             name = evaluation.companyResponsibleName,
             grade = evaluation.companyResponsibleGrade,
             observation = evaluation.companyResponsibleObservation,
@@ -507,7 +513,7 @@ private fun PartialStateContent(evaluation: InternshipEvaluation) {
     }
     if (evaluation.companyMentorGrade != null) {
         EvaluationReadOnlyCard(
-            role = "Orientador de Empresa",
+            role = stringResource(R.string.eval_role_company_mentor),
             name = evaluation.companyMentorName,
             grade = evaluation.companyMentorGrade,
             observation = evaluation.companyMentorObservation,
@@ -530,9 +536,9 @@ private fun ReadyForFinalContent(
 
     if (showConfirmDialog && parsedGrade != null) {
         ConfirmationDialog(
-            title = "Atribuir nota final?",
-            body = "Ao atribuir a nota final de ${formatGrade(parsedGrade)} valores ao aluno, esta ação não poderá ser revertida. Tem a certeza que pretende continuar?",
-            confirmLabel = "Atribuir",
+            title = stringResource(R.string.advisor_eval_assign_title),
+            body = stringResource(R.string.advisor_eval_assign_body, formatGrade(parsedGrade)),
+            confirmLabel = stringResource(R.string.advisor_eval_assign_button),
             isDanger = false,
             onConfirm = {
                 showConfirmDialog = false
@@ -562,7 +568,7 @@ private fun ReadyForFinalContent(
             )
             Spacer(modifier = Modifier.width(10.dp))
             Text(
-                text = "Todas as avaliações foram submetidas. Pode agora atribuir a nota final.",
+                text = stringResource(R.string.advisor_eval_ready_message),
                 color = DarkBlue,
                 fontSize = 13.sp,
                 lineHeight = 19.sp,
@@ -575,13 +581,13 @@ private fun ReadyForFinalContent(
     when (evaluation.internshipType) {
         InternshipType.COMPANY_SCHOOL -> {
             EvaluationReadOnlyCard(
-                role = "Responsável da Empresa",
+                role = stringResource(R.string.eval_role_company_responsible),
                 name = evaluation.companyResponsibleName,
                 grade = evaluation.companyResponsibleGrade!!,
                 observation = evaluation.companyResponsibleObservation,
             )
             EvaluationReadOnlyCard(
-                role = "Orientador de Empresa",
+                role = stringResource(R.string.eval_role_company_mentor),
                 name = evaluation.companyMentorName,
                 grade = evaluation.companyMentorGrade!!,
                 observation = evaluation.companyMentorObservation,
@@ -589,7 +595,7 @@ private fun ReadyForFinalContent(
         }
         InternshipType.SCHOOL_ONLY -> {
             EvaluationReadOnlyCard(
-                role = "Instituição Escolar",
+                role = stringResource(R.string.eval_role_institution),
                 name = evaluation.institutionName,
                 grade = evaluation.institutionGrade!!,
                 observation = evaluation.institutionObservation,
@@ -600,13 +606,13 @@ private fun ReadyForFinalContent(
     Spacer(modifier = Modifier.height(16.dp))
 
     Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-        SectionLabel("Observação final")
+        SectionLabel(stringResource(R.string.advisor_eval_final_observation))
         Spacer(modifier = Modifier.height(8.dp))
         OutlinedTextField(
             value = observation,
             onValueChange = { observation = it },
             modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("Escreva aqui.", color = DarkGrey) },
+            placeholder = { Text(stringResource(R.string.common_write_here), color = DarkGrey) },
             shape = RoundedCornerShape(10.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = LightBlue,
@@ -622,7 +628,7 @@ private fun ReadyForFinalContent(
     Spacer(modifier = Modifier.height(16.dp))
 
     Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-        SectionLabel("Nota final (0-20)")
+        SectionLabel(stringResource(R.string.advisor_eval_final_grade_label))
         Spacer(modifier = Modifier.height(8.dp))
         OutlinedTextField(
             value = gradeText,
@@ -631,7 +637,7 @@ private fun ReadyForFinalContent(
                 gradeError = false
             },
             modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("Ex: 14,5", color = DarkGrey) },
+            placeholder = { Text(stringResource(R.string.advisor_eval_grade_placeholder), color = DarkGrey) },
             shape = RoundedCornerShape(10.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = if (gradeError) Red else LightBlue,
@@ -646,7 +652,7 @@ private fun ReadyForFinalContent(
         if (gradeError) {
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "Introduza um valor entre 0,0 e 20,0 com no máximo uma casa decimal.",
+                text = stringResource(R.string.advisor_eval_grade_error),
                 color = Red,
                 fontSize = 12.sp,
             )
@@ -656,7 +662,7 @@ private fun ReadyForFinalContent(
     Spacer(modifier = Modifier.height(20.dp))
 
     LinkStageButton(
-        text = "Atribuir nota final",
+        text = stringResource(R.string.advisor_eval_assign_grade),
         onClick = {
             if (validateGrade(gradeText) == null) {
                 gradeError = true
@@ -694,7 +700,7 @@ private fun CompletedStateContent(evaluation: InternshipEvaluation) {
             )
             Spacer(modifier = Modifier.width(10.dp))
             Text(
-                text = "Avaliação concluída — A nota final de ${formatGrade(evaluation.schoolMentorGrade!!)} valores foi atribuída com sucesso.",
+                text = stringResource(R.string.advisor_eval_completed, formatGrade(evaluation.schoolMentorGrade!!)),
                 color = DarkBlue,
                 fontSize = 13.sp,
                 lineHeight = 19.sp,
@@ -708,7 +714,7 @@ private fun CompletedStateContent(evaluation: InternshipEvaluation) {
         InternshipType.COMPANY_SCHOOL -> {
             if (evaluation.companyResponsibleGrade != null) {
                 EvaluationReadOnlyCard(
-                    role = "Responsável da Empresa",
+                    role = stringResource(R.string.eval_role_company_responsible),
                     name = evaluation.companyResponsibleName,
                     grade = evaluation.companyResponsibleGrade,
                     observation = evaluation.companyResponsibleObservation,
@@ -716,7 +722,7 @@ private fun CompletedStateContent(evaluation: InternshipEvaluation) {
             }
             if (evaluation.companyMentorGrade != null) {
                 EvaluationReadOnlyCard(
-                    role = "Orientador de Empresa",
+                    role = stringResource(R.string.eval_role_company_mentor),
                     name = evaluation.companyMentorName,
                     grade = evaluation.companyMentorGrade,
                     observation = evaluation.companyMentorObservation,
@@ -726,7 +732,7 @@ private fun CompletedStateContent(evaluation: InternshipEvaluation) {
         InternshipType.SCHOOL_ONLY -> {
             if (evaluation.institutionGrade != null) {
                 EvaluationReadOnlyCard(
-                    role = "Instituição Escolar",
+                    role = stringResource(R.string.eval_role_institution),
                     name = evaluation.institutionName,
                     grade = evaluation.institutionGrade,
                     observation = evaluation.institutionObservation,
@@ -736,7 +742,7 @@ private fun CompletedStateContent(evaluation: InternshipEvaluation) {
     }
 
     EvaluationReadOnlyCard(
-        role = "Orientador Escolar (Nota Final)",
+        role = stringResource(R.string.eval_role_school_mentor_short),
         name = evaluation.schoolMentorName,
         grade = evaluation.schoolMentorGrade!!,
         observation = evaluation.schoolMentorObservation,
@@ -790,7 +796,7 @@ fun ExpandableFileRow(file: turmaA.grupoB.LinkStage.ui.aluno.activity.Checkpoint
                     .clickable { },
                 contentAlignment = Alignment.Center
             ) {
-                Text("Descarregar", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.common_download), color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
             }
         }
         HorizontalDivider(color = BorderGrey)

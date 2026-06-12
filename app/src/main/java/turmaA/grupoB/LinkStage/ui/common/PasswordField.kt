@@ -156,14 +156,14 @@ fun PasswordRequirementsIndicator(password: String) {
 private fun PasswordFieldPreview() {
     Column(modifier = Modifier.padding(16.dp)) {
         PasswordField(
-            label = "Password actual",
+            label = stringResource(R.string.force_change_current),
             value = "test",
             onValueChange = {},
             error = null,
         )
         Spacer(modifier = Modifier.height(12.dp))
         PasswordField(
-            label = "Nova password",
+            label = stringResource(R.string.force_change_new),
             value = "Test1",
             onValueChange = {},
             error = "Error",

@@ -35,8 +35,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
@@ -75,12 +77,12 @@ fun NotificationsInstituicaoScreen(
                 IconButton(onClick = onBack) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Voltar",
+                        contentDescription = stringResource(R.string.common_back_content_desc),
                         tint = DarkBlue
                     )
                 }
                 Text(
-                    text = "Notificações",
+                    text = stringResource(R.string.notif_title),
                     style = MaterialTheme.typography.headlineSmall.copy(
                         fontWeight = FontWeight.Bold,
                         color = DarkBlue
@@ -101,8 +103,8 @@ fun NotificationsInstituicaoScreen(
                     borderColor = DarkBlue.copy(alpha = 0.1f)
                 ) {
                     NotificationRow(
-                        title = "Desativar todas as notificações",
-                        subtitle = "Silenciar avisos temporariamente",
+                        title = stringResource(R.string.notif_disable_all),
+                        subtitle = stringResource(R.string.notif_disable_subtitle),
                         checked = !enabled,
                         onCheckedChange = { settingsViewModel.toggleNotifications(!it) }
                     )
@@ -112,7 +114,7 @@ fun NotificationsInstituicaoScreen(
                     // Candidaturas Section
                     Column {
                         Text(
-                            "CANDIDATURAS",
+                            stringResource(R.string.notif_inst_section_applications),
                             style = MaterialTheme.typography.labelSmall,
                             color = DarkGrey,
                             fontWeight = FontWeight.Bold,
@@ -120,8 +122,8 @@ fun NotificationsInstituicaoScreen(
                         )
                         NotificationSection {
                             NotificationRow(
-                                title = "Candidatura submetida",
-                                subtitle = "Notificar quando receber candidaturas para as ofertas",
+                                title = stringResource(R.string.notif_application_submitted),
+                                subtitle = stringResource(R.string.notif_application_submitted_desc),
                                 checked = candidaturas,
                                 onCheckedChange = { settingsViewModel.toggleNotifCandidaturas(it) }
                             )
@@ -131,7 +133,7 @@ fun NotificationsInstituicaoScreen(
                     // Comunicação Section
                     Column {
                         Text(
-                            "COMUNICAÇÃO",
+                            stringResource(R.string.notif_inst_section_communication),
                             style = MaterialTheme.typography.labelSmall,
                             color = DarkGrey,
                             fontWeight = FontWeight.Bold,
@@ -139,8 +141,8 @@ fun NotificationsInstituicaoScreen(
                         )
                         NotificationSection {
                             NotificationRow(
-                                title = "Novas Mensagens (Chat)",
-                                subtitle = "Notificar quando receber mensagens de utilizadores",
+                                title = stringResource(R.string.notif_new_messages),
+                                subtitle = stringResource(R.string.notif_new_messages_desc),
                                 checked = mensagens,
                                 onCheckedChange = { settingsViewModel.toggleNotifMensagens(it) }
                             )
@@ -162,7 +164,7 @@ fun NotificationsInstituicaoScreen(
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
-                            "As notificações estão silenciadas",
+                            stringResource(R.string.notif_silenced),
                             style = MaterialTheme.typography.bodyMedium,
                             color = DarkGrey
                         )
@@ -182,7 +184,7 @@ fun NotificationsInstituicaoScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "Guardar Alterações",
+                        text = stringResource(R.string.notif_save_changes),
                         color = Color.White,
                         style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold)
                     )

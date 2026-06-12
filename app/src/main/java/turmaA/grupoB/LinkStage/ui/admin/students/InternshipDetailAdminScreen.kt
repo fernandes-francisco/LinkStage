@@ -39,12 +39,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.aluno.offers.BenefitChip
 import turmaA.grupoB.LinkStage.ui.aluno.offers.MetaChip
 import turmaA.grupoB.LinkStage.ui.aluno.offers.OfferDetail
@@ -80,7 +82,7 @@ fun InternshipDetailAdminScreen(
     }
 
     Scaffold(
-        topBar = { SecondaryTopBar(title = "Detalhes do Estágio", onBack = onBack) },
+        topBar = { SecondaryTopBar(title = stringResource(R.string.admin_internship_detail_title), onBack = onBack) },
         containerColor = BackgroundLight,
     ) { paddingValues ->
         Column(
@@ -101,7 +103,7 @@ fun InternshipDetailAdminScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                ContentSection(title = "Sobre a empresa") {
+                ContentSection(title = stringResource(R.string.offer_about_company)) {
                     Text(
                         text = offer.aboutCompany,
                         fontSize = 14.sp,
@@ -113,7 +115,7 @@ fun InternshipDetailAdminScreen(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                ContentSection(title = "Responsabilidades") {
+                ContentSection(title = stringResource(R.string.offer_responsibilities)) {
                     offer.responsibilities.forEach { item ->
                         ResponsibilityItem(text = item)
                     }
@@ -122,7 +124,7 @@ fun InternshipDetailAdminScreen(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                ContentSectionColored(title = "Requisitos") {
+                ContentSectionColored(title = stringResource(R.string.offer_requirements)) {
                     offer.requirements.forEach { item ->
                         CheckItem(text = item)
                     }
@@ -130,7 +132,7 @@ fun InternshipDetailAdminScreen(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                ContentSection(title = "Benefícios") {
+                ContentSection(title = stringResource(R.string.offer_benefits)) {
                     FlowRow(
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -210,19 +212,19 @@ private fun InternshipMetaChips(offer: OfferDetail) {
     ) {
         MetaChip(
             icon = Icons.Outlined.LocationOn,
-            label = "Localização",
+            label = stringResource(R.string.offer_location_label),
             value = offer.location,
             modifier = Modifier.weight(1f).fillMaxHeight(),
         )
         MetaChip(
             icon = Icons.Outlined.Schedule,
-            label = "Duração",
+            label = stringResource(R.string.offer_duration_label),
             value = offer.duration,
             modifier = Modifier.weight(1f).fillMaxHeight(),
         )
         MetaChip(
             icon = Icons.Outlined.Work,
-            label = "Tipo",
+            label = stringResource(R.string.offer_type_label),
             value = offer.type,
             modifier = Modifier.weight(1f).fillMaxHeight(),
         )

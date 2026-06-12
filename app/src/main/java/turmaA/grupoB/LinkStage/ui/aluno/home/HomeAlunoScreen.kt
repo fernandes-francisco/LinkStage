@@ -84,12 +84,13 @@ data class Entrega(
 
 // endregion
 
-// region Mock data
-
-private val mockEntregas = listOf(
-    Entrega("Amanhã", "Apresentação de Cyber Segurança", "IPVC.Inc"),
-    Entrega("Em 2 dias", "Ponto de controlo 25 projeto 4", "IPVC.Inc"),
-)
+@Composable
+fun getMockEntregas(): List<Entrega> {
+    return listOf(
+        Entrega(stringResource(R.string.time_tomorrow), stringResource(R.string.mock_delivery_cybersec), "IPVC.Inc"),
+        Entrega(stringResource(R.string.time_in_days, "2"), stringResource(R.string.mock_delivery_checkpoint), "IPVC.Inc"),
+    )
+}
 
 // endregion
 
@@ -105,6 +106,8 @@ fun HomeAlunoScreen(
     val recentConversations by homeViewModel.recentConversations.collectAsState()
     val hasSeenResult by homeViewModel.hasSeenEvaluationResult.collectAsState()
     val hasDismissedModal by homeViewModel.hasDismissedEvaluationModal.collectAsState()
+    
+    val mockEntregas = getMockEntregas()
 
     // Evaluation sample data for demo
     val evaluation: InternshipEvaluation? = remember {

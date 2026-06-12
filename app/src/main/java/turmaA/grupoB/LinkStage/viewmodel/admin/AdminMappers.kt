@@ -13,9 +13,9 @@ import turmaA.grupoB.LinkStage.ui.admin.AdminMentor
 import turmaA.grupoB.LinkStage.ui.admin.AdminStudent
 import turmaA.grupoB.LinkStage.ui.admin.InstitutionStatus
 import turmaA.grupoB.LinkStage.ui.admin.avatarColors
-import turmaA.grupoB.LinkStage.ui.admin.sampleInstitutions
-import turmaA.grupoB.LinkStage.ui.admin.sampleMentors
-import turmaA.grupoB.LinkStage.ui.admin.sampleStudents
+import turmaA.grupoB.LinkStage.ui.admin.sampleInstitutionsList
+import turmaA.grupoB.LinkStage.ui.admin.sampleMentorsList
+import turmaA.grupoB.LinkStage.ui.admin.sampleStudentsList
 import turmaA.grupoB.LinkStage.ui.aluno.offers.OfferDetail
 import java.time.Instant
 import java.time.temporal.ChronoUnit
@@ -239,25 +239,25 @@ internal fun InternshipOfferModel.toOfferDetail(
 )
 
 internal fun fallbackDashboardData(): AdminDashboardData = AdminDashboardData(
-    pendingInstitutions = sampleInstitutions.filter { it.status == InstitutionStatus.PENDING_APPROVAL },
-    recentStudents = sampleStudents,
-    recentMentors = sampleMentors,
-    recentInstitutions = sampleInstitutions,
-    totalStudents = sampleStudents.size,
-    totalMentors = sampleMentors.size,
-    totalInstitutions = sampleInstitutions.size,
+    pendingInstitutions = sampleInstitutionsList.filter { it.status == InstitutionStatus.PENDING_APPROVAL },
+    recentStudents = sampleStudentsList,
+    recentMentors = sampleMentorsList,
+    recentInstitutions = sampleInstitutionsList,
+    totalStudents = sampleStudentsList.size,
+    totalMentors = sampleMentorsList.size,
+    totalInstitutions = sampleInstitutionsList.size,
     pendingApplications = 0,
-    activeInternships = sampleStudents.count { it.hasActiveInternship },
+    activeInternships = sampleStudentsList.count { it.hasActiveInternship },
 )
 
-internal fun fallbackInstitutions(): List<AdminInstitution> = sampleInstitutions
+internal fun fallbackInstitutions(): List<AdminInstitution> = sampleInstitutionsList
 
-internal fun fallbackStudents(): List<AdminStudent> = sampleStudents
+internal fun fallbackStudents(): List<AdminStudent> = sampleStudentsList
 
-internal fun fallbackMentors(): List<AdminMentor> = sampleMentors
+internal fun fallbackMentors(): List<AdminMentor> = sampleMentorsList
 
 internal fun fallbackStudentDetail(studentId: String): AdminStudentDetailData {
-    val student = sampleStudents.firstOrNull { it.id == studentId } ?: sampleStudents.first()
+    val student = sampleStudentsList.firstOrNull { it.id == studentId } ?: sampleStudentsList.first()
     return AdminStudentDetailData(
         student = student,
         applications = emptyList(),
@@ -266,19 +266,19 @@ internal fun fallbackStudentDetail(studentId: String): AdminStudentDetailData {
 }
 
 internal fun fallbackMentorDetail(mentorId: String): AdminMentorDetailData {
-    val mentor = sampleMentors.firstOrNull { it.id == mentorId } ?: sampleMentors.first()
+    val mentor = sampleMentorsList.firstOrNull { it.id == mentorId } ?: sampleMentorsList.first()
     return AdminMentorDetailData(
         mentor = mentor,
-        supervisedStudents = sampleStudents.filter { it.institution == mentor.institution },
+        supervisedStudents = sampleStudentsList.filter { it.institution == mentor.institution },
     )
 }
 
 internal fun fallbackInstitutionDetail(institutionId: String): AdminInstitutionDetailData {
-    val institution = sampleInstitutions.firstOrNull { it.id == institutionId } ?: sampleInstitutions.first()
+    val institution = sampleInstitutionsList.firstOrNull { it.id == institutionId } ?: sampleInstitutionsList.first()
     return AdminInstitutionDetailData(
         institution = institution,
-        relatedStudents = sampleStudents.filter { it.institution == institution.code },
-        relatedMentors = sampleMentors.filter { it.institution == institution.code },
+        relatedStudents = sampleStudentsList.filter { it.institution == institution.code },
+        relatedMentors = sampleMentorsList.filter { it.institution == institution.code },
     )
 }
 
@@ -305,9 +305,9 @@ fun fallbackInternshipDetail(internshipId: String): AdminInternshipDetailData {
             id = internshipId,
             applicationId = "fallback-application",
             offerId = internshipId,
-            studentId = sampleStudents.first().id,
+            studentId = sampleStudentsList.first().id,
             institutionId = "fallback",
-            supervisorId = sampleMentors.first().id,
+            supervisorId = sampleMentorsList.first().id,
             title = offer.title,
             companySupervisorName = null,
             startDate = null,
@@ -317,8 +317,8 @@ fun fallbackInternshipDetail(internshipId: String): AdminInternshipDetailData {
         ),
         offer = offer,
         institutionName = "Viana S.T.Arts",
-        student = sampleStudents.first(),
-        mentor = sampleMentors.first(),
+        student = sampleStudentsList.first(),
+        mentor = sampleMentorsList.first(),
         applications = emptyList(),
     )
 }

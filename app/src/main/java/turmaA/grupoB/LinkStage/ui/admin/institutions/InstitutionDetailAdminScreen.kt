@@ -51,9 +51,9 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.admin.InstitutionStatus
-import turmaA.grupoB.LinkStage.ui.admin.sampleInstitutions
-import turmaA.grupoB.LinkStage.ui.admin.sampleMentors
-import turmaA.grupoB.LinkStage.ui.admin.sampleStudents
+import turmaA.grupoB.LinkStage.ui.admin.sampleInstitutionsList
+import turmaA.grupoB.LinkStage.ui.admin.sampleMentorsList
+import turmaA.grupoB.LinkStage.ui.admin.sampleStudentsList
 import turmaA.grupoB.LinkStage.viewmodel.admin.AdminInstitutionDetailUiState
 import turmaA.grupoB.LinkStage.viewmodel.admin.AdminInstitutionDetailViewModel
 import turmaA.grupoB.LinkStage.viewmodel.admin.AdminInstitutionDetailViewModelFactory
@@ -81,15 +81,15 @@ fun InstitutionDetailAdminScreen(
     val institutionDetailUiState by institutionDetailViewModel.uiState.collectAsState()
     val institution = when (val state = institutionDetailUiState) {
         is AdminInstitutionDetailUiState.Success -> state.data.institution
-        else -> sampleInstitutions.first()
+        else -> sampleInstitutionsList.first()
     }
     val relatedStudents = when (val state = institutionDetailUiState) {
         is AdminInstitutionDetailUiState.Success -> state.data.relatedStudents.take(3)
-        else -> sampleStudents.filter { it.institutionCode == institution.code }.take(3)
+        else -> sampleStudentsList.filter { it.institutionCode == institution.code }.take(3)
     }
     val relatedMentors = when (val state = institutionDetailUiState) {
         is AdminInstitutionDetailUiState.Success -> state.data.relatedMentors
-        else -> sampleMentors.filter { it.institution == institution.code }
+        else -> sampleMentorsList.filter { it.institution == institution.code }
     }
 
     LaunchedEffect(institutionId) {
