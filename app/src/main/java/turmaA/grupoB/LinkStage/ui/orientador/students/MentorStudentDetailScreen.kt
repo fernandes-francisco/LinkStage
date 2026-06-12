@@ -55,6 +55,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -78,6 +79,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.admin.AdminStudent
 import turmaA.grupoB.LinkStage.ui.admin.avatarColors
+import turmaA.grupoB.LinkStage.ui.aluno.activity.ActiveInternship
+import turmaA.grupoB.LinkStage.ui.aluno.activity.ActivityLog
 import turmaA.grupoB.LinkStage.ui.aluno.activity.ActivityLogCard
 import turmaA.grupoB.LinkStage.ui.aluno.activity.ActivityLogStatus
 import turmaA.grupoB.LinkStage.ui.aluno.activity.InternshipHeader
@@ -97,6 +100,7 @@ import turmaA.grupoB.LinkStage.ui.orientador.InternshipType
 import turmaA.grupoB.LinkStage.ui.orientador.OrientadorRoutes
 import turmaA.grupoB.LinkStage.ui.orientador.formatCheckpointDate
 import turmaA.grupoB.LinkStage.ui.orientador.sampleEvaluation
+import turmaA.grupoB.LinkStage.ui.orientador.sampleMentorActivityLogs
 import turmaA.grupoB.LinkStage.ui.orientador.sampleMentorStudents
 import turmaA.grupoB.LinkStage.ui.orientador.sampleStudentInternship
 import androidx.compose.ui.platform.LocalContext
@@ -111,18 +115,31 @@ import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.ui.theme.MediumBlue
 import turmaA.grupoB.LinkStage.ui.theme.Red
 import turmaA.grupoB.LinkStage.viewmodel.AdvisorHomeViewModel
+import turmaA.grupoB.LinkStage.viewmodel.orientador.OrientadorStudentDetailUiState
+import turmaA.grupoB.LinkStage.viewmodel.orientador.OrientadorStudentDetailViewModel
+import turmaA.grupoB.LinkStage.viewmodel.orientador.OrientadorStudentDetailViewModelFactory
 
 @Composable
 fun MentorStudentDetailScreen(
     studentId: String,
     navController: NavController,
     advisorHomeViewModel: AdvisorHomeViewModel = viewModel(),
+    orientadorStudentDetailViewModel: OrientadorStudentDetailViewModel = viewModel(factory = OrientadorStudentDetailViewModelFactory()),
 ) {
     val context = LocalContext.current
-    val student = sampleMentorStudents(context).find { it.id == studentId } ?: return
-    val evaluation = sampleEvaluation(context)
+    val detailUiState by orientadorStudentDetailViewModel.uiState.collectAsState()
+    val detailData = (detailUiState as? OrientadorStudentDetailUiState.Success)?.data
+    val fallbackStudents = sampleMentorStudents(context)
+    val student = detailData?.student ?: fallbackStudents.find { it.id == studentId } ?: fallbackStudents.first()
+    val fallbackInternship = sampleStudentInternship(context)
+    val internship = detailData?.activeInternship ?: fallbackInternship
+    val activityLogs = detailData?.activityLogs?.takeIf { it.isNotEmpty() } ?: sampleMentorActivityLogs(context)
+    val evaluation = detailData?.evaluation ?: sampleEvaluation(context)
     var selectedTab by remember { mutableIntStateOf(0) }
     var showCreateCheckpointDialog by remember { mutableStateOf(false) }
+    LaunchedEffect(orientadorStudentDetailViewModel, studentId) {
+        orientadorStudentDetailViewModel.loadStudent(studentId)
+    }
 
     LaunchedEffect(selectedTab) {
         if (selectedTab == 2 && evaluation.state == EvaluationState.READY_FOR_FINAL) {
@@ -216,8 +233,8 @@ fun MentorStudentDetailScreen(
         ) { tab ->
             when (tab) {
                 0 -> StudentDetailsTab(student, navController)
-                1 -> StudentWorkTab(navController)
-                2 -> StudentEvaluateTab(student, evaluation, navController)
+                1 -> StudentWorkTab(internship, activityLogs, navController)
+                2 -> StudentEvaluateTab(student, evaluation, internship, navController)
             }
         }
     }
@@ -326,9 +343,12 @@ private fun InfoFieldWithIcon(label: String, value: String, icon: ImageVector) {
 // region Tab 1 — Trabalho Desenvolvido
 
 @Composable
-private fun StudentWorkTab(navController: NavController) {
+private fun StudentWorkTab(
+    internship: ActiveInternship,
+    activityLogs: List<ActivityLog>,
+    navController: NavController,
+) {
     val context = LocalContext.current
-    val internship = sampleStudentInternship(context)
     val progress = calculateInternshipProgress(internship.startDate, internship.endDate)
 
     var animationStarted by remember { mutableStateOf(false) }
@@ -362,7 +382,7 @@ private fun StudentWorkTab(navController: NavController) {
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
         )
 
-        internship.activityLogs.forEach { activityLog ->
+        activityLogs.forEach { activityLog ->
             ActivityLogCard(
                 activityLog = activityLog,
                 onClick = {
@@ -385,10 +405,10 @@ private fun StudentWorkTab(navController: NavController) {
 private fun StudentEvaluateTab(
     student: AdminStudent,
     evaluation: InternshipEvaluation,
+    internship: ActiveInternship,
     navController: NavController,
 ) {
     val context = LocalContext.current
-    val internship = sampleStudentInternship(context)
     val progress = calculateInternshipProgress(internship.startDate, internship.endDate)
 
     var animationStarted by remember { mutableStateOf(false) }

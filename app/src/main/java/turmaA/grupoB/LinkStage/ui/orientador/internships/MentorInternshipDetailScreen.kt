@@ -35,6 +35,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -50,9 +51,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import androidx.lifecycle.viewmodel.compose.viewModel
 import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.admin.AdminStudent
 import turmaA.grupoB.LinkStage.ui.admin.avatarColors
+import turmaA.grupoB.LinkStage.ui.aluno.activity.ActiveInternship
+import turmaA.grupoB.LinkStage.ui.aluno.activity.ActivityLog
 import turmaA.grupoB.LinkStage.ui.aluno.activity.ActivityLogCard
 import turmaA.grupoB.LinkStage.ui.aluno.activity.InternshipHeader
 import turmaA.grupoB.LinkStage.ui.aluno.activity.calculateInternshipProgress
@@ -61,6 +65,7 @@ import turmaA.grupoB.LinkStage.ui.orientador.EvaluationState
 import turmaA.grupoB.LinkStage.ui.orientador.MentorInternship
 import turmaA.grupoB.LinkStage.ui.orientador.OrientadorRoutes
 import turmaA.grupoB.LinkStage.ui.orientador.sampleEvaluation
+import turmaA.grupoB.LinkStage.ui.orientador.sampleMentorActivityLogs
 import turmaA.grupoB.LinkStage.ui.orientador.sampleMentorInternships
 import turmaA.grupoB.LinkStage.ui.orientador.sampleMentorStudents
 import turmaA.grupoB.LinkStage.ui.orientador.sampleStudentInternship
@@ -72,19 +77,30 @@ import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.Fade1
 import turmaA.grupoB.LinkStage.ui.theme.Fade2
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
+import turmaA.grupoB.LinkStage.viewmodel.orientador.OrientadorInternshipDetailUiState
+import turmaA.grupoB.LinkStage.viewmodel.orientador.OrientadorInternshipDetailViewModel
+import turmaA.grupoB.LinkStage.viewmodel.orientador.OrientadorInternshipDetailViewModelFactory
 
 @Composable
 fun MentorInternshipDetailScreen(
     internshipId: String = "i1",
     navController: NavController,
+    orientadorInternshipDetailViewModel: OrientadorInternshipDetailViewModel = viewModel(factory = OrientadorInternshipDetailViewModelFactory()),
 ) {
     val context = LocalContext.current
-    val internship = sampleMentorInternships(context).find { it.id == internshipId }
-        ?: sampleMentorInternships(context).first()
-    val student = sampleMentorStudents(context).find { it.id == internship.studentId }
-        ?: sampleMentorStudents(context).first()
-    val activeInternship = sampleStudentInternship(context)
-    val evaluation = sampleEvaluation(context)
+    val detailUiState by orientadorInternshipDetailViewModel.uiState.collectAsState()
+    val detailData = (detailUiState as? OrientadorInternshipDetailUiState.Success)?.data
+    val fallbackInternships = sampleMentorInternships(context)
+    val fallbackStudents = sampleMentorStudents(context)
+    val internship = detailData?.internship ?: fallbackInternships.find { it.id == internshipId } ?: fallbackInternships.first()
+    val student = detailData?.student ?: fallbackStudents.find { it.id == internship.studentId } ?: fallbackStudents.first()
+    val activeInternship = detailData?.activeInternship ?: sampleStudentInternship(context)
+    val activityLogs = detailData?.activityLogs?.takeIf { it.isNotEmpty() } ?: sampleMentorActivityLogs(context)
+    val evaluation = detailData?.evaluation ?: sampleEvaluation(context)
+
+    LaunchedEffect(orientadorInternshipDetailViewModel, internshipId) {
+        orientadorInternshipDetailViewModel.loadInternship(internshipId)
+    }
 
     val progress = calculateInternshipProgress(activeInternship.startDate, activeInternship.endDate)
 
@@ -161,7 +177,7 @@ fun MentorInternshipDetailScreen(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
             )
 
-            activeInternship.activityLogs.forEach { activityLog ->
+            activityLogs.forEach { activityLog ->
                 ActivityLogCard(
                     activityLog = activityLog,
                     onClick = {

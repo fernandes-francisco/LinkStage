@@ -31,6 +31,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -46,6 +47,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -66,7 +68,6 @@ import turmaA.grupoB.LinkStage.ui.orientador.OrientadorRoutes
 import turmaA.grupoB.LinkStage.ui.orientador.sampleEvaluation
 import turmaA.grupoB.LinkStage.ui.orientador.sampleMentorInternships
 import turmaA.grupoB.LinkStage.ui.orientador.sampleMentorStudents
-import androidx.compose.ui.platform.LocalContext
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
@@ -75,17 +76,28 @@ import turmaA.grupoB.LinkStage.ui.theme.Fade3
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.ui.theme.MediumBlue
 import turmaA.grupoB.LinkStage.viewmodel.AdvisorHomeViewModel
+import turmaA.grupoB.LinkStage.viewmodel.orientador.OrientadorDashboardData
+import turmaA.grupoB.LinkStage.viewmodel.orientador.OrientadorDashboardUiState
+import turmaA.grupoB.LinkStage.viewmodel.orientador.OrientadorDashboardViewModel
+import turmaA.grupoB.LinkStage.viewmodel.orientador.OrientadorDashboardViewModelFactory
 
 @Composable
 fun HomeOrientadorScreen(
     navController: NavController,
     modifier: Modifier = Modifier,
     advisorHomeViewModel: AdvisorHomeViewModel = viewModel(),
+    orientadorDashboardViewModel: OrientadorDashboardViewModel = viewModel(factory = OrientadorDashboardViewModelFactory()),
 ) {
     val context = LocalContext.current
-    val evaluation = sampleEvaluation(context)
+    val dashboardUiState by orientadorDashboardViewModel.uiState.collectAsState()
+    val dashboardData = dashboardUiState.dashboardData(context)
+    val evaluation = dashboardData.evaluation ?: sampleEvaluation(context)
     val hasSeenResult by advisorHomeViewModel.hasSeenEvaluations.collectAsState()
     val hasDismissedModal by advisorHomeViewModel.hasDismissedEvaluationModal.collectAsState()
+
+    LaunchedEffect(orientadorDashboardViewModel) {
+        orientadorDashboardViewModel.loadDashboard()
+    }
 
     val showEvaluationModal = evaluation.state == EvaluationState.READY_FOR_FINAL && 
             !evaluation.hasSeenNotification && 
@@ -177,8 +189,8 @@ fun HomeOrientadorScreen(
             )
             Spacer(modifier = Modifier.height(8.dp))
 
-            if (sampleMentorInternships(context).isNotEmpty()) {
-                sampleMentorInternships(context).take(2).forEach { internship ->
+            if (dashboardData.internships.isNotEmpty()) {
+                dashboardData.internships.take(2).forEach { internship ->
                     MentorInternshipCard(internship = internship)
                     Spacer(modifier = Modifier.height(8.dp))
                 }
@@ -203,7 +215,7 @@ fun HomeOrientadorScreen(
             )
             Spacer(modifier = Modifier.height(8.dp))
 
-            if (sampleMentorStudents(context).isNotEmpty()) {
+            if (dashboardData.students.isNotEmpty()) {
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -217,9 +229,9 @@ fun HomeOrientadorScreen(
                             .fillMaxWidth()
                             .background(Fade3, RoundedCornerShape(12.dp)),
                     ) {
-                        sampleMentorStudents(context).take(2).forEachIndexed { index, student ->
+                        dashboardData.students.take(2).forEachIndexed { index, student ->
                             MentorStudentRow(student = student)
-                            if (index < sampleMentorStudents(context).take(2).size - 1) {
+                            if (index < dashboardData.students.take(2).size - 1) {
                                 HorizontalDivider(
                                     color = Color.White.copy(alpha = 0.2f),
                                     modifier = Modifier.padding(horizontal = 16.dp),
@@ -500,6 +512,21 @@ private fun EmptyStateCard(message: String) {
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(20.dp),
+        )
+    }
+}
+
+private fun OrientadorDashboardUiState.dashboardData(context: android.content.Context): OrientadorDashboardData {
+    return when (this) {
+        is OrientadorDashboardUiState.Success -> data
+        OrientadorDashboardUiState.Idle,
+        OrientadorDashboardUiState.Loading,
+        OrientadorDashboardUiState.Empty,
+        is OrientadorDashboardUiState.Error -> OrientadorDashboardData(
+            internships = sampleMentorInternships(context),
+            students = sampleMentorStudents(context),
+            activityLogs = emptyList(),
+            evaluation = sampleEvaluation(context),
         )
     }
 }

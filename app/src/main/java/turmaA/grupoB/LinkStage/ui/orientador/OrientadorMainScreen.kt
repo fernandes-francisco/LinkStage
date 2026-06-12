@@ -48,6 +48,12 @@ import turmaA.grupoB.LinkStage.ui.orientador.students.StudentsOrientadorScreen
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.viewmodel.AdvisorHomeViewModel
+import turmaA.grupoB.LinkStage.viewmodel.orientador.OrientadorDashboardViewModel
+import turmaA.grupoB.LinkStage.viewmodel.orientador.OrientadorInternshipDetailViewModel
+import turmaA.grupoB.LinkStage.viewmodel.orientador.OrientadorStudentDetailViewModel
+import turmaA.grupoB.LinkStage.viewmodel.orientador.OrientadorDashboardViewModelFactory
+import turmaA.grupoB.LinkStage.viewmodel.orientador.OrientadorInternshipDetailViewModelFactory
+import turmaA.grupoB.LinkStage.viewmodel.orientador.OrientadorStudentDetailViewModelFactory
 
 object OrientadorRoutes {
     const val HOME = "orientador_home"
@@ -88,6 +94,9 @@ private val orientadorTabs = listOf(
 fun OrientadorMainScreen(onLogout: () -> Unit = {}) {
     val navController = rememberNavController()
     val advisorHomeViewModel: AdvisorHomeViewModel = viewModel()
+    val orientadorDashboardViewModel: OrientadorDashboardViewModel = viewModel(factory = OrientadorDashboardViewModelFactory())
+    val orientadorStudentDetailViewModel: OrientadorStudentDetailViewModel = viewModel(factory = OrientadorStudentDetailViewModelFactory())
+    val orientadorInternshipDetailViewModel: OrientadorInternshipDetailViewModel = viewModel(factory = OrientadorInternshipDetailViewModelFactory())
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
@@ -138,14 +147,21 @@ fun OrientadorMainScreen(onLogout: () -> Unit = {}) {
             composable(OrientadorRoutes.HOME) {
                 HomeOrientadorScreen(
                     navController = navController,
-                    advisorHomeViewModel = advisorHomeViewModel
+                    advisorHomeViewModel = advisorHomeViewModel,
+                    orientadorDashboardViewModel = orientadorDashboardViewModel,
                 )
             }
             composable(OrientadorRoutes.STUDENTS) {
-                StudentsOrientadorScreen(navController = navController)
+                StudentsOrientadorScreen(
+                    navController = navController,
+                    orientadorDashboardViewModel = orientadorDashboardViewModel,
+                )
             }
             composable(OrientadorRoutes.INTERNSHIPS) {
-                InternshipsOrientadorScreen(navController = navController)
+                InternshipsOrientadorScreen(
+                    navController = navController,
+                    orientadorDashboardViewModel = orientadorDashboardViewModel,
+                )
             }
             composable(OrientadorRoutes.MESSAGES) {
                 ChatOrientadorScreen(
@@ -210,7 +226,8 @@ fun OrientadorMainScreen(onLogout: () -> Unit = {}) {
                 MentorStudentDetailScreen(
                     studentId = studentId,
                     navController = navController,
-                    advisorHomeViewModel = advisorHomeViewModel
+                    advisorHomeViewModel = advisorHomeViewModel,
+                    orientadorStudentDetailViewModel = orientadorStudentDetailViewModel,
                 )
             }
             composable(
@@ -221,6 +238,7 @@ fun OrientadorMainScreen(onLogout: () -> Unit = {}) {
                 MentorCheckpointDetailScreen(
                     checkpointId = checkpointId,
                     navController = navController,
+                    orientadorDashboardViewModel = orientadorDashboardViewModel,
                 )
             }
             composable(
@@ -231,6 +249,7 @@ fun OrientadorMainScreen(onLogout: () -> Unit = {}) {
                 MentorInternshipDetailScreen(
                     internshipId = internshipId,
                     navController = navController,
+                    orientadorInternshipDetailViewModel = orientadorInternshipDetailViewModel,
                 )
             }
             composable(

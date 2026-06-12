@@ -26,6 +26,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -37,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import androidx.lifecycle.viewmodel.compose.viewModel
 import turmaA.grupoB.LinkStage.ui.common.ContentSection
 import turmaA.grupoB.LinkStage.ui.common.SecondaryTopBar
 import turmaA.grupoB.LinkStage.ui.orientador.formatCheckpointDateLong
@@ -47,14 +51,26 @@ import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
+import turmaA.grupoB.LinkStage.viewmodel.orientador.OrientadorDashboardUiState
+import turmaA.grupoB.LinkStage.viewmodel.orientador.OrientadorDashboardViewModel
+import turmaA.grupoB.LinkStage.viewmodel.orientador.OrientadorDashboardViewModelFactory
 
 @Composable
 fun MentorCheckpointDetailScreen(
     checkpointId: String,
     navController: NavController,
+    orientadorDashboardViewModel: OrientadorDashboardViewModel = viewModel(factory = OrientadorDashboardViewModelFactory()),
 ) {
     val context = LocalContext.current
-    val activityLog = sampleMentorActivityLogs(context).find { it.id == checkpointId } ?: return
+    val dashboardUiState by orientadorDashboardViewModel.uiState.collectAsState()
+    val dashboardData = dashboardUiState.dashboardData(context)
+    val activityLog = dashboardData.activityLogs.find { it.id == checkpointId }
+        ?: sampleMentorActivityLogs(context).find { it.id == checkpointId }
+        ?: sampleMentorActivityLogs(context).first()
+
+    LaunchedEffect(orientadorDashboardViewModel) {
+        orientadorDashboardViewModel.loadDashboard()
+    }
 
     Scaffold(
         topBar = {
@@ -223,6 +239,21 @@ fun MentorCheckpointDetailScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
         }
+    }
+}
+
+private fun OrientadorDashboardUiState.dashboardData(context: android.content.Context): turmaA.grupoB.LinkStage.viewmodel.orientador.OrientadorDashboardData {
+    return when (this) {
+        is OrientadorDashboardUiState.Success -> data
+        OrientadorDashboardUiState.Idle,
+        OrientadorDashboardUiState.Loading,
+        OrientadorDashboardUiState.Empty,
+        is OrientadorDashboardUiState.Error -> turmaA.grupoB.LinkStage.viewmodel.orientador.OrientadorDashboardData(
+            internships = emptyList(),
+            students = emptyList(),
+            activityLogs = sampleMentorActivityLogs(context),
+            evaluation = null,
+        )
     }
 }
 

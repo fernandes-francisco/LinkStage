@@ -92,7 +92,7 @@ fun calculateEvaluationState(eval: InternshipEvaluation): EvaluationState {
 
 // region Sample data
 
-fun sampleMentorInternships(context: Context) = listOf(
+val sampleMentorInternshipsList = listOf(
     MentorInternship(
         id = "i1",
         offerTitle = "UI/UX Designer",
@@ -104,29 +104,29 @@ fun sampleMentorInternships(context: Context) = listOf(
         studentName = "Tiago Rodrigues",
         studentId = "s1",
         location = "Viana do Castelo, PT",
-        duration = context.getString(R.string.mock_duration_6months),
-        type = context.getString(R.string.mock_type_remote),
-        aboutCompany = context.getString(R.string.mock_company_desc_continente),
+        duration = "6 meses",
+        type = "Remoto",
+        aboutCompany = "Líder nacional no retalho alimentar.",
         responsibilities = listOf(
-            context.getString(R.string.mock_resp_prototyping),
-            context.getString(R.string.mock_resp_collaborate),
-            context.getString(R.string.mock_resp_dashboards),
+            "Prototipar fluxos digitais e validar ideias com utilizadores.",
+            "Colaborar com equipas de produto e marketing.",
+            "Criar dashboards e materiais de comunicação.",
         ),
         requirements = listOf(
-            context.getString(R.string.mock_req_figma),
-            context.getString(R.string.mock_req_portfolio),
-            context.getString(R.string.mock_req_english),
+            "Experiência com Figma ou ferramentas de prototipagem.",
+            "Portfólio com projetos de UI/UX.",
+            "Inglês funcional.",
         ),
         benefits = listOf(
-            context.getString(R.string.mock_benefit_transport),
-            context.getString(R.string.mock_benefit_mentoring),
-            context.getString(R.string.mock_benefit_competitive),
+            "Apoio de transporte.",
+            "Mentoria com equipa sénior.",
+            "Remuneração competitiva.",
         ),
         isBusinessInternship = true
     ),
     MentorInternship(
         id = "i2",
-        offerTitle = context.getString(R.string.mock_product_designer),
+        offerTitle = "Product Designer",
         businessInstitutionName = "Viana S.T.Arts",
         schoolInstitutionName = "Uni. de Aveiro",
         logoInitial = "V",
@@ -135,74 +135,70 @@ fun sampleMentorInternships(context: Context) = listOf(
         studentName = "Francisco Fernandes",
         studentId = "s2",
         location = "Aveiro, PT",
-        duration = context.getString(R.string.mock_duration_4months),
-        type = context.getString(R.string.mock_type_onsite),
-        aboutCompany = context.getString(R.string.mock_company_desc_uaveiro),
+        duration = "4 meses",
+        type = "Presencial",
+        aboutCompany = "Empresa criativa focada em experiências digitais.",
         responsibilities = listOf(
-            context.getString(R.string.mock_resp_elearning),
-            context.getString(R.string.mock_resp_design_thinking),
+            "Desenhar experiências de e-learning.",
+            "Aplicar design thinking em workshops.",
         ),
         requirements = listOf(
-            context.getString(R.string.mock_req_user_centered),
-            context.getString(R.string.mock_req_prototyping_tools),
+            "Abordagem centrada no utilizador.",
+            "Ferramentas de prototipagem.",
         ),
         benefits = listOf(
-            context.getString(R.string.mock_benefit_certificate),
-            context.getString(R.string.mock_benefit_labs),
+            "Certificado de estágio.",
+            "Acesso a laboratórios.",
         ),
         isBusinessInternship = false
     ),
 )
 
-fun sampleMentorStudents(context: Context) = listOf(
+val sampleMentorStudentsList = listOf(
     AdminStudent(
         "s1", "Tiago Rodrigues", "tiago@estg.ipvc.pt", "912000001",
-        "ESTG-IPVC", "ESTG-IPVC", context.getString(R.string.mock_course_cs), 14.5f,
-        context.getString(R.string.mock_time_2h_ago), true, "Continente", 2, "TR", 0,
+        "ESTG-IPVC", "ESTG-IPVC", "Ciências Informáticas", 14.5f,
+        "há 2 horas", true, "Continente", 2, "TR", 0,
         skills = listOf("Kotlin", "Jetpack Compose", "UI/UX Design", "Figma"),
     ),
     AdminStudent(
         "s2", "Francisco Fernandes", "francisco@ese.ipvc.pt", "912000002",
-        "ESE-IPVC", "ESE-IPVC", context.getString(R.string.mock_course_education), 13.0f,
-        context.getString(R.string.mock_time_3h_ago), false, "", 1, "FF", 1,
-        skills = listOf(
-            context.getString(R.string.mock_skill_pedagogy),
-            context.getString(R.string.mock_skill_classroom_mgmt),
-            context.getString(R.string.mock_skill_communication),
-        ),
+        "ESE-IPVC", "ESE-IPVC", "Educação Básica", 13.0f,
+        "há 3 horas", false, "", 1, "FF", 1,
+        skills = listOf("Pedagogia", "Gestão de sala de aula", "Comunicação"),
     ),
 )
 
-fun sampleMentorActivityLogs(context: Context) = listOf(
+val sampleMentorActivityLogsList = listOf(
     ActivityLog(
-        "1", context.getString(R.string.mock_checkpoint_1), context.getString(R.string.mock_checkpoint_desc_mockups),
+        "1", "Mockups e validação inicial", "Primeira entrega de mockups para validação com a equipa.",
         LocalDate.of(2026, 1, 31), ActivityLogStatus.COMPLETED,
         "Viana S.T.Arts", "V", Color(0xFF212121),
         requirements = listOf(
-            context.getString(R.string.mock_req_ppt),
-            context.getString(R.string.mock_req_report_updated_short),
-            context.getString(R.string.mock_req_additional_docs_short),
+            "PPT com mockups principais.",
+            "Relatório atualizado.",
+            "Documentos adicionais.",
         ),
         hasSubmitted = true,
         submittedAt = LocalDate.of(2026, 1, 31),
         submittedFiles = listOf(
-            CheckpointFile("f1", context.getString(R.string.mock_ppt_checkpoint_file)),
-            CheckpointFile("f2", context.getString(R.string.mock_report_updated_file)),
+            CheckpointFile("f1", "mockups.pptx"),
+            CheckpointFile("f2", "relatorio_atualizado.pdf"),
         ),
         createdBy = "STUDENT",
         viewers = listOf(
-            CheckpointViewer("m1", "Prof. Carvalho", context.getString(R.string.eval_role_school_mentor_short), context.getString(R.string.mock_today_at, "14:32")),
-            CheckpointViewer("i1", "Viana S.T.Arts", context.getString(R.string.eval_role_institution), context.getString(R.string.mock_yesterday_at, "09:15")),
+            CheckpointViewer("m1", "Prof. Carvalho", "Orientador", "Hoje às 14:32"),
+            CheckpointViewer("i1", "Viana S.T.Arts", "Instituição", "Ontem às 09:15"),
         ),
     ),
     ActivityLog(
-        "2", context.getString(R.string.mock_interim_report), context.getString(R.string.mock_interim_report_desc),
+        "2", "Relatório intercalar", "Preparação do relatório intercalar com evidências do trabalho realizado.",
         LocalDate.of(2026, 3, 15), ActivityLogStatus.PENDING,
         "Viana S.T.Arts", "V", Color(0xFF212121),
         requirements = listOf(
-            context.getString(R.string.mock_req_ppt),
-            context.getString(R.string.mock_req_report_updated_short),
-            context.getString(R.string.mock_req_additional_docs_short),
+            "PPT com mockups principais.",
+            "Relatório atualizado.",
+            "Documentos adicionais.",
         ),
         hasSubmitted = false,
         submittedFiles = emptyList(),
@@ -212,27 +208,37 @@ fun sampleMentorActivityLogs(context: Context) = listOf(
     ),
 )
 
-fun sampleStudentInternship(context: Context) = ActiveInternship(
+val sampleStudentInternshipInstance = ActiveInternship(
     id = "int1",
-    title = context.getString(R.string.mock_product_designer),
+    title = "Product Designer",
     startDate = LocalDate.of(2025, 10, 1),
     endDate = LocalDate.of(2026, 6, 1),
-    activityLogs = sampleMentorActivityLogs(context),
+    activityLogs = sampleMentorActivityLogsList,
 )
 
-fun sampleEvaluation(context: Context) = InternshipEvaluation(
+val sampleEvaluationInstance = InternshipEvaluation(
     internshipId = "int1",
     internshipType = InternshipType.COMPANY_SCHOOL,
     state = EvaluationState.READY_FOR_FINAL,
     companyResponsibleGrade = 16.5f,
-    companyResponsibleObservation = context.getString(R.string.mock_eval_excellent),
+    companyResponsibleObservation = "Excelente colaboração e entrega.",
     companyResponsibleName = "Ana Costa",
     companyMentorGrade = 15.0f,
-    companyMentorObservation = context.getString(R.string.mock_eval_good_teamwork),
+    companyMentorObservation = "Bom trabalho em equipa.",
     companyMentorName = "Prof. Tiago Alexandre",
     schoolMentorName = "Prof. Carvalho",
     hasSeenNotification = false,
 )
+
+fun sampleMentorInternships(context: Context) = sampleMentorInternshipsList
+
+fun sampleMentorStudents(context: Context) = sampleMentorStudentsList
+
+fun sampleMentorActivityLogs(context: Context) = sampleMentorActivityLogsList
+
+fun sampleStudentInternship(context: Context) = sampleStudentInternshipInstance
+
+fun sampleEvaluation(context: Context) = sampleEvaluationInstance
 
 // endregion
 

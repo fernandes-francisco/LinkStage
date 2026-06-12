@@ -29,6 +29,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -46,7 +47,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
 import turmaA.grupoB.LinkStage.R
+import turmaA.grupoB.LinkStage.data.remote.model.Imgs
+import turmaA.grupoB.LinkStage.data.repository.flags.FlagsRepository
 import turmaA.grupoB.LinkStage.ui.aluno.settings.ChangePasswordDialog
 import turmaA.grupoB.LinkStage.ui.aluno.settings.LoggedUser
 import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
@@ -60,6 +64,9 @@ import turmaA.grupoB.LinkStage.ui.theme.Fade1
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.ui.theme.Red
 import turmaA.grupoB.LinkStage.viewmodel.SettingsViewModel
+import turmaA.grupoB.LinkStage.viewmodel.flags.FlagsUIState
+import turmaA.grupoB.LinkStage.viewmodel.flags.FlagsViewModel
+import turmaA.grupoB.LinkStage.viewmodel.flags.FlagsViewModelFactory
 
 @Composable
 fun SettingsOrientadorScreen(
@@ -67,10 +74,15 @@ fun SettingsOrientadorScreen(
     onNotificationsClick: () -> Unit = {},
     onPrivacyPolicyClick: () -> Unit = {},
     settingsViewModel: SettingsViewModel = viewModel(),
+    flagsViewModel: FlagsViewModel = viewModel(factory = FlagsViewModelFactory(FlagsRepository())),
     modifier: Modifier = Modifier,
 ) {
     val user by settingsViewModel.user.collectAsState()
     val currentLanguage by settingsViewModel.currentLanguage.collectAsState()
+    val flagsUIState by flagsViewModel.uiState.collectAsState()
+    LaunchedEffect(Unit) {
+        flagsViewModel.getImages(listOf("portugal", "gb"))
+    }
 
     var showLogoutDialog by remember { mutableStateOf(false) }
     var showPasswordDialog by remember { mutableStateOf(false) }
@@ -210,6 +222,8 @@ fun SettingsOrientadorScreen(
                     LanguageToggle(
                         selectedLang = currentLanguage,
                         onSelect = { settingsViewModel.changeLanguage(it) },
+                        uiState = flagsUIState,
+                        fallbackImages = fallbackFlagImages(),
                     )
                 }
             }
@@ -359,29 +373,63 @@ private fun SettingsRowItem(
 private fun LanguageToggle(
     selectedLang: String,
     onSelect: (String) -> Unit,
+    uiState: FlagsUIState,
+    fallbackImages: List<Imgs>,
 ) {
+    val flagLangs = listOf("portugal", "gb")
+    val labels = listOf("PT", "EN")
+
     Row(
         modifier = Modifier
             .clip(RoundedCornerShape(8.dp))
             .border(1.dp, BorderGrey, RoundedCornerShape(8.dp)),
     ) {
-        listOf("PT", "EN").forEach { lang ->
-            val isSelected = lang == selectedLang
+        labels.forEachIndexed { index, label ->
+            val lang = flagLangs[index]
+            val isSelected = label == selectedLang || lang == selectedLang
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(7.dp))
                     .background(if (isSelected) DarkBlue else Color.Transparent)
-                    .clickable { onSelect(lang) }
+                    .clickable { onSelect(label) }
                     .padding(horizontal = 16.dp, vertical = 6.dp),
                 contentAlignment = Alignment.Center,
             ) {
-                Text(
-                    text = lang,
-                    style = MaterialTheme.typography.labelMedium.copy(
-                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                    ),
-                    color = if (isSelected) Color.White else DarkGrey,
-                )
+                when (uiState) {
+                    is FlagsUIState.Error -> Text(
+                        text = label,
+                        style = MaterialTheme.typography.labelMedium.copy(
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                        ),
+                        color = if (isSelected) Color.White else DarkGrey,
+                    )
+                    is FlagsUIState.Success -> {
+                        val imageIndex = flagLangs.indexOf(lang)
+                        val image = uiState.imgs.getOrNull(imageIndex) ?: fallbackImages.getOrNull(imageIndex)
+                        if (image?.png != null) {
+                            AsyncImage(
+                                model = image.png,
+                                contentDescription = label,
+                                modifier = Modifier.size(24.dp),
+                            )
+                        } else {
+                            Text(
+                                text = label,
+                                style = MaterialTheme.typography.labelMedium.copy(
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                ),
+                                color = if (isSelected) Color.White else DarkGrey,
+                            )
+                        }
+                    }
+                    else -> Text(
+                        text = label,
+                        style = MaterialTheme.typography.labelMedium.copy(
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                        ),
+                        color = if (isSelected) Color.White else DarkGrey,
+                    )
+                }
             }
         }
     }
@@ -404,6 +452,13 @@ private fun LogoutConfirmDialog(
                 color = DarkGrey,
             )
         }
+    )
+}
+
+private fun fallbackFlagImages(): List<Imgs> {
+    return listOf(
+        Imgs(png = "https://flagcdn.com/w320/pt.png"),
+        Imgs(png = "https://flagcdn.com/w320/gb.png"),
     )
 }
 
