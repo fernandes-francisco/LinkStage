@@ -34,10 +34,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.rememberNavController
+import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.admin.AdminInstitution
 import turmaA.grupoB.LinkStage.ui.admin.AdminMentor
 import turmaA.grupoB.LinkStage.ui.admin.AdminRoutes
@@ -65,10 +67,9 @@ fun HomeAdminScreen(
 
     if (showPendingModal) {
         EvaluationNotificationModal(
-            title = "Novas Instituições Pendentes",
-            message = "Existem ${pendingInstitutions.size} instituição(ões) a aguardar aprovação. " +
-                "Por favor, reveja e aprove ou rejeite os pedidos de registo.",
-            actionLabel = "Rever pedidos",
+            title = stringResource(R.string.admin_home_pending_title),
+            message = stringResource(R.string.admin_home_pending_message, pendingInstitutions.size),
+            actionLabel = stringResource(R.string.admin_home_review_requests),
             onAction = {
                 navController.navigate(AdminRoutes.INSTITUTIONS) {
                     popUpTo(navController.graph.findStartDestination().id) {
@@ -95,14 +96,14 @@ fun HomeAdminScreen(
                 .padding(horizontal = 20.dp, vertical = 12.dp)
         ) {
             Text(
-                "Olá, Admin",
+                stringResource(R.string.admin_home_greeting),
                 style = MaterialTheme.typography.headlineLarge.copy(
                     fontWeight = FontWeight.Bold,
                     color = DarkBlue,
                 ),
             )
             Text(
-                "Bem-vindo ao painel de administração.",
+                stringResource(R.string.admin_home_welcome),
                 style = MaterialTheme.typography.bodyMedium,
                 color = DarkGrey
             )
@@ -116,9 +117,9 @@ fun HomeAdminScreen(
         ) {
             if (pendingInstitutions.isNotEmpty()) {
                 EvaluationPendingCard(
-                    title = "Aprovações pendentes",
-                    message = "${pendingInstitutions.size} instituição(ões) aguarda(m) aprovação.",
-                    actionLabel = "Rever pedidos",
+                    title = stringResource(R.string.admin_home_pending_approvals),
+                    message = stringResource(R.string.admin_home_pending_approvals_message, pendingInstitutions.size),
+                    actionLabel = stringResource(R.string.admin_home_review_requests),
                     isDanger = false,
                     onClick = {
                         navController.navigate(AdminRoutes.INSTITUTIONS) {
@@ -135,7 +136,7 @@ fun HomeAdminScreen(
 
             // Novos alunos
             SectionHeader(
-                title = "Novos alunos",
+                title = stringResource(R.string.admin_new_students),
                 onViewAll = {
                     navController.navigate(AdminRoutes.STUDENTS) {
                         popUpTo(navController.graph.findStartDestination().id) {
@@ -160,7 +161,7 @@ fun HomeAdminScreen(
 
             // Novos orientadores
             SectionHeader(
-                title = "Novos orientadores",
+                title = stringResource(R.string.admin_new_mentors),
                 onViewAll = {
                     navController.navigate(AdminRoutes.STUDENTS) {
                         popUpTo(navController.graph.findStartDestination().id) {
@@ -185,7 +186,7 @@ fun HomeAdminScreen(
 
             // Novas instituições
             SectionHeader(
-                title = "Novas instituições",
+                title = stringResource(R.string.admin_new_institutions),
                 onViewAll = {
                     navController.navigate(AdminRoutes.INSTITUTIONS) {
                         popUpTo(navController.graph.findStartDestination().id) {
@@ -229,7 +230,7 @@ private fun SectionHeader(
         )
         TextButton(onClick = onViewAll) {
             Text(
-                text = "Ver todos →",
+                text = stringResource(R.string.common_view_all),
                 color = LightBlue,
                 fontSize = 13.sp,
             )
@@ -277,7 +278,7 @@ private fun AdminUserRow(
                     fontSize = 14.sp,
                 )
                 Text(
-                    text = "Registou-se há ${student.registeredAgo}",
+                    text = stringResource(R.string.admin_home_registered_ago, student.registeredAgo),
                     color = DarkGrey,
                     fontSize = 12.sp,
                 )
@@ -340,7 +341,7 @@ private fun AdminMentorRow(
                     fontSize = 14.sp,
                 )
                 Text(
-                    text = "Registou-se há ${mentor.registeredAgo}",
+                    text = stringResource(R.string.admin_home_registered_ago, mentor.registeredAgo),
                     color = DarkGrey,
                     fontSize = 12.sp,
                 )
@@ -402,7 +403,7 @@ private fun AdminInstitutionRow(
                     fontSize = 14.sp,
                 )
                 Text(
-                    text = "Registou-se há ${institution.registeredAgo}",
+                    text = stringResource(R.string.admin_home_registered_ago, institution.registeredAgo),
                     color = DarkGrey,
                     fontSize = 12.sp,
                 )

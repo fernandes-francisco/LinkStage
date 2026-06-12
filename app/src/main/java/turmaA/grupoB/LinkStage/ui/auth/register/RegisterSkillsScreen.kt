@@ -36,12 +36,23 @@ fun RegisterSkillsScreen(
 ) {
     var searchQuery by remember { mutableStateOf("") }
     val mySkills = remember { mutableStateListOf<String>() }
+    
+    val initialSkills = listOf(
+        stringResource(R.string.skill_python),
+        stringResource(R.string.skill_teamwork),
+        stringResource(R.string.skill_project_management),
+        stringResource(R.string.skill_ai),
+        stringResource(R.string.skill_cpp),
+        stringResource(R.string.skill_curiosity),
+        stringResource(R.string.skill_budget_management),
+        stringResource(R.string.skill_java),
+        stringResource(R.string.skill_problem_solving),
+        stringResource(R.string.skill_communication),
+        stringResource(R.string.skill_persuasive_writing)
+    )
+    
     val otherSkills = remember { 
-        mutableStateListOf(
-            "Python", "Trabalho em grupo", "Gestão de Projetos", "IA",
-            "C++", "Curiosidade intelectual", "Gestão de orçamento", 
-            "Java", "Resolução de problemas", "Comunicação", "Escrita persuasiva"
-        ) 
+        mutableStateListOf<String>().apply { addAll(initialSkills) }
     }
     
     var showAddSkillDialog by remember { mutableStateOf(false) }

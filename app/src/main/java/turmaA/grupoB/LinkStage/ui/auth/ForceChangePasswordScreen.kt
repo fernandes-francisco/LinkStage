@@ -34,9 +34,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.common.ConfirmationDialog
 import turmaA.grupoB.LinkStage.ui.common.LinkStageLogo
 import turmaA.grupoB.LinkStage.ui.common.PasswordField
@@ -62,34 +65,36 @@ fun ForceChangePasswordScreen(
 
     var showConfirmDialog by remember { mutableStateOf(false) }
 
+    val context = LocalContext.current
+
     fun validateAndSubmit() {
         var isValid = true
 
         if (currentPassword.isBlank()) {
-            currentPasswordError = "Este campo é obrigatório."
+            currentPasswordError = context.getString(R.string.force_change_error_empty)
             isValid = false
         } else {
             currentPasswordError = null
         }
 
         if (newPassword.length < 8) {
-            newPasswordError = "A password deve ter pelo menos 8 caracteres."
+            newPasswordError = context.getString(R.string.force_change_error_length)
             isValid = false
         } else if (!newPassword.any { it.isUpperCase() }) {
-            newPasswordError = "A password deve conter pelo menos uma letra maiúscula."
+            newPasswordError = context.getString(R.string.force_change_error_uppercase)
             isValid = false
         } else if (!newPassword.any { it.isDigit() }) {
-            newPasswordError = "A password deve conter pelo menos um número."
+            newPasswordError = context.getString(R.string.force_change_error_number)
             isValid = false
         } else if (newPassword == currentPassword) {
-            newPasswordError = "A nova password não pode ser igual à password actual."
+            newPasswordError = context.getString(R.string.force_change_error_same)
             isValid = false
         } else {
             newPasswordError = null
         }
 
         if (confirmPassword != newPassword) {
-            confirmPasswordError = "As passwords não coincidem."
+            confirmPasswordError = context.getString(R.string.force_change_error_mismatch)
             isValid = false
         } else {
             confirmPasswordError = null
@@ -102,9 +107,9 @@ fun ForceChangePasswordScreen(
 
     if (showConfirmDialog) {
         ConfirmationDialog(
-            title = "Confirmar alteração de password?",
-            body = "Após confirmar, a sua password temporária será substituída e poderá aceder à aplicação.",
-            confirmLabel = "Confirmar",
+            title = stringResource(R.string.force_change_dialog_title),
+            body = stringResource(R.string.force_change_dialog_body),
+            confirmLabel = stringResource(R.string.force_change_dialog_confirm),
             isDanger = false,
             onConfirm = {
                 showConfirmDialog = false
@@ -152,7 +157,7 @@ fun ForceChangePasswordScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = "Alteração de Password Obrigatória",
+                text = stringResource(R.string.force_change_title),
                 color = DarkBlue,
                 fontWeight = FontWeight.Bold,
                 fontSize = 20.sp,
@@ -163,8 +168,7 @@ fun ForceChangePasswordScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "Por razões de segurança, deve alterar a sua password antes de aceder à aplicação. " +
-                    "Esta password foi definida pela sua instituição.",
+                text = stringResource(R.string.force_change_subtitle),
                 color = DarkGrey,
                 fontSize = 14.sp,
                 textAlign = TextAlign.Center,
@@ -176,7 +180,7 @@ fun ForceChangePasswordScreen(
 
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             PasswordField(
-                label = "Password actual",
+                label = stringResource(R.string.force_change_current),
                 value = currentPassword,
                 onValueChange = {
                     currentPassword = it
@@ -186,7 +190,7 @@ fun ForceChangePasswordScreen(
             )
 
             PasswordField(
-                label = "Nova password",
+                label = stringResource(R.string.force_change_new),
                 value = newPassword,
                 onValueChange = {
                     newPassword = it
@@ -196,7 +200,7 @@ fun ForceChangePasswordScreen(
             )
 
             PasswordField(
-                label = "Confirmar nova password",
+                label = stringResource(R.string.force_change_confirm),
                 value = confirmPassword,
                 onValueChange = {
                     confirmPassword = it
@@ -220,7 +224,7 @@ fun ForceChangePasswordScreen(
                 colors = ButtonDefaults.buttonColors(containerColor = DarkBlue),
             ) {
                 Text(
-                    text = "Confirmar alteração",
+                    text = stringResource(R.string.force_change_button),
                     color = Color.White,
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 15.sp,

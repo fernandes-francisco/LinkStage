@@ -24,6 +24,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import turmaA.grupoB.LinkStage.R
@@ -40,34 +41,32 @@ data class SliderData(
 fun IntroSlidersScreen(
     onFinish: () -> Unit = {}
 ) {
-    val sliders = remember {
-        listOf(
-            SliderData(
-                "Bem-vindo ao ",
-                "LinkStage",
-                "A plataforma que liga estudantes, orientadores e empresas para o sucesso profissional.",
-                R.drawable.logo_link_stage1
-            ),
-            SliderData(
-                "Gere o teu ",
-                "Progresso",
-                "Acompanha candidaturas, regista atividades e mantém o foco nos teus objetivos.",
-                R.drawable.sliders1
-            ),
-            SliderData(
-                "Trabalho em ",
-                "Equipa",
-                "Comunicação facilitada entre todos os intervenientes do processo de estágio.",
-                R.drawable.sliders2
-            ),
-            SliderData(
-                "Alcança o ",
-                "Sucesso",
-                "Conclui etapas, obtém reconhecimento e entra no mercado de trabalho com o pé direito.",
-                R.drawable.sliders3
-            )
-        )
-    }
+    val sliders = listOf(
+        SliderData(
+            stringResource(R.string.intro_slide1_title),
+            stringResource(R.string.intro_slide1_highlight),
+            stringResource(R.string.intro_slide1_description),
+            R.drawable.logo_link_stage1
+        ),
+        SliderData(
+            stringResource(R.string.intro_slide2_title),
+            stringResource(R.string.intro_slide2_highlight),
+            stringResource(R.string.intro_slide2_description),
+            R.drawable.sliders1
+        ),
+        SliderData(
+            stringResource(R.string.intro_slide3_title),
+            stringResource(R.string.intro_slide3_highlight),
+            stringResource(R.string.intro_slide3_description),
+            R.drawable.sliders2
+        ),
+        SliderData(
+            stringResource(R.string.intro_slide4_title),
+            stringResource(R.string.intro_slide4_highlight),
+            stringResource(R.string.intro_slide4_description),
+            R.drawable.sliders3
+        ),
+    )
 
     val pagerState = rememberPagerState(pageCount = { sliders.size })
 
@@ -83,7 +82,7 @@ fun IntroSlidersScreen(
                     .padding(top = 16.dp, end = 16.dp)
             ) {
                 Text(
-                    text = "Saltar",
+                    text = stringResource(R.string.intro_skip),
                     color = Color.Gray,
                     style = MaterialTheme.typography.bodyMedium
                 )
@@ -148,7 +147,7 @@ fun IntroSlidersScreen(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    text = "Começar agora",
+                                    text = stringResource(R.string.intro_start),
                                     color = Color.White,
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold

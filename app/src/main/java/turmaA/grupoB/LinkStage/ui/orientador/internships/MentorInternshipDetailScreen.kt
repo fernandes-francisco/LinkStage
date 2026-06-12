@@ -43,12 +43,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.admin.AdminStudent
 import turmaA.grupoB.LinkStage.ui.admin.avatarColors
 import turmaA.grupoB.LinkStage.ui.aluno.activity.ActivityLogCard
@@ -95,7 +97,7 @@ fun MentorInternshipDetailScreen(
     val showEvaluateButton = evaluation.state == EvaluationState.READY_FOR_FINAL
 
     Scaffold(
-        topBar = { SecondaryTopBar(title = "Detalhes do Estágio", onBack = { navController.popBackStack() }) },
+        topBar = { SecondaryTopBar(title = stringResource(R.string.mentor_internship_detail_title), onBack = { navController.popBackStack() }) },
         containerColor = BackgroundLight,
         bottomBar = {
             if (showEvaluateButton) {
@@ -123,7 +125,7 @@ fun MentorInternshipDetailScreen(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Avaliar estágio",
+                            text = stringResource(R.string.mentor_internship_evaluate),
                             color = Color.White,
                             fontWeight = FontWeight.SemiBold,
                             fontSize = 15.sp,
@@ -149,7 +151,7 @@ fun MentorInternshipDetailScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "Atividade Recente",
+                text = stringResource(R.string.activity_recent),
                 style = MaterialTheme.typography.titleLarge.copy(
                     fontWeight = FontWeight.Bold,
                     color = DarkBlue,
@@ -203,7 +205,7 @@ private fun InternshipStudentSection(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "Aluno estagiário",
+                    text = stringResource(R.string.mentor_internship_student_section),
                     color = LightBlue,
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 15.sp,
@@ -261,7 +263,7 @@ private fun InternshipStudentSection(
                     },
                 ) {
                     Text(
-                        text = "Mais",
+                        text = stringResource(R.string.mentor_internship_more),
                         color = LightBlue,
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 13.sp,

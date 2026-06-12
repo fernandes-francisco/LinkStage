@@ -37,12 +37,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.admin.AdminStudent
 import turmaA.grupoB.LinkStage.ui.orientador.OrientadorRoutes
 import turmaA.grupoB.LinkStage.ui.orientador.sampleMentorStudents
@@ -75,7 +77,7 @@ fun StudentsOrientadorScreen(
         CommonTopBar()
 
         Text(
-            text = "Alunos orientados",
+            text = stringResource(R.string.advisor_students_title),
             style = MaterialTheme.typography.headlineSmall.copy(
                 fontWeight = FontWeight.Bold,
                 color = DarkBlue,
@@ -91,9 +93,9 @@ fun StudentsOrientadorScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp),
-            placeholder = { Text("Pesquisar...", color = DarkGrey) },
+            placeholder = { Text(stringResource(R.string.common_search), color = DarkGrey) },
             leadingIcon = {
-                Icon(Icons.Outlined.Search, contentDescription = "Pesquisar", tint = DarkGrey)
+                Icon(Icons.Outlined.Search, contentDescription = stringResource(R.string.common_search), tint = DarkGrey)
             },
             shape = RoundedCornerShape(12.dp),
             colors = OutlinedTextFieldDefaults.colors(
@@ -121,7 +123,7 @@ fun StudentsOrientadorScreen(
                 )
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
-                    text = "Não tens alunos orientados.",
+                    text = stringResource(R.string.advisor_no_students),
                     color = DarkGrey,
                     fontSize = 16.sp,
                 )
@@ -147,7 +149,7 @@ fun StudentsOrientadorScreen(
                             )
                             Spacer(modifier = Modifier.weight(1f))
                             Text(
-                                text = "${students.size} alunos",
+                                text = stringResource(R.string.advisor_student_count, students.size),
                                 color = DarkGrey,
                                 fontSize = 12.sp,
                             )
@@ -209,7 +211,7 @@ private fun StudentCard(
                     fontSize = 14.sp,
                 )
                 Text(
-                    text = "• Registou-se há ${student.registeredAgo}",
+                    text = stringResource(R.string.advisor_registered_ago, student.registeredAgo),
                     color = DarkGrey,
                     fontSize = 12.sp,
                 )

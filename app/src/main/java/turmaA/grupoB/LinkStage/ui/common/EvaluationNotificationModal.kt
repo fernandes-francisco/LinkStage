@@ -31,9 +31,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.Fade2
@@ -132,7 +134,7 @@ fun EvaluationNotificationModal(
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Text(
-                        text = "Fechar",
+                        text = stringResource(R.string.eval_notification_close),
                         color = DarkGrey,
                         fontSize = 13.sp,
                     )

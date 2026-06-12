@@ -39,12 +39,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.admin.AdminMentor
 import turmaA.grupoB.LinkStage.ui.admin.sampleMentors
 import turmaA.grupoB.LinkStage.ui.aluno.chat.avatarColors
@@ -72,9 +74,9 @@ fun AssignMentorInstituicaoScreen(
 
     if (showConfirmDialog && selectedMentor != null) {
         ConfirmationDialog(
-            title = "Atribuir orientador?",
-            body = "Tem a certeza que pretende atribuir ${selectedMentor!!.name} a este estágio?",
-            confirmLabel = "Atribuir",
+            title = stringResource(R.string.assign_mentor_confirm_title),
+            body = stringResource(R.string.assign_mentor_confirm_body, selectedMentor!!.name),
+            confirmLabel = stringResource(R.string.assign_mentor_confirm_button),
             onConfirm = {
                 showConfirmDialog = false
                 navController.navigate(InstituicaoRoutes.MENTOR_ASSIGNED_SUCCESS) {
@@ -100,12 +102,12 @@ fun AssignMentorInstituicaoScreen(
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Voltar",
+                            contentDescription = stringResource(R.string.common_back_content_desc),
                             tint = DarkBlue
                         )
                     }
                     Text(
-                        text = "Atribuir orientador",
+                        text = stringResource(R.string.assign_mentor_title),
                         style = MaterialTheme.typography.titleLarge.copy(
                             fontWeight = FontWeight.Bold,
                             color = DarkBlue,
@@ -171,7 +173,7 @@ fun AssignMentorInstituicaoScreen(
             }
 
             Text(
-                text = "Orientadores disponíveis",
+                text = stringResource(R.string.assign_mentor_available_label),
                 color = DarkBlue, fontWeight = FontWeight.Bold, fontSize = 15.sp,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
             )

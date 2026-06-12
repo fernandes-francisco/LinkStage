@@ -69,6 +69,8 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import androidx.compose.ui.res.stringResource
+import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.aluno.chat.avatarColors
 import turmaA.grupoB.LinkStage.ui.aluno.home.ApplicationStatus
 import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
@@ -114,12 +116,12 @@ fun ApplicationDetailInstituicaoScreen(
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Voltar",
+                            contentDescription = stringResource(R.string.common_back_content_desc),
                             tint = DarkBlue
                         )
                     }
                     Text(
-                        text = "Candidaturas",
+                        text = stringResource(R.string.app_detail_title),
                         style = MaterialTheme.typography.titleLarge.copy(
                             fontWeight = FontWeight.Bold,
                             color = DarkBlue,
@@ -149,7 +151,7 @@ fun ApplicationDetailInstituicaoScreen(
                 }
 
                 LinkStageTabRow(
-                    tabs = listOf("Detalhes", "Competências", "Gerir"),
+                    tabs = listOf(stringResource(R.string.common_details), stringResource(R.string.common_skills), stringResource(R.string.common_manage)),
                     selectedIndex = selectedTab,
                     onTabSelected = { selectedTab = it },
                 )
@@ -181,27 +183,27 @@ private fun ApplicationDetailsTab(application: InstitutionApplication) {
             .padding(vertical = 8.dp),
     ) {
         InfoField(
-            label = "Instituição",
+            label = stringResource(R.string.advisor_institution),
             value = application.institution,
             trailingBadge = "ipvc",
         )
         InfoFieldWithIcon(
-            label = "Curso",
+            label = stringResource(R.string.admin_detail_course),
             value = application.course,
             icon = Icons.AutoMirrored.Outlined.MenuBook,
         )
         InfoFieldWithIcon(
-            label = "Média atual (0-20)",
+            label = stringResource(R.string.app_detail_gpa),
             value = application.gpa,
             icon = Icons.Outlined.Grade,
         )
         InfoFieldWithIcon(
-            label = "Email",
+            label = stringResource(R.string.admin_detail_email),
             value = application.email,
             icon = Icons.Outlined.Email,
         )
         InfoFieldWithIcon(
-            label = "Telemóvel",
+            label = stringResource(R.string.admin_detail_phone),
             value = application.phone,
             icon = Icons.Outlined.Phone,
         )
@@ -286,10 +288,10 @@ private fun ApplicationSkillsTab(application: InstitutionApplication) {
     ) {
         // Personal statement
         Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-            SectionLabel("Declaração Pessoal")
+            SectionLabel(stringResource(R.string.app_detail_personal_statement))
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "Breve apresentação do candidato e a sua motivação para o cargo.",
+                text = stringResource(R.string.app_detail_personal_statement_desc),
                 color = DarkGrey, fontSize = 12.sp,
             )
         }
@@ -313,7 +315,7 @@ private fun ApplicationSkillsTab(application: InstitutionApplication) {
 
         // Technical skills
         Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-            SectionLabel("Competências técnicas")
+            SectionLabel(stringResource(R.string.app_detail_technical_skills))
         }
         Spacer(modifier = Modifier.height(8.dp))
         FlowRow(
@@ -338,7 +340,7 @@ private fun ApplicationSkillsTab(application: InstitutionApplication) {
 
         // Motivation letter
         Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-            SectionLabel("Carta de motivação")
+            SectionLabel(stringResource(R.string.app_detail_motivation_letter))
         }
         Spacer(modifier = Modifier.height(8.dp))
         if (application.hasMotivationLetter) {
@@ -358,7 +360,7 @@ private fun ApplicationSkillsTab(application: InstitutionApplication) {
                     Icon(Icons.Outlined.Description, contentDescription = null, tint = LightBlue, modifier = Modifier.size(20.dp))
                     Spacer(modifier = Modifier.width(10.dp))
                     Text(
-                        text = "Carta de motivação",
+                        text = stringResource(R.string.app_detail_motivation_letter),
                         color = DarkBlue, fontWeight = FontWeight.SemiBold, fontSize = 14.sp,
                         modifier = Modifier.weight(1f),
                     )
@@ -375,7 +377,7 @@ private fun ApplicationSkillsTab(application: InstitutionApplication) {
                 elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
             ) {
                 Text(
-                    text = "Sem carta de motivacao anexada.",
+                    text = stringResource(R.string.app_detail_no_motivation_letter),
                     color = DarkGrey, fontSize = 14.sp,
                     modifier = Modifier.padding(14.dp),
                 )
@@ -412,12 +414,12 @@ private fun MotivationLetterDialog(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        text = "Carta de motivação",
+                        text = stringResource(R.string.app_detail_motivation_letter),
                         color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp,
                         modifier = Modifier.weight(1f),
                     )
                     IconButton(onClick = onDismiss) {
-                        Icon(Icons.Default.Close, contentDescription = "Fechar", tint = Color.White)
+                        Icon(Icons.Default.Close, contentDescription = stringResource(R.string.common_close_label), tint = Color.White)
                     }
                 }
 
@@ -439,13 +441,13 @@ private fun MotivationLetterDialog(
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
                     LinkStageOutlinedButton(
-                        text = "Voltar",
+                        text = stringResource(R.string.common_back),
                         onClick = onDismiss,
                         modifier = Modifier.weight(1f),
                         height = 44.dp
                     )
                     LinkStageButton(
-                        text = "Descarregar",
+                        text = stringResource(R.string.common_download),
                         onClick = { },
                         modifier = Modifier.weight(1f),
                         height = 44.dp
@@ -502,12 +504,12 @@ private fun ApplicationManageTab(application: InstitutionApplication) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Outlined.Info, contentDescription = null, tint = LightBlue, modifier = Modifier.size(20.dp))
                     Spacer(modifier = Modifier.width(10.dp))
-                    Text("Estado atual:", color = DarkBlue, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                    Text(stringResource(R.string.app_detail_current_status), color = DarkBlue, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
                     Spacer(modifier = Modifier.weight(1f))
                     StatusBadgeDynamic(selectedStatus)
                 }
                 Text(
-                    text = "Selecione uma decisão para esta candidatura.",
+                    text = stringResource(R.string.app_detail_select_decision),
                     color = DarkGrey, fontSize = 12.sp,
                     modifier = Modifier.padding(start = 30.dp, top = 4.dp),
                 )
@@ -609,7 +611,7 @@ private fun ApplicationManageTab(application: InstitutionApplication) {
                 Icon(Icons.Outlined.Info, contentDescription = null, tint = LightBlue, modifier = Modifier.size(18.dp))
                 Spacer(modifier = Modifier.width(10.dp))
                 Text(
-                    text = "A decisão apenas será registada no momento de fecho da candidatura.",
+                    text = stringResource(R.string.app_detail_info_notice),
                     color = DarkGrey, fontSize = 12.sp, lineHeight = 18.sp,
                 )
             }

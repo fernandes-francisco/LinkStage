@@ -47,6 +47,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -56,6 +57,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.rememberNavController
+import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.aluno.chat.Conversation
 import turmaA.grupoB.LinkStage.ui.aluno.chat.avatarColors
 import turmaA.grupoB.LinkStage.ui.aluno.chat.sampleConversations
@@ -119,10 +121,9 @@ fun HomeInstituicaoScreen(
 
     if (showEvaluationModal) {
         EvaluationNotificationModal(
-            title = "Estágio Concluído",
-            message = "O estágio foi concluído. A avaliação institucional encontra-se pendente. " +
-                "Por favor, submeta a sua avaliação para que o processo possa avançar.",
-            actionLabel = "Submeter avaliação",
+            title = stringResource(R.string.institution_home_completed_title),
+            message = stringResource(R.string.institution_home_completed_message),
+            actionLabel = stringResource(R.string.institution_eval_submit_grade),
             onAction = {
                 institutionHomeViewModel.setHasSeenEvaluations(true)
                 navController.navigate(
@@ -146,14 +147,14 @@ fun HomeInstituicaoScreen(
                     horizontalAlignment = Alignment.Start,
                 ) {
                     Text(
-                        text = "Olá, ESTG-IPVC.",
+                        text = stringResource(R.string.institution_home_greeting, "ESTG-IPVC"),
                         style = MaterialTheme.typography.headlineMedium.copy(
                             fontWeight = FontWeight.Bold,
                             color = DarkBlue,
                         ),
                     )
                     Text(
-                        text = "Bem-vindo ao seu painel de gestão.",
+                        text = stringResource(R.string.institution_home_welcome),
                         style = MaterialTheme.typography.bodyMedium,
                         color = DarkGrey,
                     )
@@ -169,9 +170,9 @@ fun HomeInstituicaoScreen(
         ) {
             if (evaluation?.state == EvaluationState.PENDING && !hasSeenResult) {
                 EvaluationPendingCard(
-                    title = "Avaliação pendente",
-                    message = "O estágio foi concluído e aguarda a avaliação institucional.",
-                    actionLabel = "Submeter avaliação",
+                    title = stringResource(R.string.institution_home_eval_pending),
+                    message = stringResource(R.string.institution_home_eval_pending_message),
+                    actionLabel = stringResource(R.string.institution_eval_submit_grade),
                     isDanger = false,
                     onClick = {
                         institutionHomeViewModel.setHasSeenEvaluations(true)
@@ -184,7 +185,7 @@ fun HomeInstituicaoScreen(
             }
 
             // Section 1 — Resumo (stat cards 2x2)
-            SectionTitle("Resumo")
+            SectionTitle(stringResource(R.string.institution_home_summary))
             Spacer(modifier = Modifier.height(8.dp))
 
             Row(
@@ -195,7 +196,7 @@ fun HomeInstituicaoScreen(
             ) {
                 StatCard(
                     icon = Icons.Outlined.Work,
-                    label = "Ofertas ativas",
+                    label = stringResource(R.string.institution_home_active_offers),
                     count = activeOffersCount,
                     color = LightBlue,
                     modifier = Modifier.weight(1f),
@@ -208,7 +209,7 @@ fun HomeInstituicaoScreen(
                 )
                 StatCard(
                     icon = Icons.Outlined.People,
-                    label = "Candidaturas",
+                    label = stringResource(R.string.institution_home_applications),
                     count = applicationsCount,
                     color = DarkBlue,
                     modifier = Modifier.weight(1f),
@@ -231,7 +232,7 @@ fun HomeInstituicaoScreen(
             ) {
                 StatCard(
                     icon = Icons.Outlined.CalendarMonth,
-                    label = "Estágios ativos",
+                    label = stringResource(R.string.institution_home_active_internships),
                     count = activeInternships,
                     color = LightBlue,
                     modifier = Modifier.weight(1f),
@@ -244,7 +245,7 @@ fun HomeInstituicaoScreen(
                 )
                 StatCard(
                     icon = Icons.Outlined.RateReview,
-                    label = "Por avaliar",
+                    label = stringResource(R.string.institution_home_pending_eval),
                     count = pendingEvaluations,
                     color = Red,
                     modifier = Modifier.weight(1f),
@@ -260,7 +261,7 @@ fun HomeInstituicaoScreen(
             Spacer(modifier = Modifier.height(20.dp))
 
             // Section 2 — Ações pendentes
-            SectionTitle("Ações pendentes")
+            SectionTitle(stringResource(R.string.institution_home_pending_actions))
             Spacer(modifier = Modifier.height(8.dp))
 
             if (applicationsCount > 0 || noMentorCount > 0) {
@@ -269,8 +270,8 @@ fun HomeInstituicaoScreen(
                         icon = Icons.Outlined.People,
                         iconBg = LightBlue.copy(alpha = 0.15f),
                         iconTint = LightBlue,
-                        title = "$applicationsCount candidaturas aguardam decisão",
-                        subtitle = "Reveja e tome uma decisão sobre as candidaturas recentes.",
+                        title = stringResource(R.string.institution_home_applications_waiting, applicationsCount),
+                        subtitle = stringResource(R.string.institution_home_applications_waiting_sub),
                         onClick = {
                             navController.navigate(InstituicaoRoutes.OFFERS) {
                                 popUpTo(navController.graph.findStartDestination().id) {
@@ -289,8 +290,8 @@ fun HomeInstituicaoScreen(
                         icon = Icons.Outlined.PersonOff,
                         iconBg = Red.copy(alpha = 0.12f),
                         iconTint = Red,
-                        title = "$noMentorCount estágios necessitam de orientador",
-                        subtitle = "Atribua um orientador para acompanhamento académico.",
+                        title = stringResource(R.string.institution_home_no_mentor, noMentorCount),
+                        subtitle = stringResource(R.string.institution_home_no_mentor_sub),
                         onClick = {
                             navController.navigate(InstituicaoRoutes.ACTIVITY) {
                                 popUpTo(navController.graph.findStartDestination().id) {
@@ -303,14 +304,14 @@ fun HomeInstituicaoScreen(
                     )
                 }
             } else {
-                EmptyStateCard("Sem ações pendentes. Tudo em ordem.")
+                EmptyStateCard(stringResource(R.string.institution_home_no_pending))
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
             // Section 3 — Ofertas Recentes
             SectionHeader(
-                title = "Ofertas Recentes",
+                title = stringResource(R.string.institution_home_recent_offers),
                 onViewAll = {
                     navController.navigate(InstituicaoRoutes.OFFERS) {
                         popUpTo(navController.graph.findStartDestination().id) {
@@ -329,14 +330,14 @@ fun HomeInstituicaoScreen(
                     Spacer(modifier = Modifier.height(8.dp))
                 }
             } else {
-                EmptyStateCard("Ainda não foi criada nenhuma oferta.")
+                EmptyStateCard(stringResource(R.string.institution_home_no_offers))
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
             // Section 4 — Mensagens Recentes
             SectionHeader(
-                title = "Mensagens Recentes",
+                title = stringResource(R.string.institution_home_recent_messages),
                 onViewAll = {
                     navController.navigate(InstituicaoRoutes.MESSAGES) {
                         popUpTo(navController.graph.findStartDestination().id) {
@@ -374,7 +375,7 @@ fun HomeInstituicaoScreen(
                     }
                 }
             } else {
-                EmptyStateCard("Sem mensagens de momento.")
+                EmptyStateCard(stringResource(R.string.institution_home_no_messages))
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -413,7 +414,7 @@ private fun SectionHeader(
         )
         TextButton(onClick = onViewAll) {
             Text(
-                text = "Ver todos →",
+                text = stringResource(R.string.common_view_all),
                 color = LightBlue,
                 fontSize = 13.sp,
             )
@@ -581,7 +582,7 @@ private fun SimpleOfferCard(offer: OfferItem) {
                 IconButton(onClick = { isFav = !isFav }) {
                     Icon(
                         imageVector = Icons.Outlined.FavoriteBorder,
-                        contentDescription = "Favorito",
+                        contentDescription = stringResource(R.string.institution_home_favorite),
                         tint = if (isFav) LightBlue else DarkGrey,
                     )
                 }
@@ -604,7 +605,7 @@ private fun SimpleOfferCard(offer: OfferItem) {
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
-                    text = "Publicada ${offer.publishedAgo}",
+                    text = stringResource(R.string.offers_published, offer.publishedAgo),
                     color = DarkGrey,
                     fontSize = 12.sp,
                 )

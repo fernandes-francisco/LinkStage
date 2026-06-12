@@ -34,11 +34,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.admin.sampleMentors
 import turmaA.grupoB.LinkStage.ui.instituicao.InstituicaoRoutes
 import turmaA.grupoB.LinkStage.ui.instituicao.sampleInstitutionInternships
@@ -86,7 +88,7 @@ fun MentorAssignedSuccessScreen(
                 )
                 Spacer(modifier = Modifier.width(10.dp))
                 Text(
-                    text = "Orientador atribuído com sucesso.",
+                    text = stringResource(R.string.mentor_assigned_success),
                     color = Color(0xFF4CAF50), fontWeight = FontWeight.SemiBold, fontSize = 14.sp,
                 )
             }
@@ -127,21 +129,21 @@ fun MentorAssignedSuccessScreen(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Row {
-                    Text("Orientador:", color = DarkGrey, fontSize = 13.sp, modifier = Modifier.weight(1f))
+                    Text(stringResource(R.string.mentor_success_advisor_label), color = DarkGrey, fontSize = 13.sp, modifier = Modifier.weight(1f))
                     Text(mentor.name, color = DarkBlue, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
                 }
 
                 Spacer(modifier = Modifier.height(4.dp))
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Novo estado:", color = DarkGrey, fontSize = 13.sp, modifier = Modifier.weight(1f))
+                    Text(stringResource(R.string.mentor_success_new_status), color = DarkGrey, fontSize = 13.sp, modifier = Modifier.weight(1f))
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(6.dp))
                             .background(LightBlue.copy(alpha = 0.15f))
                             .padding(horizontal = 8.dp, vertical = 3.dp),
                     ) {
-                        Text("Em acompanhamento", color = LightBlue, fontWeight = FontWeight.Bold, fontSize = 11.sp)
+                        Text(stringResource(R.string.mentor_success_monitoring), color = LightBlue, fontWeight = FontWeight.Bold, fontSize = 11.sp)
                     }
                 }
             }
@@ -165,9 +167,9 @@ fun MentorAssignedSuccessScreen(
                 Icon(Icons.Outlined.Info, contentDescription = null, tint = LightBlue, modifier = Modifier.size(20.dp))
                 Spacer(modifier = Modifier.width(10.dp))
                 Column {
-                    Text("Próximo passo:", color = DarkBlue, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                    Text(stringResource(R.string.mentor_success_next_step), color = DarkBlue, fontWeight = FontWeight.Bold, fontSize = 13.sp)
                     Text(
-                        "Acompanhar o estágio e consultar atividades",
+                        stringResource(R.string.mentor_success_next_step_message),
                         color = DarkGrey, fontSize = 12.sp,
                     )
                 }
@@ -188,7 +190,7 @@ fun MentorAssignedSuccessScreen(
             shape = RoundedCornerShape(12.dp),
             colors = ButtonDefaults.buttonColors(containerColor = DarkBlue),
         ) {
-            Text("Ver estágio", fontWeight = FontWeight.Bold, fontSize = 15.sp)
+            Text(stringResource(R.string.mentor_success_view_internship), fontWeight = FontWeight.Bold, fontSize = 15.sp)
         }
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -207,7 +209,7 @@ fun MentorAssignedSuccessScreen(
                 brush = androidx.compose.ui.graphics.SolidColor(DarkBlue),
             ),
         ) {
-            Text("Voltar aos orientadores", color = DarkBlue, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+            Text(stringResource(R.string.mentor_success_back_advisors), color = DarkBlue, fontWeight = FontWeight.Bold, fontSize = 15.sp)
         }
 
         Spacer(modifier = Modifier.height(16.dp))

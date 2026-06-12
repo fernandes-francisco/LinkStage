@@ -35,8 +35,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
@@ -80,7 +82,7 @@ fun NotificationsInstituicaoScreen(
                     )
                 }
                 Text(
-                    text = "Notificações",
+                    text = stringResource(R.string.notif_title),
                     style = MaterialTheme.typography.headlineSmall.copy(
                         fontWeight = FontWeight.Bold,
                         color = DarkBlue
@@ -101,7 +103,7 @@ fun NotificationsInstituicaoScreen(
                     borderColor = DarkBlue.copy(alpha = 0.1f)
                 ) {
                     NotificationRow(
-                        title = "Desativar todas as notificações",
+                        title = stringResource(R.string.notif_disable_all),
                         subtitle = "Silenciar avisos temporariamente",
                         checked = !enabled,
                         onCheckedChange = { settingsViewModel.toggleNotifications(!it) }
@@ -182,7 +184,7 @@ fun NotificationsInstituicaoScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "Guardar Alterações",
+                        text = stringResource(R.string.notif_save_changes),
                         color = Color.White,
                         style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold)
                     )

@@ -64,7 +64,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.admin.sampleMentors
-import turmaA.grupoB.LinkStage.ui.aluno.apply.skillCategories
+import turmaA.grupoB.LinkStage.ui.aluno.apply.getSkillCategories
 import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
 import turmaA.grupoB.LinkStage.ui.common.ConfirmationDialog
 import turmaA.grupoB.LinkStage.ui.common.LinkStageButton
@@ -79,8 +79,6 @@ import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.ui.theme.Red
 import turmaA.grupoB.LinkStage.viewmodel.OfferFormViewModel
-
-private val categoryOptions = skillCategories.keys.sorted()
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -323,6 +321,7 @@ private fun StepDetails(
     categoryError: Boolean,
     descriptionError: Boolean,
 ) {
+    val categoryOptions = getSkillCategories().keys.sorted()
     Column(
         modifier = Modifier
             .fillMaxSize()

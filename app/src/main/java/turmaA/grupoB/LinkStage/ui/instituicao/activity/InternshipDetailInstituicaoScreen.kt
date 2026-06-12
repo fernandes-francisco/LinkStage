@@ -53,6 +53,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -60,6 +61,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.aluno.activity.ActivityLogCard
 import turmaA.grupoB.LinkStage.ui.aluno.chat.avatarColors
 import turmaA.grupoB.LinkStage.ui.common.ConfirmationDialog
@@ -120,9 +122,9 @@ fun InternshipDetailInstituicaoScreen(
 
     if (showConfirmDialog) {
         ConfirmationDialog(
-            title = "Submeter avaliação?",
-            body = "Tem a certeza que pretende submeter a avaliação institucional? Esta ação não poderá ser revertida.",
-            confirmLabel = "Submeter",
+            title = stringResource(R.string.institution_eval_submit_title),
+            body = stringResource(R.string.institution_eval_submit_body),
+            confirmLabel = stringResource(R.string.institution_eval_submit_button),
             isDanger = false,
             onConfirm = {
                 showConfirmDialog = false
@@ -160,7 +162,7 @@ fun InternshipDetailInstituicaoScreen(
                 shape = CircleShape,
                 modifier = Modifier.padding(bottom = if (evaluation?.state == EvaluationState.PENDING) 80.dp else 0.dp)
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Criar ponto de entrega")
+                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.institution_create_checkpoint))
             }
         },
         topBar = {
@@ -174,12 +176,12 @@ fun InternshipDetailInstituicaoScreen(
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Voltar",
+                            contentDescription = stringResource(R.string.common_back_content_desc),
                             tint = DarkBlue
                         )
                     }
                     Text(
-                        text = "Detalhes de estágio",
+                        text = stringResource(R.string.institution_internship_detail),
                         style = MaterialTheme.typography.titleLarge.copy(
                             fontWeight = FontWeight.Bold,
                             color = DarkBlue,
@@ -204,7 +206,7 @@ fun InternshipDetailInstituicaoScreen(
                 ) {
                     if (evaluation?.state == EvaluationState.PENDING) {
                         LinkStageButton(
-                            text = "Submeter avaliação",
+                            text = stringResource(R.string.institution_eval_submit_grade),
                             onClick = {
                                 if (validateGrade(gradeText) == null) {
                                     gradeError = true
@@ -238,7 +240,7 @@ fun InternshipDetailInstituicaoScreen(
                             contentColor = if (evaluation?.state == EvaluationState.PENDING) DarkBlue else Color.White
                         ),
                     ) {
-                        Text("Ver atividades", fontWeight = FontWeight.SemiBold)
+                        Text(stringResource(R.string.institution_view_activities), fontWeight = FontWeight.SemiBold)
                     }
                 }
             }
@@ -258,7 +260,7 @@ fun InternshipDetailInstituicaoScreen(
 
             // Activity section
             Text(
-                text = "Atividade Recente",
+                text = stringResource(R.string.institution_activity_recent),
                 color = DarkBlue, fontWeight = FontWeight.Bold, fontSize = 15.sp,
                 modifier = Modifier.padding(horizontal = 16.dp),
             )
@@ -346,16 +348,16 @@ private fun InternshipInfoCard(internship: InstitutionInternship) {
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Origem", color = DarkGrey, fontSize = 11.sp)
+                    Text(stringResource(R.string.institution_origin), color = DarkGrey, fontSize = 11.sp)
                     Text(
-                        if (internship.origin == InternshipOrigin.SCHOOL) "Escola" else "Empresa",
+                        if (internship.origin == InternshipOrigin.SCHOOL) stringResource(R.string.institution_origin_school) else stringResource(R.string.institution_origin_company),
                         color = DarkBlue, fontWeight = FontWeight.SemiBold, fontSize = 13.sp,
                     )
                 }
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Orientador escolar", color = DarkGrey, fontSize = 11.sp)
+                    Text(stringResource(R.string.institution_school_mentor), color = DarkGrey, fontSize = 11.sp)
                     Text(
-                        internship.schoolMentorName.ifEmpty { "Por definir" },
+                        internship.schoolMentorName.ifEmpty { stringResource(R.string.institution_to_be_defined) },
                         color = DarkBlue, fontWeight = FontWeight.SemiBold, fontSize = 13.sp,
                     )
                 }
@@ -366,9 +368,9 @@ private fun InternshipInfoCard(internship: InstitutionInternship) {
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("Orientador da empresa", color = DarkGrey, fontSize = 11.sp)
+                        Text(stringResource(R.string.institution_company_mentor), color = DarkGrey, fontSize = 11.sp)
                         Text(
-                            internship.companyMentorName.ifEmpty { "Por definir" },
+                            internship.companyMentorName.ifEmpty { stringResource(R.string.institution_to_be_defined) },
                             color = DarkBlue, fontWeight = FontWeight.SemiBold, fontSize = 13.sp,
                         )
                     }
@@ -380,11 +382,11 @@ private fun InternshipInfoCard(internship: InstitutionInternship) {
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Data de início", color = DarkGrey, fontSize = 11.sp)
+                    Text(stringResource(R.string.institution_start_date_label), color = DarkGrey, fontSize = 11.sp)
                     Text("01 Set 2026", color = DarkBlue, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
                 }
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Progresso", color = DarkGrey, fontSize = 11.sp)
+                    Text(stringResource(R.string.institution_progress), color = DarkGrey, fontSize = 11.sp)
                     Text("${internship.progressPercent}%", color = DarkBlue, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
                 }
             }
@@ -408,7 +410,7 @@ private fun InternshipInfoCard(internship: InstitutionInternship) {
                 modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text("Relatório final:", color = DarkGrey, fontSize = 12.sp)
+                Text(stringResource(R.string.institution_final_report_label), color = DarkGrey, fontSize = 12.sp)
                 Spacer(modifier = Modifier.width(8.dp))
                 Box(
                     modifier = Modifier
@@ -416,7 +418,7 @@ private fun InternshipInfoCard(internship: InstitutionInternship) {
                         .background(Color(0xFF4CAF50).copy(alpha = 0.12f))
                         .padding(horizontal = 8.dp, vertical = 3.dp),
                 ) {
-                    Text("Pendente", color = Color(0xFF4CAF50), fontWeight = FontWeight.Bold, fontSize = 11.sp)
+                    Text(stringResource(R.string.institution_status_pending), color = Color(0xFF4CAF50), fontWeight = FontWeight.Bold, fontSize = 11.sp)
                 }
             }
         }
@@ -479,7 +481,7 @@ private fun InstitutionEvaluationSection(
         }
         EvaluationState.PARTIAL, EvaluationState.READY_FOR_FINAL -> {
             Text(
-                text = "Avaliação Institucional Submetida",
+                text = stringResource(R.string.institution_eval_submitted),
                 color = DarkBlue,
                 fontWeight = FontWeight.Bold,
                 fontSize = 15.sp,
@@ -488,7 +490,7 @@ private fun InstitutionEvaluationSection(
             Spacer(modifier = Modifier.height(8.dp))
             if (evaluation.institutionGrade != null) {
                 EvaluationReadOnlyCard(
-                    role = "Instituição Escolar",
+                    role = stringResource(R.string.eval_role_institution),
                     name = evaluation.institutionName,
                     grade = evaluation.institutionGrade,
                     observation = evaluation.institutionObservation,
@@ -497,7 +499,7 @@ private fun InstitutionEvaluationSection(
         }
         EvaluationState.COMPLETED -> {
             Text(
-                text = "Avaliação Concluída",
+                text = stringResource(R.string.institution_eval_completed),
                 color = DarkBlue,
                 fontWeight = FontWeight.Bold,
                 fontSize = 15.sp,
@@ -506,7 +508,7 @@ private fun InstitutionEvaluationSection(
             Spacer(modifier = Modifier.height(8.dp))
             if (evaluation.institutionGrade != null) {
                 EvaluationReadOnlyCard(
-                    role = "Instituição Escolar",
+                    role = stringResource(R.string.eval_role_institution),
                     name = evaluation.institutionName,
                     grade = evaluation.institutionGrade,
                     observation = evaluation.institutionObservation,
@@ -514,7 +516,7 @@ private fun InstitutionEvaluationSection(
             }
             if (evaluation.schoolMentorGrade != null) {
                 EvaluationReadOnlyCard(
-                    role = "Orientador Escolar (Nota Final)",
+                    role = stringResource(R.string.eval_role_school_mentor_short),
                     name = evaluation.schoolMentorName,
                     grade = evaluation.schoolMentorGrade,
                     observation = evaluation.schoolMentorObservation,
@@ -533,7 +535,7 @@ private fun InstitutionEvaluationForm(
     gradeError: Boolean
 ) {
     Text(
-        text = "Avaliação Institucional",
+        text = stringResource(R.string.institution_eval_title),
         color = DarkBlue,
         fontWeight = FontWeight.Bold,
         fontSize = 15.sp,
@@ -542,13 +544,13 @@ private fun InstitutionEvaluationForm(
     Spacer(modifier = Modifier.height(8.dp))
 
     Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-        SectionLabel("Observação")
+        SectionLabel(stringResource(R.string.institution_eval_observation))
         Spacer(modifier = Modifier.height(8.dp))
         OutlinedTextField(
             value = observation,
             onValueChange = onObservationChange,
             modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("Escreva aqui.", color = DarkGrey) },
+            placeholder = { Text(stringResource(R.string.common_write_here), color = DarkGrey) },
             shape = RoundedCornerShape(10.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = LightBlue,
@@ -564,13 +566,13 @@ private fun InstitutionEvaluationForm(
     Spacer(modifier = Modifier.height(12.dp))
 
     Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-        SectionLabel("Nota (0-20)")
+        SectionLabel(stringResource(R.string.institution_eval_grade_label))
         Spacer(modifier = Modifier.height(8.dp))
         OutlinedTextField(
             value = gradeText,
             onValueChange = onGradeTextChange,
             modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("Ex: 14,5", color = DarkGrey) },
+            placeholder = { Text(stringResource(R.string.institution_eval_grade_placeholder), color = DarkGrey) },
             shape = RoundedCornerShape(10.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = if (gradeError) Red else LightBlue,
@@ -585,7 +587,7 @@ private fun InstitutionEvaluationForm(
         if (gradeError) {
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "Introduza um valor entre 0,0 e 20,0 com no máximo uma casa decimal.",
+                text = stringResource(R.string.institution_eval_grade_error),
                 color = Red,
                 fontSize = 12.sp,
             )

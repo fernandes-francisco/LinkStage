@@ -52,7 +52,7 @@ import turmaA.grupoB.LinkStage.ui.aluno.chat.Contact
 import turmaA.grupoB.LinkStage.ui.aluno.chat.Conversation
 import turmaA.grupoB.LinkStage.ui.aluno.chat.ConversationItem
 import turmaA.grupoB.LinkStage.ui.aluno.chat.avatarColors
-import turmaA.grupoB.LinkStage.ui.aluno.chat.sampleContacts
+import turmaA.grupoB.LinkStage.ui.aluno.chat.getSampleContacts
 import turmaA.grupoB.LinkStage.ui.aluno.chat.sampleConversations
 import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
 import turmaA.grupoB.LinkStage.ui.common.LinkStageDialog
@@ -184,7 +184,7 @@ private fun NewMessageModal(
     onContactSelected: (String) -> Unit,
 ) {
     var query by rememberSaveable { mutableStateOf("") }
-    val filteredContacts = sampleContacts.filter {
+    val filteredContacts = getSampleContacts().filter {
         it.name.contains(query, ignoreCase = true) || it.role.contains(query, ignoreCase = true)
     }
 

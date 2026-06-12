@@ -57,12 +57,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.admin.AdminMentor
 import turmaA.grupoB.LinkStage.ui.admin.sampleMentors
 import turmaA.grupoB.LinkStage.ui.common.ConfirmationDialog
@@ -101,12 +103,12 @@ fun MentorDetailInstituicaoScreen(
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Voltar",
+                            contentDescription = stringResource(R.string.common_back_content_desc),
                             tint = DarkBlue
                         )
                     }
                     Text(
-                        text = "Orientadores",
+                        text = stringResource(R.string.admin_mentors_title),
                         style = MaterialTheme.typography.titleLarge.copy(
                             fontWeight = FontWeight.Bold,
                             color = DarkBlue,
@@ -140,7 +142,7 @@ fun MentorDetailInstituicaoScreen(
                 }
 
                 LinkStageTabRow(
-                    tabs = listOf("Detalhes", "Competências", "Gerir"),
+                    tabs = listOf(stringResource(R.string.mentor_detail_tab_details), stringResource(R.string.mentor_detail_tab_skills), stringResource(R.string.mentor_detail_tab_manage)),
                     selectedIndex = selectedTab,
                     onTabSelected = { selectedTab = it },
                 )
@@ -167,9 +169,9 @@ private fun DetailsTab(mentor: AdminMentor) {
 
     if (showSaveDialog) {
         ConfirmationDialog(
-            title = "Guardar nota?",
-            body = "Tem a certeza que pretende guardar a nota interna?",
-            confirmLabel = "Guardar",
+            title = stringResource(R.string.mentor_detail_save_note_title),
+            body = stringResource(R.string.mentor_detail_save_note_body),
+            confirmLabel = stringResource(R.string.common_save),
             onConfirm = {
                 showSaveDialog = false
                 isEditing = false
@@ -184,25 +186,25 @@ private fun DetailsTab(mentor: AdminMentor) {
             .verticalScroll(rememberScrollState())
             .padding(vertical = 8.dp),
     ) {
-        InfoFieldWithIcon(label = "Email", value = mentor.email, icon = Icons.Outlined.Email)
-        InfoFieldWithIcon(label = "Telemóvel", value = mentor.phone, icon = Icons.Outlined.Phone)
-        InfoFieldWithIcon(label = "Área", value = mentor.department, icon = Icons.AutoMirrored.Outlined.MenuBook)
+        InfoFieldWithIcon(label = stringResource(R.string.admin_detail_email), value = mentor.email, icon = Icons.Outlined.Email)
+        InfoFieldWithIcon(label = stringResource(R.string.admin_detail_phone), value = mentor.phone, icon = Icons.Outlined.Phone)
+        InfoFieldWithIcon(label = stringResource(R.string.mentor_detail_area), value = mentor.department, icon = Icons.AutoMirrored.Outlined.MenuBook)
 
         Spacer(modifier = Modifier.height(8.dp))
 
         // Internal note
         Column(modifier = Modifier.padding(horizontal = 16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                SectionLabel("Nota Interna")
+                SectionLabel(stringResource(R.string.mentor_detail_internal_note))
                 Spacer(modifier = Modifier.weight(1f))
                 if (!isEditing) {
                     IconButton(onClick = { isEditing = true }, modifier = Modifier.size(32.dp)) {
-                        Icon(Icons.Outlined.Edit, contentDescription = "Editar", tint = LightBlue, modifier = Modifier.size(20.dp))
+                        Icon(Icons.Outlined.Edit, contentDescription = stringResource(R.string.common_edit), tint = LightBlue, modifier = Modifier.size(20.dp))
                     }
                 }
             }
             Text(
-                text = "Nota visível apenas para a instituição. Utilize para anotações internas.",
+                text = stringResource(R.string.mentor_detail_note_info),
                 color = DarkGrey, fontSize = 12.sp,
             )
         }
@@ -223,7 +225,7 @@ private fun DetailsTab(mentor: AdminMentor) {
                         value = noteText,
                         onValueChange = { noteText = it },
                         modifier = Modifier.fillMaxWidth(),
-                        placeholder = { Text("Escreva uma nota interna...", color = DarkGrey, fontSize = 14.sp) },
+                        placeholder = { Text(stringResource(R.string.mentor_detail_note_placeholder), color = DarkGrey, fontSize = 14.sp) },
                         shape = RoundedCornerShape(10.dp),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = LightBlue,
@@ -241,18 +243,19 @@ private fun DetailsTab(mentor: AdminMentor) {
                             colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
                             shape = RoundedCornerShape(10.dp),
                         ) {
-                            Text("Guardar", fontWeight = FontWeight.SemiBold)
+                            Text(stringResource(R.string.common_save), fontWeight = FontWeight.SemiBold)
                         }
                         TextButton(onClick = {
                             noteText = mentor.internalNote
                             isEditing = false
                         }) {
-                            Text("Cancelar", color = DarkGrey, fontWeight = FontWeight.SemiBold)
+                            Text(stringResource(R.string.common_cancel), color = DarkGrey, fontWeight = FontWeight.SemiBold)
                         }
                     }
                 } else {
+                    val noNoteText = stringResource(R.string.mentor_detail_no_note)
                     Text(
-                        text = noteText.ifBlank { "Sem nota interna." },
+                        text = noteText.ifBlank { noNoteText },
                         color = DarkGrey, fontSize = 14.sp, lineHeight = 20.sp,
                     )
                 }
@@ -271,7 +274,7 @@ private fun DetailsTab(mentor: AdminMentor) {
             shape = RoundedCornerShape(12.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
         ) {
-            Text("Ver estágios atribuídos", fontWeight = FontWeight.SemiBold)
+            Text(stringResource(R.string.mentor_detail_view_assigned), fontWeight = FontWeight.SemiBold)
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -314,7 +317,7 @@ private fun SkillsTab(mentor: AdminMentor) {
             .padding(vertical = 8.dp),
     ) {
         Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-            SectionLabel("Competências técnicas")
+            SectionLabel(stringResource(R.string.mentor_detail_technical_skills))
         }
         Spacer(modifier = Modifier.height(8.dp))
         FlowRow(
@@ -330,7 +333,7 @@ private fun SkillsTab(mentor: AdminMentor) {
         Spacer(modifier = Modifier.height(20.dp))
 
         Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-            SectionLabel("Áreas de supervisão")
+            SectionLabel(stringResource(R.string.mentor_detail_supervision_areas))
         }
         Spacer(modifier = Modifier.height(8.dp))
         FlowRow(
@@ -370,9 +373,9 @@ private fun ManageTab(mentor: AdminMentor, navController: NavController) {
 
     if (showReassignDialog) {
         ConfirmationDialog(
-            title = "Reatribuir estágio?",
-            body = "Tem a certeza que pretende transferir o acompanhamento para outro orientador?",
-            confirmLabel = "Confirmar",
+            title = stringResource(R.string.mentor_detail_reassign_title),
+            body = stringResource(R.string.mentor_detail_reassign_body),
+            confirmLabel = stringResource(R.string.common_confirm),
             onConfirm = {
                 showReassignDialog = false
                 navController.navigate(InstituicaoRoutes.assignMentorRoute(mentor.id))
@@ -389,43 +392,43 @@ private fun ManageTab(mentor: AdminMentor, navController: NavController) {
     ) {
         ActionRow(
             icon = Icons.Outlined.Work,
-            title = "Atribuir a estágio",
-            subtitle = "Associar este orientador a um novo estágio",
+            title = stringResource(R.string.mentor_detail_assign_internship),
+            subtitle = stringResource(R.string.mentor_detail_assign_internship_sub),
             iconBg = LightBlue.copy(alpha = 0.15f),
             onClick = { navController.navigate(InstituicaoRoutes.assignMentorRoute(mentor.id)) },
         )
         ActionRow(
             icon = Icons.Outlined.SwapHoriz,
-            title = "Reatribuir estágio",
-            subtitle = "Transferir acompanhamento para outro docente",
+            title = stringResource(R.string.mentor_detail_reassign_title),
+            subtitle = stringResource(R.string.mentor_detail_reassign_body),
             iconBg = LightBlue.copy(alpha = 0.15f),
             onClick = { showReassignDialog = true },
         )
         ActionRow(
             icon = Icons.Outlined.CalendarMonth,
-            title = "Ver estágios atribuídos",
-            subtitle = "Consultar a lista de estágios acompanhados",
+            title = stringResource(R.string.mentor_detail_view_assigned),
+            subtitle = stringResource(R.string.mentor_detail_view_assigned_sub),
             iconBg = LightBlue.copy(alpha = 0.15f),
             onClick = { },
         )
         ActionRow(
             icon = Icons.AutoMirrored.Outlined.MenuBook,
-            title = "Consultar disponibilidade",
-            subtitle = "Ver disponibilidade do orientador declarada",
+            title = stringResource(R.string.mentor_detail_check_availability),
+            subtitle = stringResource(R.string.mentor_detail_check_availability_sub),
             iconBg = LightBlue.copy(alpha = 0.15f),
             onClick = { },
         )
         ActionRow(
             icon = Icons.AutoMirrored.Outlined.Chat,
-            title = "Enviar mensagem",
-            subtitle = "Comunicar sobre acompanhamento",
+            title = stringResource(R.string.common_send_message),
+            subtitle = stringResource(R.string.mentor_detail_send_message_sub),
             iconBg = LightBlue.copy(alpha = 0.15f),
             onClick = { navController.navigate(InstituicaoRoutes.chatRoute(mentor.id)) },
         )
         ActionRow(
             icon = Icons.Outlined.PersonAdd,
-            title = "Atribuir a um aluno",
-            subtitle = "Associar este orientador a um aluno específico",
+            title = stringResource(R.string.mentor_detail_assign_student),
+            subtitle = stringResource(R.string.mentor_detail_assign_student_sub),
             iconBg = LightBlue.copy(alpha = 0.15f),
             onClick = { },
         )

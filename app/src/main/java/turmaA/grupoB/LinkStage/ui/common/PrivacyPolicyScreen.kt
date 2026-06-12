@@ -12,7 +12,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.sp
+import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
@@ -24,7 +26,7 @@ fun PrivacyPolicyScreen(
     Scaffold(
         topBar = {
             SecondaryTopBar(
-                title = "Políticas de Privacidade",
+                title = stringResource(R.string.privacy_policy_title),
                 onBack = onBack
             )
         },
@@ -38,39 +40,39 @@ fun PrivacyPolicyScreen(
                 .padding(20.dp)
         ) {
             PrivacySection(
-                title = "1. Introdução",
-                content = "Bem-vindo ao LinkStage. A sua privacidade é importante para nós. Esta política explica como recolhemos, utilizamos e protegemos os seus dados pessoais de acordo com o Regulamento Geral sobre a Proteção de Dados (RGPD)."
+                title = stringResource(R.string.privacy_section_1_title),
+                content = stringResource(R.string.privacy_section_1_content)
             )
 
             PrivacySection(
-                title = "2. Dados que recolhemos",
-                content = "Recolhemos dados como o seu nome, endereço de e-mail, instituição de ensino e informações profissionais (no caso de estudantes) para permitir a utilização das funcionalidades da plataforma, como candidaturas a estágios e comunicação entre utilizadores."
+                title = stringResource(R.string.privacy_section_2_title),
+                content = stringResource(R.string.privacy_section_2_content)
             )
 
             PrivacySection(
-                title = "3. Finalidade do Tratamento",
-                content = "Os seus dados são utilizados para:\n• Gestão da conta de utilizador;\n• Facilitar o processo de recrutamento de estágios;\n• Melhorar a experiência na aplicação;\n• Cumprir obrigações legais."
+                title = stringResource(R.string.privacy_section_3_title),
+                content = stringResource(R.string.privacy_section_3_content)
             )
 
             PrivacySection(
-                title = "4. Partilha de Dados",
-                content = "Os seus dados pessoais apenas são partilhados com as entidades relevantes (Instituições e Orientadores) quando inicia uma candidatura ou interação na plataforma. Não vendemos os seus dados a terceiros."
+                title = stringResource(R.string.privacy_section_4_title),
+                content = stringResource(R.string.privacy_section_4_content)
             )
 
             PrivacySection(
-                title = "5. Os Seus Direitos",
-                content = "Nos termos do RGPD, tem o direito de:\n• Aceder aos seus dados;\n• Retificar informações incorretas;\n• Solicitar o apagamento dos seus dados;\n• Opor-se ao tratamento dos mesmos."
+                title = stringResource(R.string.privacy_section_5_title),
+                content = stringResource(R.string.privacy_section_5_content)
             )
 
             PrivacySection(
-                title = "6. Contacto",
-                content = "Para qualquer questão relacionada com a privacidade ou para exercer os seus direitos, os utilizadores podem contactar a coordenação do projeto através da respetiva Instituição de Ensino."
+                title = stringResource(R.string.privacy_section_6_title),
+                content = stringResource(R.string.privacy_section_6_content)
             )
 
             Spacer(modifier = Modifier.height(24.dp))
             
             Text(
-                text = "Última atualização: Junho 2026",
+                text = stringResource(R.string.privacy_policy_updated),
                 style = MaterialTheme.typography.bodySmall,
                 color = DarkGrey,
                 modifier = Modifier.fillMaxWidth()

@@ -48,6 +48,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import turmaA.grupoB.LinkStage.R
+import turmaA.grupoB.LinkStage.data.remote.model.enums.UserRole
 import turmaA.grupoB.LinkStage.ui.theme.CompanyGreen
 import turmaA.grupoB.LinkStage.ui.theme.Fade2
 import turmaA.grupoB.LinkStage.ui.theme.LinkStageTheme
@@ -57,10 +58,10 @@ import turmaA.grupoB.LinkStage.ui.theme.Red
 @Composable
 fun RegisterScreen(
     modifier: Modifier = Modifier,
-    onContinueClick: (String) -> Unit = {},
+    onContinueClick: (UserRole) -> Unit = {},
     onBackToLogin: () -> Unit = {}
 ) {
-    var selectedProfile by remember { mutableStateOf("") }
+    var selectedProfile by remember { mutableStateOf<UserRole?>(null) }
 
     Surface(
         modifier = modifier.fillMaxSize(),
@@ -109,8 +110,8 @@ fun RegisterScreen(
                 ),
                 icon = Icons.Outlined.AutoStories,
                 color = MediumBlue,
-                isSelected = selectedProfile == "Estudante",
-                onClick = { selectedProfile = "Estudante" }
+                isSelected = selectedProfile == UserRole.STUDENT,
+                onClick = { selectedProfile = UserRole.STUDENT }
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -125,15 +126,15 @@ fun RegisterScreen(
                 ),
                 icon = Icons.Outlined.BusinessCenter,
                 color = CompanyGreen,
-                isSelected = selectedProfile == "Instituição",
-                onClick = { selectedProfile = "Instituição" }
+                isSelected = selectedProfile == UserRole.INSTITUITION,
+                onClick = { selectedProfile = UserRole.INSTITUITION }
             )
 
             Spacer(modifier = Modifier.weight(1f))
             Spacer(modifier = Modifier.height(32.dp))
 
             Column(modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)) {
-                val isContinueEnabled = selectedProfile.isNotEmpty()
+                val isContinueEnabled = selectedProfile != null
                 
                 Box(
                     modifier = Modifier
@@ -146,7 +147,7 @@ fun RegisterScreen(
                         )
                 ) {
                     Button(
-                        onClick = { onContinueClick(selectedProfile) },
+                        onClick = { selectedProfile?.let { onContinueClick(it) } },
                         enabled = isContinueEnabled,
                         modifier = Modifier.fillMaxSize(),
                         colors = ButtonDefaults.buttonColors(

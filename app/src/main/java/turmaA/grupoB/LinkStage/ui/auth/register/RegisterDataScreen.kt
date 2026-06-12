@@ -31,12 +31,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import turmaA.grupoB.LinkStage.R
+import turmaA.grupoB.LinkStage.data.remote.model.enums.UserRole
 import turmaA.grupoB.LinkStage.ui.common.LinkStageTabRow
 import turmaA.grupoB.LinkStage.ui.theme.*
 
 @Composable
 fun RegisterDataScreen(
-    selectedProfile: String,
+    selectedProfile: UserRole,
     onBackClick: () -> Unit = {},
     onContinueClick: (Map<String, String>) -> Unit = {}
 ) {
@@ -51,6 +52,9 @@ fun RegisterDataScreen(
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
 
     var showSuccessMessage by remember { mutableStateOf(false) }
+
+    val corporateLabel = stringResource(R.string.register_data_type_corporate)
+    val schoolLabel = stringResource(R.string.register_data_type_school)
 
     // Validation
     val isEmailValid by remember {
@@ -74,7 +78,7 @@ fun RegisterDataScreen(
             name.isNotEmpty() &&
             android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches() &&
             isPasswordValid &&
-            (if (selectedProfile == "Estudante") institute.isNotEmpty() else true) &&
+            (if (selectedProfile == UserRole.STUDENT) institute.isNotEmpty() else true) &&
             gdprConsent
         }
     }
@@ -102,9 +106,9 @@ fun RegisterDataScreen(
                                     "email" to email,
                                     "password" to password
                                 )
-                                if (selectedProfile == "Estudante") data["institute"] = institute
-                                if (selectedProfile == "Instituição") {
-                                    data["institutionType"] = if (institutionType == 0) "Empresarial" else "Escolar"
+                                if (selectedProfile == UserRole.STUDENT) data["institute"] = institute
+                                if (selectedProfile == UserRole.INSTITUITION) {
+                                    data["institutionType"] = if (institutionType == 0) corporateLabel else schoolLabel
                                 }
                                 onContinueClick(data)
                             },
@@ -152,14 +156,14 @@ fun RegisterDataScreen(
             )
 
             Text(
-                text = if (selectedProfile == "Estudante") stringResource(R.string.register_data_step_student) else stringResource(R.string.register_data_step_institution),
+                text = if (selectedProfile == UserRole.STUDENT) stringResource(R.string.register_data_step_student) else stringResource(R.string.register_data_step_institution),
                 style = MaterialTheme.typography.bodyMedium,
                 color = Color.Gray
             )
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            if (selectedProfile == "Instituição") {
+            if (selectedProfile == UserRole.INSTITUITION) {
                 LinkStageTabRow(
                     tabs = listOf(stringResource(R.string.register_data_tab_corporate), stringResource(R.string.register_data_tab_school)),
                     selectedIndex = institutionType,
@@ -170,12 +174,12 @@ fun RegisterDataScreen(
 
             // Dynamic Name Field
             val nameLabel = when {
-                selectedProfile == "Estudante" -> stringResource(R.string.register_data_name_student)
+                selectedProfile == UserRole.STUDENT -> stringResource(R.string.register_data_name_student)
                 institutionType == 0 -> stringResource(R.string.register_data_name_corporate)
                 else -> stringResource(R.string.register_data_name_school)
             }
             val namePlaceholder = when {
-                selectedProfile == "Estudante" -> stringResource(R.string.register_data_name_student_placeholder)
+                selectedProfile == UserRole.STUDENT -> stringResource(R.string.register_data_name_student_placeholder)
                 institutionType == 0 -> stringResource(R.string.register_data_name_corporate_placeholder)
                 else -> stringResource(R.string.register_data_name_school_placeholder)
             }
@@ -203,7 +207,7 @@ fun RegisterDataScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             // Dynamic Institute Field (Only for Estudante)
-            if (selectedProfile == "Estudante") {
+            if (selectedProfile == UserRole.STUDENT) {
                 RegisterTextField(
                     label = stringResource(R.string.register_data_institution),
                     value = institute,
@@ -265,7 +269,7 @@ fun RegisterDataScreen(
                     Button(
                         onClick = {
                             if (isFormValid) {
-                                if (selectedProfile == "Estudante") {
+                                if (selectedProfile == UserRole.STUDENT) {
                                     val data = mutableMapOf(
                                         "name" to name,
                                         "email" to email,
@@ -278,7 +282,7 @@ fun RegisterDataScreen(
                                         "name" to name,
                                         "email" to email,
                                         "password" to password,
-                                        "institutionType" to if (institutionType == 0) "Empresarial" else "Escolar"
+                                        "institutionType" to if (institutionType == 0) corporateLabel else schoolLabel
                                     )
                                     onContinueClick(data)
                                     showSuccessMessage = true
@@ -295,7 +299,7 @@ fun RegisterDataScreen(
                         contentPadding = PaddingValues()
                     ) {
                         Text(
-                            text = if (selectedProfile == "Estudante") stringResource(R.string.register_continue) else stringResource(R.string.register_data_button_register),
+                            text = if (selectedProfile == UserRole.STUDENT) stringResource(R.string.register_continue) else stringResource(R.string.register_data_button_register),
                             color = if (isFormValid) Color.White else Color.Gray.copy(alpha = 0.8f),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
@@ -419,9 +423,9 @@ private fun ValidationItem(text: String, isValid: Boolean) {
 fun RegisterDataScreenPreview() {
     LinkStageTheme {
         Column {
-            RegisterDataScreen(selectedProfile = "Estudante")
+            RegisterDataScreen(selectedProfile = UserRole.STUDENT)
             HorizontalDivider()
-            RegisterDataScreen(selectedProfile = "Instituição")
+            RegisterDataScreen(selectedProfile = UserRole.INSTITUITION)
         }
     }
 }

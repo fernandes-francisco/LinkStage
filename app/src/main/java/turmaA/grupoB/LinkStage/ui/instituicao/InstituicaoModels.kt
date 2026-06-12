@@ -1,6 +1,9 @@
 package turmaA.grupoB.LinkStage.ui.instituicao
 
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
+import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.aluno.home.ApplicationStatus
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.ui.theme.Red
@@ -98,11 +101,12 @@ val sampleInstitutionMentors = listOf(
     InstitutionMentorItem("m3", "Miguel Azev.", "MA", 2, "ESTG-IPVC", MentorStatus.NO_STUDENTS),
 )
 
+@Composable
 fun internshipStatusLabel(status: InternshipStatus): String = when (status) {
-    InternshipStatus.IN_PROGRESS -> "Em acompanhamento"
-    InternshipStatus.PENDING_REVIEW -> "Por avaliar"
-    InternshipStatus.COMPLETED -> "Concluído"
-    InternshipStatus.NO_MENTOR -> "Sem orientador"
+    InternshipStatus.IN_PROGRESS -> stringResource(R.string.status_in_progress)
+    InternshipStatus.PENDING_REVIEW -> stringResource(R.string.status_pending_review)
+    InternshipStatus.COMPLETED -> stringResource(R.string.status_completed)
+    InternshipStatus.NO_MENTOR -> stringResource(R.string.status_no_mentor)
 }
 
 fun internshipStatusColor(status: InternshipStatus): Color = when (status) {
@@ -112,10 +116,11 @@ fun internshipStatusColor(status: InternshipStatus): Color = when (status) {
     InternshipStatus.NO_MENTOR -> Red
 }
 
+@Composable
 fun mentorStatusLabel(status: MentorStatus): String = when (status) {
-    MentorStatus.ACTIVE -> "Em acompanhamento"
-    MentorStatus.INACTIVE -> "Inativo"
-    MentorStatus.NO_STUDENTS -> "Sem estágios"
+    MentorStatus.ACTIVE -> stringResource(R.string.mentor_status_active)
+    MentorStatus.INACTIVE -> stringResource(R.string.mentor_status_inactive)
+    MentorStatus.NO_STUDENTS -> stringResource(R.string.mentor_status_no_students)
 }
 
 fun mentorStatusColor(status: MentorStatus): Color = when (status) {

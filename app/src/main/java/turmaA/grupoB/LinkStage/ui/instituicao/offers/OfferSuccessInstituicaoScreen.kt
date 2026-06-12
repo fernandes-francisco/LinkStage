@@ -35,9 +35,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
 import turmaA.grupoB.LinkStage.ui.common.LinkStageButton
 import turmaA.grupoB.LinkStage.ui.instituicao.InstituicaoRoutes
@@ -135,7 +137,7 @@ fun OfferSuccessInstituicaoScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = if (offerId == "new") "Oferta de estágio\ncriada com sucesso!" else "Oferta de estágio\natualizada com sucesso!",
+            text = if (offerId == "new") stringResource(R.string.offer_success_created) else stringResource(R.string.offer_success_updated),
             color = DarkBlue,
             fontWeight = FontWeight.Bold,
             fontSize = 20.sp,
@@ -146,7 +148,7 @@ fun OfferSuccessInstituicaoScreen(
         Spacer(modifier = Modifier.height(48.dp))
 
             LinkStageButton(
-                text = "Voltar",
+                text = stringResource(R.string.offer_success_back),
                 onClick = {
                     navController.navigate(InstituicaoRoutes.OFFERS) {
                         popUpTo(InstituicaoRoutes.HOME) { inclusive = false }

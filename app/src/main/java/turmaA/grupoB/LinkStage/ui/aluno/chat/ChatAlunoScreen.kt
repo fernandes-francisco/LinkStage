@@ -88,20 +88,23 @@ val avatarColors = listOf(LightBlue, DarkBlue, MediumBlue)
 
 val sampleConversations = listOf(
     Conversation("1", "FR | Francisco Fernandes", "FF", "Boa pergunta.", "22:42AM", unreadCount = 1, avatarColorIndex = 0),
-    Conversation("2", "Tiago Alexandre", "TA", "Como assim?", "Ontem", unreadCount = 0, avatarColorIndex = 1),
-    Conversation("3", "MA | Miguel Azevedo", "MA", "Nota-se.", "2d Atrás", unreadCount = 0, avatarColorIndex = 2),
+    Conversation("2", "Tiago Alexandre", "TA", "Como assim?", "Yesterday", unreadCount = 0, avatarColorIndex = 1),
+    Conversation("3", "MA | Miguel Azevedo", "MA", "Nota-se.", "2d", unreadCount = 0, avatarColorIndex = 2),
     Conversation("4", "VS | Viana S.T.Arts", "VS", "Altera a dashboard", "22:42AM", unreadCount = 0, avatarColorIndex = 0),
 )
 
-val sampleContacts = listOf(
-    Contact("s1", "Tiago Rodrigues", "Estudante", "TR", 0),
-    Contact("s2", "Francisco Fernandes", "Estudante", "FF", 1),
-    Contact("13", "Ana Silva", "Gestora de Projeto", "AS", 0),
-    Contact("10", "Francisco Fernandes", "Orientador Instituição", "FF", 0),
-    Contact("14", "José Santos", "Tutor Técnico", "JS", 1),
-    Contact("12", "Miguel Azevedo", "Responsável RH", "MA", 2),
-    Contact("11", "Tiago Alexandre", "Orientador Empresa", "TA", 1),
-).sortedBy { it.name }
+@Composable
+fun getSampleContacts(): List<Contact> {
+    return listOf(
+        Contact("s1", "Tiago Rodrigues", stringResource(R.string.chat_role_student), "TR", 0),
+        Contact("s2", "Francisco Fernandes", stringResource(R.string.chat_role_student), "FF", 1),
+        Contact("13", "Ana Silva", stringResource(R.string.chat_role_project_manager), "AS", 0),
+        Contact("10", "Francisco Fernandes", stringResource(R.string.chat_role_institution_advisor), "FF", 0),
+        Contact("14", "José Santos", stringResource(R.string.chat_role_technical_tutor), "JS", 1),
+        Contact("12", "Miguel Azevedo", stringResource(R.string.chat_role_hr_responsible), "MA", 2),
+        Contact("11", "Tiago Alexandre", stringResource(R.string.chat_role_company_advisor), "TA", 1),
+    ).sortedBy { it.name }
+}
 
 // endregion
 
@@ -112,8 +115,21 @@ fun ChatAlunoScreen(
     onOpenChat: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val contacts = getSampleContacts()
+    
+    // Update sample conversations time format if needed
+    val processedConversations = sampleConversations.map { conv ->
+        val timeLabel = when (conv.time) {
+            "Yesterday" -> stringResource(R.string.time_yesterday)
+            "2d" -> stringResource(R.string.time_days_ago, "2")
+            else -> conv.time
+        }
+        conv.copy(time = timeLabel)
+    }
+
     MessagesListScreen(
-        conversations = sampleConversations,
+        conversations = processedConversations,
+        contacts = contacts,
         onOpenChat = onOpenChat,
         modifier = modifier,
     )
@@ -126,6 +142,7 @@ fun ChatAlunoScreen(
 @Composable
 private fun MessagesListScreen(
     conversations: List<Conversation>,
+    contacts: List<Contact>,
     onOpenChat: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -142,6 +159,7 @@ private fun MessagesListScreen(
 
     if (showNewMessageModal) {
         NewMessageModal(
+            contacts = contacts,
             onDismiss = { showNewMessageModal = false },
             onContactSelected = { contactId ->
                 showNewMessageModal = false
@@ -310,11 +328,12 @@ fun ConversationItem(
 
 @Composable
 private fun NewMessageModal(
+    contacts: List<Contact>,
     onDismiss: () -> Unit,
     onContactSelected: (String) -> Unit,
 ) {
     var query by rememberSaveable { mutableStateOf("") }
-    val filteredContacts = sampleContacts.filter {
+    val filteredContacts = contacts.filter {
         it.name.contains(query, ignoreCase = true) || it.role.contains(query, ignoreCase = true)
     }
 
