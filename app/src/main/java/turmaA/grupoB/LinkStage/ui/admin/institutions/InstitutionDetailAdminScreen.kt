@@ -64,6 +64,7 @@ import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.Green
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.ui.theme.Red
+import androidx.compose.ui.platform.LocalContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -71,7 +72,8 @@ fun InstitutionDetailAdminScreen(
     institutionId: String,
     onBack: () -> Unit,
 ) {
-    val institution = sampleInstitutions.find { it.id == institutionId } ?: run {
+    val context = LocalContext.current
+    val institution = sampleInstitutions(context).find { it.id == institutionId } ?: run {
         onBack()
         return
     }
@@ -80,11 +82,11 @@ fun InstitutionDetailAdminScreen(
     var showApproveDialog by remember { mutableStateOf(false) }
     var showRejectDialog by remember { mutableStateOf(false) }
 
-    val relatedStudents = sampleStudents.filter {
+    val relatedStudents = sampleStudents(context).filter {
         it.institutionCode == institution.code
     }.take(3)
 
-    val relatedMentors = sampleMentors.filter {
+    val relatedMentors = sampleMentors(context).filter {
         it.institution == institution.code
     }
 

@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.sp
 import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.admin.sampleMentors
 import turmaA.grupoB.LinkStage.ui.admin.sampleStudents
+import androidx.compose.ui.platform.LocalContext
 import turmaA.grupoB.LinkStage.ui.common.ContentSection
 import turmaA.grupoB.LinkStage.ui.common.LinkStageButton
 import turmaA.grupoB.LinkStage.ui.common.LinkStageDialog
@@ -58,7 +59,8 @@ fun MentorDetailAdminScreen(
     mentorId: String,
     onBack: () -> Unit,
 ) {
-    val mentor = sampleMentors.find { it.id == mentorId } ?: run {
+    val context = LocalContext.current
+    val mentor = sampleMentors(context).find { it.id == mentorId } ?: run {
         onBack()
         return
     }
@@ -66,7 +68,7 @@ fun MentorDetailAdminScreen(
     var showDeleteDialog by remember { mutableStateOf(false) }
 
     // Dummy supervised students
-    val supervisedStudents = sampleStudents.filter {
+    val supervisedStudents = sampleStudents(context).filter {
         it.institution == mentor.institution
     }
 

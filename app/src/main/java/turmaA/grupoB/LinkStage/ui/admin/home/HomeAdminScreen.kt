@@ -49,6 +49,7 @@ import turmaA.grupoB.LinkStage.ui.admin.avatarColors
 import turmaA.grupoB.LinkStage.ui.admin.sampleInstitutions
 import turmaA.grupoB.LinkStage.ui.admin.sampleMentors
 import turmaA.grupoB.LinkStage.ui.admin.sampleStudents
+import androidx.compose.ui.platform.LocalContext
 import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
 import turmaA.grupoB.LinkStage.ui.common.EvaluationNotificationModal
 import turmaA.grupoB.LinkStage.ui.common.EvaluationPendingCard
@@ -62,7 +63,8 @@ fun HomeAdminScreen(
     navController: NavController,
     modifier: Modifier = Modifier,
 ) {
-    val pendingInstitutions = sampleInstitutions.filter { it.status == InstitutionStatus.PENDING_APPROVAL }
+    val context = LocalContext.current
+    val pendingInstitutions = sampleInstitutions(context).filter { it.status == InstitutionStatus.PENDING_APPROVAL }
     var showPendingModal by remember { mutableStateOf(pendingInstitutions.isNotEmpty()) }
 
     if (showPendingModal) {
@@ -149,7 +151,7 @@ fun HomeAdminScreen(
             )
             Spacer(modifier = Modifier.height(8.dp))
 
-            sampleStudents.take(2).forEach { student ->
+            sampleStudents(context).take(2).forEach { student ->
                 AdminUserRow(
                     student = student,
                     onClick = { navController.navigate(AdminRoutes.studentDetail(student.id)) },
@@ -174,7 +176,7 @@ fun HomeAdminScreen(
             )
             Spacer(modifier = Modifier.height(8.dp))
 
-            sampleMentors.take(2).forEach { mentor ->
+            sampleMentors(context).take(2).forEach { mentor ->
                 AdminMentorRow(
                     mentor = mentor,
                     onClick = { navController.navigate(AdminRoutes.mentorDetail(mentor.id)) },
@@ -199,7 +201,7 @@ fun HomeAdminScreen(
             )
             Spacer(modifier = Modifier.height(8.dp))
 
-            sampleInstitutions.take(2).forEach { institution ->
+            sampleInstitutions(context).take(2).forEach { institution ->
                 AdminInstitutionRow(
                     institution = institution,
                     onClick = { navController.navigate(AdminRoutes.institutionDetail(institution.id)) },

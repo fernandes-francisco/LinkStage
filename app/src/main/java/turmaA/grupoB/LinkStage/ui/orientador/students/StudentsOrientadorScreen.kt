@@ -48,6 +48,7 @@ import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.admin.AdminStudent
 import turmaA.grupoB.LinkStage.ui.orientador.OrientadorRoutes
 import turmaA.grupoB.LinkStage.ui.orientador.sampleMentorStudents
+import androidx.compose.ui.platform.LocalContext
 import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
 import turmaA.grupoB.LinkStage.ui.common.LinkStageLogo
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
@@ -62,9 +63,10 @@ fun StudentsOrientadorScreen(
     modifier: Modifier = Modifier,
 ) {
     var searchQuery by rememberSaveable { mutableStateOf("") }
+    val context = LocalContext.current
 
-    val filtered = if (searchQuery.isEmpty()) sampleMentorStudents
-    else sampleMentorStudents.filter {
+    val filtered = if (searchQuery.isEmpty()) sampleMentorStudents(context)
+    else sampleMentorStudents(context).filter {
         it.name.contains(searchQuery, ignoreCase = true) ||
             it.institution.contains(searchQuery, ignoreCase = true)
     }

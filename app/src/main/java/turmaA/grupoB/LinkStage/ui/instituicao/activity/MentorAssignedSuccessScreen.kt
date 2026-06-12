@@ -44,6 +44,7 @@ import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.admin.sampleMentors
 import turmaA.grupoB.LinkStage.ui.instituicao.InstituicaoRoutes
 import turmaA.grupoB.LinkStage.ui.instituicao.sampleInstitutionInternships
+import androidx.compose.ui.platform.LocalContext
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
@@ -55,8 +56,9 @@ fun MentorAssignedSuccessScreen(
     navController: NavController,
     modifier: Modifier = Modifier,
 ) {
-    val internship = sampleInstitutionInternships.first()
-    val mentor = sampleMentors.first()
+    val context = LocalContext.current
+    val internship = sampleInstitutionInternships(context).first()
+    val mentor = sampleMentors(context).first()
 
     Column(
         modifier = modifier

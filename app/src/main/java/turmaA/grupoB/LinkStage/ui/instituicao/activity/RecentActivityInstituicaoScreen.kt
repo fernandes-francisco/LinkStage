@@ -473,7 +473,8 @@ private fun InternshipsTab(
     filterMentor: String,
     navController: NavController,
 ) {
-    val filtered = sampleInstitutionInternships.filter { internship ->
+    val context = LocalContext.current
+    val filtered = sampleInstitutionInternships(context).filter { internship ->
         val matchesSearch = searchQuery.isEmpty() ||
             internship.studentName.contains(searchQuery, ignoreCase = true) ||
             internship.offerTitle.contains(searchQuery, ignoreCase = true)

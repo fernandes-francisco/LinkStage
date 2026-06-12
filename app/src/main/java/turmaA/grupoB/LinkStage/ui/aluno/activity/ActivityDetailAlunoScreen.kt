@@ -63,37 +63,41 @@ import turmaA.grupoB.LinkStage.ui.theme.Fade2
 import turmaA.grupoB.LinkStage.ui.theme.Fade3
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.ui.theme.MediumBlue
+import android.content.Context
+import androidx.compose.ui.platform.LocalContext
 import java.time.LocalDate
 
-private val sampleActivityLog = ActivityLog(
+private fun sampleActivityLog(context: Context) = ActivityLog(
     id = "2",
-    title = "Ponto de Controlo 2",
-    description = "Foquei-me em desenhar as primeiras mockups.",
+    title = context.getString(R.string.mock_checkpoint_2),
+    description = context.getString(R.string.mock_checkpoint_desc_mockups),
     date = LocalDate.of(2026, 5, 5),
     status = ActivityLogStatus.PENDING,
     company = "Viana S.T.Arts",
     companyLogoInitial = "V",
     companyLogoColor = Color(0xFF212121),
     requirements = listOf(
-        "PPT com o trabalho realizado.",
-        "Relatório atualizado até ao ponto atual.",
-        "Documentação adicional relevante.",
+        context.getString(R.string.mock_req_ppt),
+        context.getString(R.string.mock_req_report_updated),
+        context.getString(R.string.mock_req_additional_docs),
     ),
     hasSubmitted = false,
 )
 
-private fun formatDateUppercase(date: LocalDate): String {
-    val monthNames = listOf("JAN", "FEV", "MAR", "ABR", "MAI", "JUN", "JUL", "AGO", "SET", "OUT", "NOV", "DEZ")
-    return "${monthNames[date.monthValue - 1]},${date.dayOfMonth}"
+private fun formatDateUppercase(date: LocalDate, context: Context): String {
+    val monthNames = context.resources.getStringArray(R.array.months_short)
+    return "${monthNames[date.monthValue - 1].uppercase()},${date.dayOfMonth}"
 }
 
 @Composable
 fun ActivityDetailAlunoScreen(
     checkpointId: String,
     onBack: () -> Unit,
-    activityLog: ActivityLog = sampleActivityLog,
+    activityLog: ActivityLog? = null,
 ) {
-    var hasSubmitted by remember { mutableStateOf(activityLog.hasSubmitted) }
+    val context = LocalContext.current
+    val resolvedActivityLog = activityLog ?: sampleActivityLog(context)
+    var hasSubmitted by remember { mutableStateOf(resolvedActivityLog.hasSubmitted) }
     var fileUri by remember { mutableStateOf<Uri?>(null) }
     var fileName by remember { mutableStateOf<String?>(null) }
     var showConfirmDialog by remember { mutableStateOf(false) }
@@ -157,11 +161,11 @@ fun ActivityDetailAlunoScreen(
                         modifier = Modifier
                             .size(44.dp)
                             .clip(RoundedCornerShape(10.dp))
-                            .background(activityLog.companyLogoColor),
+                            .background(resolvedActivityLog.companyLogoColor),
                         contentAlignment = Alignment.Center,
                     ) {
                         Text(
-                            activityLog.companyLogoInitial,
+                            resolvedActivityLog.companyLogoInitial,
                             color = Color.White,
                             fontWeight = FontWeight.Bold,
                             fontSize = 18.sp,
@@ -170,13 +174,13 @@ fun ActivityDetailAlunoScreen(
                     Spacer(modifier = Modifier.width(12.dp))
                     Column {
                         Text(
-                            activityLog.title,
+                            resolvedActivityLog.title,
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Bold,
                             color = DarkBlue
                         )
                         Text(
-                            activityLog.company,
+                            resolvedActivityLog.company,
                             fontSize = 13.sp,
                             color = LightBlue
                         )
@@ -196,7 +200,7 @@ fun ActivityDetailAlunoScreen(
                     Text(stringResource(R.string.activity_delivery_date), fontSize = 13.sp, color = DarkGrey)
                     Spacer(modifier = Modifier.weight(1f))
                     Text(
-                        formatDateUppercase(activityLog.date),
+                        formatDateUppercase(resolvedActivityLog.date, context),
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,
                         color = DarkBlue,
@@ -208,7 +212,7 @@ fun ActivityDetailAlunoScreen(
                 // Descrição
                 ContentSection(title = stringResource(R.string.activity_description)) {
                     Text(
-                        text = activityLog.description,
+                        text = resolvedActivityLog.description,
                         fontSize = 14.sp,
                         color = DarkGrey,
                         lineHeight = 22.sp,
@@ -219,9 +223,9 @@ fun ActivityDetailAlunoScreen(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 // Requisitos
-                if (activityLog.requirements.isNotEmpty()) {
+                if (resolvedActivityLog.requirements.isNotEmpty()) {
                     ContentSectionColored(title = stringResource(R.string.activity_requirements)) {
-                        activityLog.requirements.forEach { req ->
+                        resolvedActivityLog.requirements.forEach { req ->
                             CheckItem(text = req)
                         }
                     }

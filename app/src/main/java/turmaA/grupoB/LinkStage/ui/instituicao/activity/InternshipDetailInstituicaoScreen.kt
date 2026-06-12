@@ -82,6 +82,7 @@ import turmaA.grupoB.LinkStage.ui.orientador.EvaluationState
 import turmaA.grupoB.LinkStage.ui.orientador.InternshipEvaluation
 import turmaA.grupoB.LinkStage.ui.orientador.InternshipType
 import turmaA.grupoB.LinkStage.ui.orientador.sampleMentorActivityLogs
+import androidx.compose.ui.platform.LocalContext
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
@@ -98,8 +99,9 @@ fun InternshipDetailInstituicaoScreen(
     modifier: Modifier = Modifier,
     institutionHomeViewModel: InstitutionHomeViewModel = viewModel(),
 ) {
-    val internship = sampleInstitutionInternships.find { it.id == internshipId }
-        ?: sampleInstitutionInternships.first()
+    val context = LocalContext.current
+    val internship = sampleInstitutionInternships(context).find { it.id == internshipId }
+        ?: sampleInstitutionInternships(context).first()
 
     val evaluation: InternshipEvaluation? = remember {
         InternshipEvaluation(
@@ -266,7 +268,7 @@ fun InternshipDetailInstituicaoScreen(
             )
             Spacer(modifier = Modifier.height(8.dp))
 
-            sampleMentorActivityLogs.forEach { activityLog ->
+            sampleMentorActivityLogs(context).forEach { activityLog ->
                 ActivityLogCard(
                     activityLog = activityLog,
                     showViewers = true,

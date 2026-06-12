@@ -23,6 +23,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
@@ -91,9 +93,9 @@ fun EvaluationPendingCard(
 @Composable
 private fun EvaluationPendingCardPreview() {
     EvaluationPendingCard(
-        title = "Avaliação pendente",
-        message = "O estágio foi concluído e aguarda a sua avaliação.",
-        actionLabel = "Submeter avaliação",
+        title = stringResource(R.string.institution_home_eval_pending),
+        message = stringResource(R.string.institution_home_eval_pending_message),
+        actionLabel = stringResource(R.string.institution_eval_submit_grade),
         isDanger = false,
         onClick = {},
     )
@@ -103,9 +105,9 @@ private fun EvaluationPendingCardPreview() {
 @Composable
 private fun EvaluationPendingCardDangerPreview() {
     EvaluationPendingCard(
-        title = "Nota final pendente",
-        message = "Todas as avaliações foram submetidas. Atribua a nota final.",
-        actionLabel = "Atribuir nota final",
+        title = stringResource(R.string.advisor_home_final_grade_pending),
+        message = stringResource(R.string.student_detail_all_submitted),
+        actionLabel = stringResource(R.string.student_detail_assign_final_button),
         isDanger = true,
         onClick = {},
     )

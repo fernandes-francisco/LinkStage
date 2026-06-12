@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.admin.sampleStudents
+import androidx.compose.ui.platform.LocalContext
 import turmaA.grupoB.LinkStage.ui.common.ContentSection
 import turmaA.grupoB.LinkStage.ui.common.LinkStageButton
 import turmaA.grupoB.LinkStage.ui.common.LinkStageDialog
@@ -62,7 +63,8 @@ fun StudentDetailAdminScreen(
     onBack: () -> Unit,
     onViewInternship: (String) -> Unit = {},
 ) {
-    val student = sampleStudents.find { it.id == studentId } ?: run {
+    val context = LocalContext.current
+    val student = sampleStudents(context).find { it.id == studentId } ?: run {
         onBack()
         return
     }

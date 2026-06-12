@@ -64,6 +64,7 @@ import turmaA.grupoB.LinkStage.ui.admin.AdminInstitution
 import turmaA.grupoB.LinkStage.ui.admin.AdminRoutes
 import turmaA.grupoB.LinkStage.ui.admin.InstitutionStatus
 import turmaA.grupoB.LinkStage.ui.admin.sampleInstitutions
+import androidx.compose.ui.platform.LocalContext
 import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
 import turmaA.grupoB.LinkStage.ui.common.LinkStageDialog
 import turmaA.grupoB.LinkStage.ui.common.LinkStageTabRow
@@ -87,8 +88,9 @@ fun InstitutionsAdminScreen(
     var filterLocation by rememberSaveable { mutableStateOf("") }
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
 
-    val approvedInstitutions = sampleInstitutions.filter { it.status == InstitutionStatus.APPROVED }
-    val pendingInstitutions = sampleInstitutions.filter { it.status == InstitutionStatus.PENDING_APPROVAL }
+    val context = LocalContext.current
+    val approvedInstitutions = sampleInstitutions(context).filter { it.status == InstitutionStatus.APPROVED }
+    val pendingInstitutions = sampleInstitutions(context).filter { it.status == InstitutionStatus.PENDING_APPROVAL }
 
     val currentList = if (selectedTab == 0) approvedInstitutions else pendingInstitutions
 

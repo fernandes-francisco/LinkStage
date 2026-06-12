@@ -99,6 +99,7 @@ import turmaA.grupoB.LinkStage.ui.orientador.formatCheckpointDate
 import turmaA.grupoB.LinkStage.ui.orientador.sampleEvaluation
 import turmaA.grupoB.LinkStage.ui.orientador.sampleMentorStudents
 import turmaA.grupoB.LinkStage.ui.orientador.sampleStudentInternship
+import androidx.compose.ui.platform.LocalContext
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
@@ -117,8 +118,9 @@ fun MentorStudentDetailScreen(
     navController: NavController,
     advisorHomeViewModel: AdvisorHomeViewModel = viewModel(),
 ) {
-    val student = sampleMentorStudents.find { it.id == studentId } ?: return
-    val evaluation = sampleEvaluation
+    val context = LocalContext.current
+    val student = sampleMentorStudents(context).find { it.id == studentId } ?: return
+    val evaluation = sampleEvaluation(context)
     var selectedTab by remember { mutableIntStateOf(0) }
     var showCreateCheckpointDialog by remember { mutableStateOf(false) }
 
@@ -325,7 +327,8 @@ private fun InfoFieldWithIcon(label: String, value: String, icon: ImageVector) {
 
 @Composable
 private fun StudentWorkTab(navController: NavController) {
-    val internship = sampleStudentInternship
+    val context = LocalContext.current
+    val internship = sampleStudentInternship(context)
     val progress = calculateInternshipProgress(internship.startDate, internship.endDate)
 
     var animationStarted by remember { mutableStateOf(false) }
@@ -384,7 +387,8 @@ private fun StudentEvaluateTab(
     evaluation: InternshipEvaluation,
     navController: NavController,
 ) {
-    val internship = sampleStudentInternship
+    val context = LocalContext.current
+    val internship = sampleStudentInternship(context)
     val progress = calculateInternshipProgress(internship.startDate, internship.endDate)
 
     var animationStarted by remember { mutableStateOf(false) }

@@ -64,6 +64,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.admin.sampleMentors
+import androidx.compose.ui.platform.LocalContext
 import turmaA.grupoB.LinkStage.ui.aluno.apply.getSkillCategories
 import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
 import turmaA.grupoB.LinkStage.ui.common.ConfirmationDialog
@@ -88,6 +89,7 @@ fun OfferFormInstituicaoScreen(
     modifier: Modifier = Modifier,
     viewModel: OfferFormViewModel = viewModel(),
 ) {
+    val context = LocalContext.current
     val currentStep = viewModel.currentStep
 
     // Validation errors
@@ -321,6 +323,7 @@ private fun StepDetails(
     categoryError: Boolean,
     descriptionError: Boolean,
 ) {
+    val context = LocalContext.current
     val categoryOptions = getSkillCategories().keys.sorted()
     Column(
         modifier = Modifier
@@ -351,10 +354,10 @@ private fun StepDetails(
             label = stringResource(R.string.offer_form_school_mentor),
             value = viewModel.schoolMentorName,
             placeholder = stringResource(R.string.offer_form_school_mentor_placeholder),
-            options = sampleMentors.map { it.name },
+            options = sampleMentors(context).map { it.name },
             onOptionSelected = { name ->
                 viewModel.schoolMentorName = name
-                viewModel.schoolMentorId = sampleMentors.find { it.name == name }?.id ?: ""
+                viewModel.schoolMentorId = sampleMentors(context).find { it.name == name }?.id ?: ""
             },
         )
 

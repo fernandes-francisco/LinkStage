@@ -41,6 +41,7 @@ import turmaA.grupoB.LinkStage.ui.common.ContentSection
 import turmaA.grupoB.LinkStage.ui.common.SecondaryTopBar
 import turmaA.grupoB.LinkStage.ui.orientador.formatCheckpointDateLong
 import turmaA.grupoB.LinkStage.ui.orientador.sampleMentorActivityLogs
+import androidx.compose.ui.platform.LocalContext
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.R
@@ -52,7 +53,8 @@ fun MentorCheckpointDetailScreen(
     checkpointId: String,
     navController: NavController,
 ) {
-    val activityLog = sampleMentorActivityLogs.find { it.id == checkpointId } ?: return
+    val context = LocalContext.current
+    val activityLog = sampleMentorActivityLogs(context).find { it.id == checkpointId } ?: return
 
     Scaffold(
         topBar = {
@@ -127,7 +129,7 @@ fun MentorCheckpointDetailScreen(
                         modifier = Modifier.weight(1f),
                     )
                     Text(
-                        text = formatCheckpointDateLong(activityLog.date),
+                        text = formatCheckpointDateLong(activityLog.date, context),
                         color = DarkBlue,
                         fontWeight = FontWeight.Bold,
                         fontSize = 13.sp,

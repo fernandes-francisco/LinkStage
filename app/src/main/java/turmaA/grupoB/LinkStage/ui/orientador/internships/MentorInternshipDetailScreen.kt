@@ -64,6 +64,7 @@ import turmaA.grupoB.LinkStage.ui.orientador.sampleEvaluation
 import turmaA.grupoB.LinkStage.ui.orientador.sampleMentorInternships
 import turmaA.grupoB.LinkStage.ui.orientador.sampleMentorStudents
 import turmaA.grupoB.LinkStage.ui.orientador.sampleStudentInternship
+import androidx.compose.ui.platform.LocalContext
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
@@ -77,12 +78,13 @@ fun MentorInternshipDetailScreen(
     internshipId: String = "i1",
     navController: NavController,
 ) {
-    val internship = sampleMentorInternships.find { it.id == internshipId }
-        ?: sampleMentorInternships.first()
-    val student = sampleMentorStudents.find { it.id == internship.studentId }
-        ?: sampleMentorStudents.first()
-    val activeInternship = sampleStudentInternship
-    val evaluation = sampleEvaluation
+    val context = LocalContext.current
+    val internship = sampleMentorInternships(context).find { it.id == internshipId }
+        ?: sampleMentorInternships(context).first()
+    val student = sampleMentorStudents(context).find { it.id == internship.studentId }
+        ?: sampleMentorStudents(context).first()
+    val activeInternship = sampleStudentInternship(context)
+    val evaluation = sampleEvaluation(context)
 
     val progress = calculateInternshipProgress(activeInternship.startDate, activeInternship.endDate)
 

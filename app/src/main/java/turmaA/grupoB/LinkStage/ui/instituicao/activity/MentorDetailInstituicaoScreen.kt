@@ -71,6 +71,7 @@ import turmaA.grupoB.LinkStage.ui.common.ConfirmationDialog
 import turmaA.grupoB.LinkStage.ui.common.LinkStageTabRow
 import turmaA.grupoB.LinkStage.ui.common.SectionLabel
 import turmaA.grupoB.LinkStage.ui.instituicao.InstituicaoRoutes
+import androidx.compose.ui.platform.LocalContext
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
@@ -85,7 +86,8 @@ fun MentorDetailInstituicaoScreen(
     navController: NavController,
     modifier: Modifier = Modifier,
 ) {
-    val mentor = sampleMentors.find { it.id == mentorId } ?: sampleMentors.first()
+    val context = LocalContext.current
+    val mentor = sampleMentors(context).find { it.id == mentorId } ?: sampleMentors(context).first()
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
 
     Scaffold(

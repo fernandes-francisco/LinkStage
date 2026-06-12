@@ -81,6 +81,7 @@ import turmaA.grupoB.LinkStage.ui.common.LinkStageTabRow
 import turmaA.grupoB.LinkStage.ui.instituicao.InstituicaoRoutes
 import turmaA.grupoB.LinkStage.ui.instituicao.InstitutionApplication
 import turmaA.grupoB.LinkStage.ui.instituicao.sampleInstitutionApplications
+import androidx.compose.ui.platform.LocalContext
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
@@ -332,7 +333,8 @@ private fun ApplicationsTab(navController: NavController) {
     var searchQuery by rememberSaveable { mutableStateOf("") }
     var selectedFilter by rememberSaveable { mutableStateOf(filterAll) }
 
-    val filtered = sampleInstitutionApplications.filter { app ->
+    val context = LocalContext.current
+    val filtered = sampleInstitutionApplications(context).filter { app ->
         val matchesSearch = searchQuery.isEmpty() ||
             app.studentName.contains(searchQuery, ignoreCase = true)
 

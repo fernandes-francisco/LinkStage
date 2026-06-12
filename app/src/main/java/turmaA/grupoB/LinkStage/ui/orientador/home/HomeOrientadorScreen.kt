@@ -66,6 +66,7 @@ import turmaA.grupoB.LinkStage.ui.orientador.OrientadorRoutes
 import turmaA.grupoB.LinkStage.ui.orientador.sampleEvaluation
 import turmaA.grupoB.LinkStage.ui.orientador.sampleMentorInternships
 import turmaA.grupoB.LinkStage.ui.orientador.sampleMentorStudents
+import androidx.compose.ui.platform.LocalContext
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
@@ -81,7 +82,8 @@ fun HomeOrientadorScreen(
     modifier: Modifier = Modifier,
     advisorHomeViewModel: AdvisorHomeViewModel = viewModel(),
 ) {
-    val evaluation = sampleEvaluation
+    val context = LocalContext.current
+    val evaluation = sampleEvaluation(context)
     val hasSeenResult by advisorHomeViewModel.hasSeenEvaluations.collectAsState()
     val hasDismissedModal by advisorHomeViewModel.hasDismissedEvaluationModal.collectAsState()
 
@@ -175,8 +177,8 @@ fun HomeOrientadorScreen(
             )
             Spacer(modifier = Modifier.height(8.dp))
 
-            if (sampleMentorInternships.isNotEmpty()) {
-                sampleMentorInternships.take(2).forEach { internship ->
+            if (sampleMentorInternships(context).isNotEmpty()) {
+                sampleMentorInternships(context).take(2).forEach { internship ->
                     MentorInternshipCard(internship = internship)
                     Spacer(modifier = Modifier.height(8.dp))
                 }
@@ -201,7 +203,7 @@ fun HomeOrientadorScreen(
             )
             Spacer(modifier = Modifier.height(8.dp))
 
-            if (sampleMentorStudents.isNotEmpty()) {
+            if (sampleMentorStudents(context).isNotEmpty()) {
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -215,9 +217,9 @@ fun HomeOrientadorScreen(
                             .fillMaxWidth()
                             .background(Fade3, RoundedCornerShape(12.dp)),
                     ) {
-                        sampleMentorStudents.take(2).forEachIndexed { index, student ->
+                        sampleMentorStudents(context).take(2).forEachIndexed { index, student ->
                             MentorStudentRow(student = student)
-                            if (index < sampleMentorStudents.take(2).size - 1) {
+                            if (index < sampleMentorStudents(context).take(2).size - 1) {
                                 HorizontalDivider(
                                     color = Color.White.copy(alpha = 0.2f),
                                     modifier = Modifier.padding(horizontal = 16.dp),

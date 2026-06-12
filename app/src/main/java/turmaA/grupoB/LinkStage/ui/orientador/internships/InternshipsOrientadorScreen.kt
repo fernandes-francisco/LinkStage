@@ -50,6 +50,7 @@ import turmaA.grupoB.LinkStage.ui.orientador.MentorInternship
 import turmaA.grupoB.LinkStage.ui.orientador.OrientadorRoutes
 import turmaA.grupoB.LinkStage.ui.orientador.formatInternshipDate
 import turmaA.grupoB.LinkStage.ui.orientador.sampleMentorInternships
+import androidx.compose.ui.platform.LocalContext
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
@@ -63,9 +64,10 @@ fun InternshipsOrientadorScreen(
     modifier: Modifier = Modifier,
 ) {
     var searchQuery by rememberSaveable { mutableStateOf("") }
+    val context = LocalContext.current
 
-    val filtered = if (searchQuery.isEmpty()) sampleMentorInternships
-    else sampleMentorInternships.filter {
+    val filtered = if (searchQuery.isEmpty()) sampleMentorInternships(context)
+    else sampleMentorInternships(context).filter {
         it.offerTitle.contains(searchQuery, ignoreCase = true) ||
             it.businessInstitutionName.contains(searchQuery, ignoreCase = true) ||
             it.schoolInstitutionName.contains(searchQuery, ignoreCase = true)
@@ -150,6 +152,7 @@ private fun InternshipCard(
     internship: MentorInternship,
     onClick: () -> Unit = {},
 ) {
+    val context = LocalContext.current
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -229,7 +232,7 @@ private fun InternshipCard(
                 )
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(
-                    text = stringResource(R.string.advisor_ends_at, formatInternshipDate(internship.endDate)),
+                    text = stringResource(R.string.advisor_ends_at, formatInternshipDate(internship.endDate, context)),
                     color = DarkGrey,
                     fontSize = 12.sp,
                 )

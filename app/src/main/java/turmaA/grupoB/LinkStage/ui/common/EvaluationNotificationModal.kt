@@ -148,9 +148,9 @@ fun EvaluationNotificationModal(
 @Composable
 private fun EvaluationNotificationModalPreview() {
     EvaluationNotificationModal(
-        title = "Resultado do Estágio Disponível",
-        message = "A sua nota final foi atribuída. Pode agora consultar o resultado do seu estágio.",
-        actionLabel = "Ver resultado",
+        title = stringResource(R.string.home_eval_result_title),
+        message = stringResource(R.string.home_eval_result_message),
+        actionLabel = stringResource(R.string.home_result_action),
         onAction = {},
         onDismiss = {},
     )

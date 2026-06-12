@@ -899,6 +899,8 @@
 
     <!-- ==================== NOTIFICATIONS INSTITUTION ==================== -->
     <string name="notif_title">Notifications</string>
+    <string name="notif_inst_section_applications">APPLICATIONS</string>
+    <string name="notif_inst_section_communication">COMMUNICATION</string>
     <string name="notif_application_submitted">Application submitted</string>
     <string name="notif_application_submitted_desc">Notify when receiving applications for offers</string>
     <string name="notif_new_messages_desc">Notify when receiving messages from users</string>
@@ -1006,4 +1008,105 @@
     <!-- ==================== UPDATE PASSWORD EXTRA ==================== -->
     <string name="update_password_new_placeholder">Enter your new password</string>
     <string name="update_password_confirm_placeholder">Confirm your new password</string>
+
+    <!-- ==================== DATE FORMATTING ==================== -->
+    <string name="date_format_full">%2$s %1$d, %3$d</string>
+    <string-array name="months_full">
+        <item>January</item>
+        <item>February</item>
+        <item>March</item>
+        <item>April</item>
+        <item>May</item>
+        <item>June</item>
+        <item>July</item>
+        <item>August</item>
+        <item>September</item>
+        <item>October</item>
+        <item>November</item>
+        <item>December</item>
+    </string-array>
+    <string-array name="months_short">
+        <item>Jan</item>
+        <item>Feb</item>
+        <item>Mar</item>
+        <item>Apr</item>
+        <item>May</item>
+        <item>Jun</item>
+        <item>Jul</item>
+        <item>Aug</item>
+        <item>Sep</item>
+        <item>Oct</item>
+        <item>Nov</item>
+        <item>Dec</item>
+    </string-array>
+
+    <!-- ==================== MOCK DATA ==================== -->
+    <string name="mock_web_dev_internship">Web Development Internship</string>
+    <string name="mock_checkpoint_1">Checkpoint 1</string>
+    <string name="mock_checkpoint_2">Checkpoint 2</string>
+    <string name="mock_checkpoint_desc_mockups">Focused on designing the first mockups.</string>
+    <string name="mock_req_ppt">PPT with work completed.</string>
+    <string name="mock_req_report_updated">Report updated to current point.</string>
+    <string name="mock_req_additional_docs">Additional relevant documentation.</string>
+    <string name="mock_interim_report">Interim Report</string>
+    <string name="mock_interim_report_desc">Submit report with progress to date.</string>
+    <string name="mock_req_report_updated_short">Report updated.</string>
+    <string name="mock_req_additional_docs_short">Additional documentation.</string>
+    <string name="mock_ppt_checkpoint_file">PPT checkpoint</string>
+    <string name="mock_report_updated_file">Updated report</string>
+    <string name="mock_today_at">Today at %1$s</string>
+    <string name="mock_yesterday_at">Yesterday at %1$s</string>
+    <string name="mock_product_designer">Product Designer</string>
+    <string name="mock_eval_excellent">Excellent technical performance.</string>
+    <string name="mock_eval_good_teamwork">Good teamwork.</string>
+    <string name="mock_company_desc_continente">Shopping store for the wealthy, looking for an intern.</string>
+    <string name="mock_company_desc_uaveiro">The University of Aveiro is a public higher education institution known for quality research and innovation.</string>
+    <string name="mock_resp_prototyping">Prototype the web application.</string>
+    <string name="mock_resp_collaborate">Collaborate with the team to share skills.</string>
+    <string name="mock_resp_dashboards">Develop the dashboard creation system.</string>
+    <string name="mock_resp_elearning">Develop interfaces for e-learning platform.</string>
+    <string name="mock_resp_design_thinking">Participate in design thinking sessions.</string>
+    <string name="mock_req_figma">Experience with Figma and interactive prototyping.</string>
+    <string name="mock_req_portfolio">UI portfolio for demonstration.</string>
+    <string name="mock_req_english">Excellent written and verbal communication in English.</string>
+    <string name="mock_req_user_centered">Knowledge of user-centered design.</string>
+    <string name="mock_req_prototyping_tools">Experience with prototyping tools.</string>
+    <string name="mock_benefit_transport">Public Transport Pass</string>
+    <string name="mock_benefit_mentoring">Mentoring Program</string>
+    <string name="mock_benefit_competitive">Competitive Market</string>
+    <string name="mock_benefit_certificate">Internship Certificate</string>
+    <string name="mock_benefit_labs">Lab Access</string>
+    <string name="mock_duration_6months">6 Months</string>
+    <string name="mock_duration_4months">4 Months</string>
+    <string name="mock_type_remote">Remote</string>
+    <string name="mock_type_onsite">On-site</string>
+    <string name="mock_time_2h_ago">2h ago</string>
+    <string name="mock_time_3h_ago">3h ago</string>
+    <string name="mock_time_3d_ago">3d ago</string>
+    <string name="mock_time_2w_ago">2w ago</string>
+    <string name="mock_time_1w_ago">1w ago</string>
+    <string name="mock_skill_pedagogy">Pedagogy</string>
+    <string name="mock_skill_classroom_mgmt">Classroom Management</string>
+    <string name="mock_skill_communication">Communication</string>
+    <string name="mock_course_cs">Computer Engineering</string>
+    <string name="mock_course_education">Education</string>
+    <string name="mock_course_basic_education">Basic Education</string>
+    <string name="mock_time_1d_ago">1d ago</string>
+    <string name="mock_time_2d_ago">2d ago</string>
+    <string name="mock_time_1h_ago">1h ago</string>
+    <string name="mock_time_30m_ago">30m ago</string>
+    <string name="mock_department_cs">Computer Science</string>
+    <string name="mock_department_education">Education</string>
+    <string name="mock_mentor_note_carvalho">Advisor with extensive experience in mobile projects. Available for new internships from September.</string>
+    <string name="mock_skill_research">Research</string>
+    <string name="mock_skill_statistics">Statistics</string>
+    <string name="mock_area_basic_education">Basic Education</string>
+    <string name="mock_area_didactics">Didactics</string>
+    <string name="mock_area_educational_research">Educational Research</string>
+    <string name="mock_fullstack_developer">Full-Stack Developer</string>
+    <string name="mock_personal_statement_generic">Candidate\'s personal statement.</string>
+    <string name="mock_personal_statement_short">Personal statement.</string>
+    <string name="mock_motivation_letter_title">Motivation letter.</string>
+    <string name="mock_motivation_letter_body">Content of the candidate\'s motivation letter.</string>
+    <string name="mock_motivation_letter_body_short">Letter content.</string>
 </resources>

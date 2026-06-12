@@ -81,6 +81,7 @@ import turmaA.grupoB.LinkStage.ui.common.LinkStageTabRow
 import turmaA.grupoB.LinkStage.ui.common.SectionLabel
 import turmaA.grupoB.LinkStage.ui.instituicao.InstitutionApplication
 import turmaA.grupoB.LinkStage.ui.instituicao.sampleInstitutionApplications
+import androidx.compose.ui.platform.LocalContext
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
@@ -96,8 +97,9 @@ fun ApplicationDetailInstituicaoScreen(
     navController: NavController,
     modifier: Modifier = Modifier,
 ) {
-    val application = sampleInstitutionApplications.find { it.id == applicationId }
-        ?: sampleInstitutionApplications.first()
+    val context = LocalContext.current
+    val application = sampleInstitutionApplications(context).find { it.id == applicationId }
+        ?: sampleInstitutionApplications(context).first()
 
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
 
@@ -468,16 +470,16 @@ private fun ApplicationManageTab(application: InstitutionApplication) {
     var showConfirmDialog by remember { mutableStateOf(false) }
 
     val statusLabel = when (selectedStatus) {
-        ApplicationStatus.ACCEPTED -> "aceite"
-        ApplicationStatus.REJECTED -> "rejeitada"
-        ApplicationStatus.PENDING -> "pendente"
+        ApplicationStatus.ACCEPTED -> stringResource(R.string.app_detail_status_label_accepted)
+        ApplicationStatus.REJECTED -> stringResource(R.string.app_detail_status_label_rejected)
+        ApplicationStatus.PENDING -> stringResource(R.string.app_detail_status_label_pending)
     }
 
     if (showConfirmDialog) {
         ConfirmationDialog(
-            title = "Atualizar candidatura?",
-            body = "Tem a certeza que pretende marcar esta candidatura como $statusLabel?",
-            confirmLabel = "Confirmar",
+            title = stringResource(R.string.app_detail_update_title),
+            body = stringResource(R.string.app_detail_update_body, statusLabel),
+            confirmLabel = stringResource(R.string.common_confirm),
             onConfirm = { showConfirmDialog = false },
             onDismiss = { showConfirmDialog = false },
         )
@@ -548,8 +550,8 @@ private fun ApplicationManageTab(application: InstitutionApplication) {
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 Column {
-                    Text("Aceite", color = DarkBlue, fontWeight = FontWeight.Bold, fontSize = 15.sp)
-                    Text("Marcar esta candidatura a oferta como aceite.", color = DarkGrey, fontSize = 12.sp)
+                    Text(stringResource(R.string.app_detail_accepted), color = DarkBlue, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                    Text(stringResource(R.string.app_detail_accepted_desc), color = DarkGrey, fontSize = 12.sp)
                 }
             }
         }
@@ -585,8 +587,8 @@ private fun ApplicationManageTab(application: InstitutionApplication) {
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 Column {
-                    Text("Rejeitado", color = DarkBlue, fontWeight = FontWeight.Bold, fontSize = 15.sp)
-                    Text("Marcar esta candidatura a oferta como rejeitada.", color = DarkGrey, fontSize = 12.sp)
+                    Text(stringResource(R.string.app_detail_rejected), color = DarkBlue, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                    Text(stringResource(R.string.app_detail_rejected_desc), color = DarkGrey, fontSize = 12.sp)
                 }
             }
         }
@@ -625,7 +627,7 @@ private fun ApplicationManageTab(application: InstitutionApplication) {
             enter = fadeIn() + slideInVertically { it },
         ) {
             LinkStageButton(
-                text = "Atualizar estado",
+                text = stringResource(R.string.app_detail_update_button),
                 onClick = { showConfirmDialog = true },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -641,9 +643,9 @@ private fun ApplicationManageTab(application: InstitutionApplication) {
 @Composable
 private fun StatusBadgeDynamic(status: ApplicationStatus) {
     val (label, color) = when (status) {
-        ApplicationStatus.ACCEPTED -> "Aceite" to Color(0xFF4CAF50)
-        ApplicationStatus.REJECTED -> "Recusado" to Red
-        ApplicationStatus.PENDING -> "Pendente" to Color(0xFFF5C518)
+        ApplicationStatus.ACCEPTED -> stringResource(R.string.app_detail_status_accepted) to Color(0xFF4CAF50)
+        ApplicationStatus.REJECTED -> stringResource(R.string.app_detail_status_rejected) to Red
+        ApplicationStatus.PENDING -> stringResource(R.string.app_detail_status_pending) to Color(0xFFF5C518)
     }
     Box(
         modifier = Modifier

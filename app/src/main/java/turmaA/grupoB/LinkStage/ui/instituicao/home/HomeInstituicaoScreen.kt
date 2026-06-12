@@ -69,6 +69,7 @@ import turmaA.grupoB.LinkStage.ui.instituicao.InstituicaoRoutes
 import turmaA.grupoB.LinkStage.ui.orientador.EvaluationState
 import turmaA.grupoB.LinkStage.ui.orientador.InternshipEvaluation
 import turmaA.grupoB.LinkStage.ui.orientador.InternshipType
+import androidx.compose.ui.platform.LocalContext
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
@@ -88,7 +89,8 @@ fun HomeInstituicaoScreen(
     modifier: Modifier = Modifier,
     institutionHomeViewModel: InstitutionHomeViewModel = viewModel(),
 ) {
-    val internships = turmaA.grupoB.LinkStage.ui.instituicao.sampleInstitutionInternships
+    val context = LocalContext.current
+    val internships = turmaA.grupoB.LinkStage.ui.instituicao.sampleInstitutionInternships(context)
     val activeOffersCount = 5
     val applicationsCount = 12
     val activeInternships = internships.count {

@@ -54,6 +54,7 @@ import turmaA.grupoB.LinkStage.ui.common.ConfirmationDialog
 import turmaA.grupoB.LinkStage.ui.common.LinkStageButton
 import turmaA.grupoB.LinkStage.ui.instituicao.InstituicaoRoutes
 import turmaA.grupoB.LinkStage.ui.instituicao.sampleInstitutionInternships
+import androidx.compose.ui.platform.LocalContext
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
@@ -68,7 +69,8 @@ fun AssignMentorInstituicaoScreen(
     navController: NavController,
     modifier: Modifier = Modifier,
 ) {
-    val internship = sampleInstitutionInternships.firstOrNull() ?: return
+    val context = LocalContext.current
+    val internship = sampleInstitutionInternships(context).firstOrNull() ?: return
     var selectedMentor by remember { mutableStateOf<AdminMentor?>(null) }
     var showConfirmDialog by remember { mutableStateOf(false) }
 
@@ -125,7 +127,7 @@ fun AssignMentorInstituicaoScreen(
                     .padding(horizontal = 16.dp, vertical = 12.dp),
             ) {
                 LinkStageButton(
-                    text = "Atribuir",
+                    text = stringResource(R.string.assign_mentor_confirm_button),
                     onClick = { showConfirmDialog = true },
                     enabled = selectedMentor != null,
                     height = 50.dp,
@@ -182,7 +184,7 @@ fun AssignMentorInstituicaoScreen(
                 modifier = Modifier.weight(1f),
                 contentPadding = PaddingValues(bottom = 8.dp),
             ) {
-                items(sampleMentors, key = { it.id }) { mentor ->
+                items(sampleMentors(context), key = { it.id }) { mentor ->
                     MentorSelectionCard(
                         mentor = mentor,
                         isSelected = selectedMentor?.id == mentor.id,
@@ -230,9 +232,9 @@ private fun MentorSelectionCard(
                 }
                 // Availability badge
                 val (label, color) = if (mentor.isAvailable)
-                    "Disponível!" to Color(0xFF4CAF50)
+                    stringResource(R.string.assign_mentor_available) to Color(0xFF4CAF50)
                 else
-                    "Indisponível" to Red
+                    stringResource(R.string.assign_mentor_unavailable) to Red
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(6.dp))
@@ -255,7 +257,7 @@ private fun MentorSelectionCard(
                 ),
             ) {
                 Text(
-                    text = if (isSelected) "Remover seleção" else "Selecionar orientador",
+                    text = if (isSelected) stringResource(R.string.assign_mentor_remove_selection) else stringResource(R.string.assign_mentor_select),
                     fontWeight = FontWeight.Bold,
                 )
             }

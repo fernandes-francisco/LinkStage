@@ -62,6 +62,7 @@ import turmaA.grupoB.LinkStage.ui.admin.AdminStudent
 import turmaA.grupoB.LinkStage.ui.admin.avatarColors
 import turmaA.grupoB.LinkStage.ui.admin.sampleMentors
 import turmaA.grupoB.LinkStage.ui.admin.sampleStudents
+import androidx.compose.ui.platform.LocalContext
 import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
 import turmaA.grupoB.LinkStage.ui.common.LinkStageDialog
 import turmaA.grupoB.LinkStage.ui.common.LinkStageTabRow
@@ -180,9 +181,10 @@ private fun StudentsTabContent(
     filterCourse: String,
     modifier: Modifier = Modifier,
 ) {
+    val context = LocalContext.current
     var showAddDialog by remember { mutableStateOf(false) }
 
-    val filtered = sampleStudents.filter { student ->
+    val filtered = sampleStudents(context).filter { student ->
         val matchesSearch = searchQuery.isBlank() ||
                 student.name.contains(searchQuery, ignoreCase = true) ||
                 student.course.contains(searchQuery, ignoreCase = true) ||
@@ -204,7 +206,7 @@ private fun StudentsTabContent(
         .mapValues { (_, students) -> students.groupBy { it.course } }
 
     val expandedInstitutions = remember {
-        sampleStudents.map { it.institution }.distinct().map { it to true }.toMutableStateMap()
+        sampleStudents(context).map { it.institution }.distinct().map { it to true }.toMutableStateMap()
     }
 
     if (showAddDialog) {
@@ -370,9 +372,10 @@ private fun MentorsTabContent(
     filterDepartment: String,
     modifier: Modifier = Modifier,
 ) {
+    val context = LocalContext.current
     var showAddDialog by remember { mutableStateOf(false) }
 
-    val filtered = sampleMentors.filter { mentor ->
+    val filtered = sampleMentors(context).filter { mentor ->
         val matchesSearch = searchQuery.isBlank() ||
                 mentor.name.contains(searchQuery, ignoreCase = true) ||
                 mentor.email.contains(searchQuery, ignoreCase = true) ||
@@ -387,7 +390,7 @@ private fun MentorsTabContent(
     val grouped = filtered.groupBy { it.institution }
 
     val expandedInstitutions = remember {
-        sampleMentors.map { it.institution }.distinct().map { it to true }.toMutableStateMap()
+        sampleMentors(context).map { it.institution }.distinct().map { it to true }.toMutableStateMap()
     }
 
     if (showAddDialog) {
@@ -611,6 +614,7 @@ private fun StudentFilterDialog(
     onApply: (status: String, institution: String, course: String) -> Unit,
     onDismiss: () -> Unit,
 ) {
+    val context = LocalContext.current
     var status by remember { mutableStateOf(currentStatus) }
     var institution by remember { mutableStateOf(currentInstitution) }
     var course by remember { mutableStateOf(currentCourse) }
@@ -625,7 +629,7 @@ private fun StudentFilterDialog(
         "in_internship" to inInternshipLabel,
         "without_internship" to withoutInternshipLabel,
     )
-    val institutionOptions = sampleStudents.map { it.institution }.distinct()
+    val institutionOptions = sampleStudents(context).map { it.institution }.distinct()
 
     LinkStageDialog(
         title = stringResource(R.string.filter_title),
@@ -755,11 +759,12 @@ private fun MentorFilterDialog(
     onApply: (institution: String, department: String) -> Unit,
     onDismiss: () -> Unit,
 ) {
+    val context = LocalContext.current
     var institution by remember { mutableStateOf(currentInstitution) }
     var department by remember { mutableStateOf(currentDepartment) }
     var institutionExpanded by remember { mutableStateOf(false) }
 
-    val institutionOptions = sampleMentors.map { it.institution }.distinct()
+    val institutionOptions = sampleMentors(context).map { it.institution }.distinct()
 
     LinkStageDialog(
         title = stringResource(R.string.filter_title),
