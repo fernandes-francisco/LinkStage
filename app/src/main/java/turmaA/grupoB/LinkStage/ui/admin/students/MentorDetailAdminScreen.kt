@@ -25,7 +25,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -39,10 +41,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.admin.sampleMentors
 import turmaA.grupoB.LinkStage.ui.admin.sampleStudents
 import turmaA.grupoB.LinkStage.ui.common.ContentSection
+import turmaA.grupoB.LinkStage.viewmodel.admin.AdminMentorDetailUiState
+import turmaA.grupoB.LinkStage.viewmodel.admin.AdminMentorDetailViewModel
+import turmaA.grupoB.LinkStage.viewmodel.admin.AdminMentorDetailViewModelFactory
 import turmaA.grupoB.LinkStage.ui.common.LinkStageButton
 import turmaA.grupoB.LinkStage.ui.common.LinkStageDialog
 import turmaA.grupoB.LinkStage.ui.common.SecondaryTopBar
@@ -58,17 +64,22 @@ fun MentorDetailAdminScreen(
     mentorId: String,
     onBack: () -> Unit,
 ) {
-    val mentor = sampleMentors.find { it.id == mentorId } ?: run {
-        onBack()
-        return
+    val mentorDetailViewModel: AdminMentorDetailViewModel = viewModel(factory = AdminMentorDetailViewModelFactory())
+    val mentorDetailUiState by mentorDetailViewModel.uiState.collectAsState()
+    val mentor = when (val state = mentorDetailUiState) {
+        is AdminMentorDetailUiState.Success -> state.data.mentor
+        else -> sampleMentors.first()
+    }
+    val supervisedStudents = when (val state = mentorDetailUiState) {
+        is AdminMentorDetailUiState.Success -> state.data.supervisedStudents
+        else -> sampleStudents.filter { it.institution == mentor.institution }
+    }
+
+    LaunchedEffect(mentorId) {
+        mentorDetailViewModel.loadMentor(mentorId)
     }
 
     var showDeleteDialog by remember { mutableStateOf(false) }
-
-    // Dummy supervised students
-    val supervisedStudents = sampleStudents.filter {
-        it.institution == mentor.institution
-    }
 
     if (showDeleteDialog) {
         LinkStageDialog(

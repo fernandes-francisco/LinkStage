@@ -42,7 +42,9 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -56,6 +58,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import turmaA.grupoB.LinkStage.ui.admin.AdminInstitution
@@ -63,6 +66,9 @@ import turmaA.grupoB.LinkStage.ui.admin.AdminRoutes
 import turmaA.grupoB.LinkStage.ui.admin.InstitutionStatus
 import turmaA.grupoB.LinkStage.ui.admin.sampleInstitutions
 import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
+import turmaA.grupoB.LinkStage.viewmodel.admin.AdminInstitutionsUiState
+import turmaA.grupoB.LinkStage.viewmodel.admin.AdminInstitutionsViewModel
+import turmaA.grupoB.LinkStage.viewmodel.admin.AdminInstitutionsViewModelFactory
 import turmaA.grupoB.LinkStage.ui.common.LinkStageDialog
 import turmaA.grupoB.LinkStage.ui.common.LinkStageTabRow
 import turmaA.grupoB.LinkStage.ui.common.SectionLabel
@@ -85,8 +91,28 @@ fun InstitutionsAdminScreen(
     var filterLocation by rememberSaveable { mutableStateOf("") }
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
 
-    val approvedInstitutions = sampleInstitutions.filter { it.status == InstitutionStatus.APPROVED }
-    val pendingInstitutions = sampleInstitutions.filter { it.status == InstitutionStatus.PENDING_APPROVAL }
+    val institutionsViewModel: AdminInstitutionsViewModel = viewModel(factory = AdminInstitutionsViewModelFactory())
+    val institutionsUiState by institutionsViewModel.uiState.collectAsState()
+    val approvedInstitutions = when (val state = institutionsUiState) {
+        is AdminInstitutionsUiState.Success -> state.approvedInstitutions
+        else -> emptyList()
+    }
+    val pendingInstitutions = when (val state = institutionsUiState) {
+        is AdminInstitutionsUiState.Success -> state.pendingInstitutions
+        else -> sampleInstitutions.filter { it.status == InstitutionStatus.PENDING_APPROVAL }
+    }
+
+    LaunchedEffect(Unit) {
+        institutionsViewModel.loadInstitutions()
+    }
+
+    LaunchedEffect(searchQuery, filterType, filterLocation) {
+        institutionsViewModel.filterInstitutions(
+            query = searchQuery,
+            type = filterType,
+            location = filterLocation,
+        )
+    }
 
     val currentList = if (selectedTab == 0) approvedInstitutions else pendingInstitutions
 
@@ -109,6 +135,7 @@ fun InstitutionsAdminScreen(
         InstitutionFilterDialog(
             currentType = filterType,
             currentLocation = filterLocation,
+            locationOptions = filteredInstitutionLocations(institutionsUiState),
             onApply = { type, location ->
                 filterType = type
                 filterLocation = location
@@ -211,6 +238,13 @@ fun InstitutionsAdminScreen(
     }
 }
 
+private fun filteredInstitutionLocations(uiState: AdminInstitutionsUiState): List<String> = when (uiState) {
+    is AdminInstitutionsUiState.Success -> (uiState.approvedInstitutions + uiState.pendingInstitutions)
+        .map { it.location }
+        .distinct()
+    else -> sampleInstitutions.map { it.location }.distinct()
+}
+
 @Composable
 private fun SearchBarWithFilter(
     query: String,
@@ -265,6 +299,7 @@ private fun SearchBarWithFilter(
 private fun InstitutionFilterDialog(
     currentType: String,
     currentLocation: String,
+    locationOptions: List<String>,
     onApply: (type: String, location: String) -> Unit,
     onDismiss: () -> Unit,
 ) {
@@ -273,6 +308,7 @@ private fun InstitutionFilterDialog(
     var typeExpanded by remember { mutableStateOf(false) }
 
     val typeOptions = listOf("Todas", "Instituição de Ensino", "Instituição Empresarial")
+    val locationOptions = locationOptions.ifEmpty { sampleInstitutions.map { it.location }.distinct() }
 
     LinkStageDialog(
         title = "Filtros",

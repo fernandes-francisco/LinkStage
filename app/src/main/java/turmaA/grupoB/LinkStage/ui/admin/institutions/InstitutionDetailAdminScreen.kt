@@ -31,7 +31,9 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -46,11 +48,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.admin.InstitutionStatus
 import turmaA.grupoB.LinkStage.ui.admin.sampleInstitutions
 import turmaA.grupoB.LinkStage.ui.admin.sampleMentors
 import turmaA.grupoB.LinkStage.ui.admin.sampleStudents
+import turmaA.grupoB.LinkStage.viewmodel.admin.AdminInstitutionDetailUiState
+import turmaA.grupoB.LinkStage.viewmodel.admin.AdminInstitutionDetailViewModel
+import turmaA.grupoB.LinkStage.viewmodel.admin.AdminInstitutionDetailViewModelFactory
 import turmaA.grupoB.LinkStage.ui.admin.students.MentorListItem
 import turmaA.grupoB.LinkStage.ui.admin.students.StudentListItem
 import turmaA.grupoB.LinkStage.ui.common.ConfirmationDialog
@@ -71,22 +77,28 @@ fun InstitutionDetailAdminScreen(
     institutionId: String,
     onBack: () -> Unit,
 ) {
-    val institution = sampleInstitutions.find { it.id == institutionId } ?: run {
-        onBack()
-        return
+    val institutionDetailViewModel: AdminInstitutionDetailViewModel = viewModel(factory = AdminInstitutionDetailViewModelFactory())
+    val institutionDetailUiState by institutionDetailViewModel.uiState.collectAsState()
+    val institution = when (val state = institutionDetailUiState) {
+        is AdminInstitutionDetailUiState.Success -> state.data.institution
+        else -> sampleInstitutions.first()
+    }
+    val relatedStudents = when (val state = institutionDetailUiState) {
+        is AdminInstitutionDetailUiState.Success -> state.data.relatedStudents.take(3)
+        else -> sampleStudents.filter { it.institutionCode == institution.code }.take(3)
+    }
+    val relatedMentors = when (val state = institutionDetailUiState) {
+        is AdminInstitutionDetailUiState.Success -> state.data.relatedMentors
+        else -> sampleMentors.filter { it.institution == institution.code }
+    }
+
+    LaunchedEffect(institutionId) {
+        institutionDetailViewModel.loadInstitution(institutionId)
     }
 
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showApproveDialog by remember { mutableStateOf(false) }
     var showRejectDialog by remember { mutableStateOf(false) }
-
-    val relatedStudents = sampleStudents.filter {
-        it.institutionCode == institution.code
-    }.take(3)
-
-    val relatedMentors = sampleMentors.filter {
-        it.institution == institution.code
-    }
 
     if (showDeleteDialog) {
         LinkStageDialog(

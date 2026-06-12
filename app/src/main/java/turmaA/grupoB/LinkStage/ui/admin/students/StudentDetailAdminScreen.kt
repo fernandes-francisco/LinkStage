@@ -26,7 +26,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -41,9 +43,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.admin.sampleStudents
 import turmaA.grupoB.LinkStage.ui.common.ContentSection
+import turmaA.grupoB.LinkStage.viewmodel.admin.AdminStudentDetailUiState
+import turmaA.grupoB.LinkStage.viewmodel.admin.AdminStudentDetailViewModel
+import turmaA.grupoB.LinkStage.viewmodel.admin.AdminStudentDetailViewModelFactory
 import turmaA.grupoB.LinkStage.ui.common.LinkStageButton
 import turmaA.grupoB.LinkStage.ui.common.LinkStageDialog
 import turmaA.grupoB.LinkStage.ui.common.SecondaryTopBar
@@ -62,9 +68,15 @@ fun StudentDetailAdminScreen(
     onBack: () -> Unit,
     onViewInternship: (String) -> Unit = {},
 ) {
-    val student = sampleStudents.find { it.id == studentId } ?: run {
-        onBack()
-        return
+    val studentDetailViewModel: AdminStudentDetailViewModel = viewModel(factory = AdminStudentDetailViewModelFactory())
+    val studentDetailUiState by studentDetailViewModel.uiState.collectAsState()
+    val student = when (val state = studentDetailUiState) {
+        is AdminStudentDetailUiState.Success -> state.data.student
+        else -> sampleStudents.first()
+    }
+
+    LaunchedEffect(studentId) {
+        studentDetailViewModel.loadStudent(studentId)
     }
 
     var showDeleteDialog by remember { mutableStateOf(false) }

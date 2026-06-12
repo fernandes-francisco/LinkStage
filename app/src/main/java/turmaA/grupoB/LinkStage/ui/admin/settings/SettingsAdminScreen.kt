@@ -38,6 +38,7 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -49,6 +50,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -58,7 +60,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
 import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
 import turmaA.grupoB.LinkStage.ui.common.LinkStageButton
@@ -72,15 +76,25 @@ import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.Fade1
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.ui.theme.Red
+import turmaA.grupoB.LinkStage.data.repository.flags.FlagsRepository
 import turmaA.grupoB.LinkStage.viewmodel.SettingsViewModel
+import turmaA.grupoB.LinkStage.viewmodel.flags.FlagsUIState
+import turmaA.grupoB.LinkStage.viewmodel.flags.FlagsViewModel
+import turmaA.grupoB.LinkStage.viewmodel.flags.FlagsViewModelFactory
 
 @Composable
 fun SettingsAdminScreen(
     onLogout: () -> Unit = {},
     settingsViewModel: SettingsViewModel = viewModel(),
+    flagsViewModel: FlagsViewModel = viewModel(factory = FlagsViewModelFactory(FlagsRepository())),
     modifier: Modifier = Modifier,
 ) {
     val currentLanguage by settingsViewModel.currentLanguage.collectAsState()
+    val flagsUIState by flagsViewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    LaunchedEffect(Unit) {
+        flagsViewModel.getImages(listOf("portugal", "gb"))
+    }
     var showLogoutDialog by remember { mutableStateOf(false) }
     var showPasswordDialog by remember { mutableStateOf(false) }
     val uriHandler = LocalUriHandler.current
@@ -218,6 +232,7 @@ fun SettingsAdminScreen(
                 LanguageToggle(
                     selectedLang = currentLanguage,
                     onSelect = { settingsViewModel.changeLanguage(it) },
+                    uiState = flagsUIState,
                 )
             }
         }
@@ -343,29 +358,61 @@ private fun SettingsRowItem(
 private fun LanguageToggle(
     selectedLang: String,
     onSelect: (String) -> Unit,
+    uiState: FlagsUIState,
 ) {
+    val flagLangs = listOf("portugal", "gb")
+    val labels = listOf("PT", "EN")
+
     Row(
         modifier = Modifier
             .clip(RoundedCornerShape(8.dp))
             .border(1.dp, BorderGrey, RoundedCornerShape(8.dp)),
     ) {
-        listOf("PT", "EN").forEach { lang ->
-            val isSelected = lang == selectedLang
+        labels.forEachIndexed { index, label ->
+            val lang = flagLangs[index]
+            val isSelected = label == selectedLang || lang == selectedLang
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(7.dp))
                     .background(if (isSelected) DarkBlue else Color.Transparent)
-                    .clickable { onSelect(lang) }
+                    .clickable { onSelect(label) }
                     .padding(horizontal = 16.dp, vertical = 6.dp),
                 contentAlignment = Alignment.Center,
             ) {
-                Text(
-                    text = lang,
-                    style = MaterialTheme.typography.labelMedium.copy(
-                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                    ),
-                    color = if (isSelected) Color.White else DarkGrey,
-                )
+                when (uiState) {
+                    is FlagsUIState.Error -> Text(
+                        text = label,
+                        style = MaterialTheme.typography.labelMedium.copy(
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                        ),
+                        color = if (isSelected) Color.White else DarkGrey,
+                    )
+                    is FlagsUIState.Success -> {
+                        val imageIndex = flagLangs.indexOf(lang)
+                        if (imageIndex >= 0) {
+                            AsyncImage(
+                                model = uiState.imgs.getOrNull(imageIndex)?.png,
+                                contentDescription = label,
+                                modifier = Modifier.size(24.dp),
+                            )
+                        } else {
+                            Text(
+                                text = label,
+                                style = MaterialTheme.typography.labelMedium.copy(
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                ),
+                                color = if (isSelected) Color.White else DarkGrey,
+                            )
+                        }
+                    }
+                    else -> Text(
+                        text = label,
+                        style = MaterialTheme.typography.labelMedium.copy(
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                        ),
+                        color = if (isSelected) Color.White else DarkGrey,
+                    )
+                }
             }
         }
     }

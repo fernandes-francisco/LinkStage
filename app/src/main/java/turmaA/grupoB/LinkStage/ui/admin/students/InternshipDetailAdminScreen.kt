@@ -31,6 +31,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,6 +44,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import turmaA.grupoB.LinkStage.ui.aluno.offers.BenefitChip
 import turmaA.grupoB.LinkStage.ui.aluno.offers.MetaChip
 import turmaA.grupoB.LinkStage.ui.aluno.offers.OfferDetail
@@ -49,6 +53,10 @@ import turmaA.grupoB.LinkStage.ui.common.CheckItem
 import turmaA.grupoB.LinkStage.ui.common.ContentSection
 import turmaA.grupoB.LinkStage.ui.common.ContentSectionColored
 import turmaA.grupoB.LinkStage.ui.common.SecondaryTopBar
+import turmaA.grupoB.LinkStage.viewmodel.admin.AdminInternshipDetailUiState
+import turmaA.grupoB.LinkStage.viewmodel.admin.AdminInternshipDetailViewModel
+import turmaA.grupoB.LinkStage.viewmodel.admin.AdminInternshipDetailViewModelFactory
+import turmaA.grupoB.LinkStage.viewmodel.admin.fallbackInternshipDetail
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
@@ -60,36 +68,15 @@ fun InternshipDetailAdminScreen(
     internshipId: String,
     onBack: () -> Unit,
 ) {
-    // Mock data based on the offer the student is doing
-    val offer = remember {
-        OfferDetail(
-            id = internshipId,
-            title = "Desenvolvimento de App Mobile",
-            company = "Viana S.T.Arts",
-            logoInitial = "V",
-            logoColor = Color(0xFF212121),
-            location = "Viana do Castelo, PT",
-            duration = "6 Meses",
-            type = "Remoto",
-            aboutCompany = "Com o principal objetivo de realizar a reabilitação do antigo Matadouro Municipal de Viana do Castelo, visa transformar o edifício histórico num centro de ciência, arte e inovação.",
-            responsibilities = listOf(
-                "Realizar a prototipagem da app web.",
-                "Colaborar com a equipa, com o objetivo cruzar habilidades.",
-                "Desenvolver o nosso sistema de criação de dashboards.",
-            ),
-            requirements = listOf(
-                "Experiência com Figma e prototipagem interativa.",
-                "Portfólio do UI para demonstração.",
-                "Comunicação excelente escrita e verbal em Inglês.",
-            ),
-            benefits = listOf(
-                "Passe de Transporte Público",
-                "Programa de Mentoria",
-                "Mercado Competitivo",
-            ),
-            deadlineDays = 0,
-            applicantsCount = 12,
-        )
+    val internshipDetailViewModel: AdminInternshipDetailViewModel = viewModel(factory = AdminInternshipDetailViewModelFactory())
+    val internshipDetailUiState by internshipDetailViewModel.uiState.collectAsState()
+    val offer = when (val state = internshipDetailUiState) {
+        is AdminInternshipDetailUiState.Success -> state.data.offerDetail
+        else -> fallbackInternshipDetail(internshipId).offerDetail
+    }
+
+    LaunchedEffect(internshipId) {
+        internshipDetailViewModel.loadInternship(internshipId)
     }
 
     Scaffold(

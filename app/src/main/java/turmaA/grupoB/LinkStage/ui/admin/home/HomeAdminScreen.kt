@@ -23,6 +23,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -38,15 +39,16 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.rememberNavController
+import androidx.lifecycle.viewmodel.compose.viewModel
 import turmaA.grupoB.LinkStage.ui.admin.AdminInstitution
 import turmaA.grupoB.LinkStage.ui.admin.AdminMentor
 import turmaA.grupoB.LinkStage.ui.admin.AdminRoutes
 import turmaA.grupoB.LinkStage.ui.admin.AdminStudent
 import turmaA.grupoB.LinkStage.ui.admin.InstitutionStatus
 import turmaA.grupoB.LinkStage.ui.admin.avatarColors
-import turmaA.grupoB.LinkStage.ui.admin.sampleInstitutions
-import turmaA.grupoB.LinkStage.ui.admin.sampleMentors
-import turmaA.grupoB.LinkStage.ui.admin.sampleStudents
+import turmaA.grupoB.LinkStage.viewmodel.admin.AdminDashboardUiState
+import turmaA.grupoB.LinkStage.viewmodel.admin.AdminDashboardViewModel
+import turmaA.grupoB.LinkStage.viewmodel.admin.AdminDashboardViewModelFactory
 import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
 import turmaA.grupoB.LinkStage.ui.common.EvaluationNotificationModal
 import turmaA.grupoB.LinkStage.ui.common.EvaluationPendingCard
@@ -60,8 +62,15 @@ fun HomeAdminScreen(
     navController: NavController,
     modifier: Modifier = Modifier,
 ) {
-    val pendingInstitutions = sampleInstitutions.filter { it.status == InstitutionStatus.PENDING_APPROVAL }
-    var showPendingModal by remember { mutableStateOf(pendingInstitutions.isNotEmpty()) }
+    val dashboardViewModel: AdminDashboardViewModel = viewModel(factory = AdminDashboardViewModelFactory())
+    val dashboardUiState by dashboardViewModel.uiState.collectAsState()
+    val pendingInstitutions = when (val state = dashboardUiState) {
+        is AdminDashboardUiState.Success -> state.data.pendingInstitutions
+        else -> emptyList()
+    }
+    var showPendingModal by remember { mutableStateOf(false) }
+
+    dashboardViewModel.loadDashboard()
 
     if (showPendingModal) {
         EvaluationNotificationModal(
@@ -148,7 +157,11 @@ fun HomeAdminScreen(
             )
             Spacer(modifier = Modifier.height(8.dp))
 
-            sampleStudents.take(2).forEach { student ->
+            val recentStudents = when (val state = dashboardUiState) {
+                is AdminDashboardUiState.Success -> state.data.recentStudents
+                else -> emptyList()
+            }
+            recentStudents.take(2).forEach { student ->
                 AdminUserRow(
                     student = student,
                     onClick = { navController.navigate(AdminRoutes.studentDetail(student.id)) },
@@ -173,7 +186,11 @@ fun HomeAdminScreen(
             )
             Spacer(modifier = Modifier.height(8.dp))
 
-            sampleMentors.take(2).forEach { mentor ->
+            val recentMentors = when (val state = dashboardUiState) {
+                is AdminDashboardUiState.Success -> state.data.recentMentors
+                else -> emptyList()
+            }
+            recentMentors.take(2).forEach { mentor ->
                 AdminMentorRow(
                     mentor = mentor,
                     onClick = { navController.navigate(AdminRoutes.mentorDetail(mentor.id)) },
@@ -198,7 +215,11 @@ fun HomeAdminScreen(
             )
             Spacer(modifier = Modifier.height(8.dp))
 
-            sampleInstitutions.take(2).forEach { institution ->
+            val recentInstitutions = when (val state = dashboardUiState) {
+                is AdminDashboardUiState.Success -> state.data.recentInstitutions
+                else -> emptyList()
+            }
+            recentInstitutions.take(2).forEach { institution ->
                 AdminInstitutionRow(
                     institution = institution,
                     onClick = { navController.navigate(AdminRoutes.institutionDetail(institution.id)) },

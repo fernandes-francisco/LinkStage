@@ -37,6 +37,8 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -54,12 +56,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import androidx.lifecycle.viewmodel.compose.viewModel
 import turmaA.grupoB.LinkStage.ui.admin.AdminMentor
 import turmaA.grupoB.LinkStage.ui.admin.AdminRoutes
 import turmaA.grupoB.LinkStage.ui.admin.AdminStudent
 import turmaA.grupoB.LinkStage.ui.admin.avatarColors
 import turmaA.grupoB.LinkStage.ui.admin.sampleMentors
 import turmaA.grupoB.LinkStage.ui.admin.sampleStudents
+import turmaA.grupoB.LinkStage.viewmodel.admin.AdminUsersUiState
+import turmaA.grupoB.LinkStage.viewmodel.admin.AdminUsersViewModel
+import turmaA.grupoB.LinkStage.viewmodel.admin.AdminUsersViewModelFactory
 import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
 import turmaA.grupoB.LinkStage.ui.common.LinkStageDialog
 import turmaA.grupoB.LinkStage.ui.common.LinkStageTabRow
@@ -75,6 +81,8 @@ fun StudentsAdminScreen(
     navController: NavController,
     modifier: Modifier = Modifier,
 ) {
+    val usersViewModel: AdminUsersViewModel = viewModel(factory = AdminUsersViewModelFactory())
+    val usersUiState by usersViewModel.uiState.collectAsState()
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
     var searchQuery by rememberSaveable { mutableStateOf("") }
     var showFilterDialog by remember { mutableStateOf(false) }
@@ -87,13 +95,36 @@ fun StudentsAdminScreen(
     var mentorFilterInstitution by rememberSaveable { mutableStateOf("") }
     var mentorFilterDepartment by rememberSaveable { mutableStateOf("") }
 
+    LaunchedEffect(Unit) {
+        usersViewModel.loadUsers()
+    }
+
+    LaunchedEffect(searchQuery, studentFilterStatus, studentFilterInstitution, studentFilterCourse) {
+        usersViewModel.filterStudents(
+            query = searchQuery,
+            institution = studentFilterInstitution,
+            course = studentFilterCourse,
+            internshipStatus = studentFilterStatus,
+        )
+    }
+
+    LaunchedEffect(searchQuery, mentorFilterInstitution, mentorFilterDepartment) {
+        usersViewModel.filterMentors(
+            query = searchQuery,
+            institution = mentorFilterInstitution,
+            department = mentorFilterDepartment,
+        )
+    }
+
     if (showFilterDialog) {
         if (selectedTab == 0) {
-            StudentFilterDialog(
-                currentStatus = studentFilterStatus,
-                currentInstitution = studentFilterInstitution,
-                currentCourse = studentFilterCourse,
-                onApply = { status, institution, course ->
+                StudentFilterDialog(
+                    currentStatus = studentFilterStatus,
+                    currentInstitution = studentFilterInstitution,
+                    currentCourse = studentFilterCourse,
+                    institutionOptions = filteredStudentInstitutions(usersUiState),
+                    courseOptions = filteredStudentCourses(usersUiState),
+                    onApply = { status, institution, course ->
                     studentFilterStatus = status
                     studentFilterInstitution = institution
                     studentFilterCourse = course
@@ -105,6 +136,7 @@ fun StudentsAdminScreen(
             MentorFilterDialog(
                 currentInstitution = mentorFilterInstitution,
                 currentDepartment = mentorFilterDepartment,
+                institutionOptions = filteredMentorInstitutions(usersUiState),
                 onApply = { institution, department ->
                     mentorFilterInstitution = institution
                     mentorFilterDepartment = department
@@ -167,6 +199,24 @@ fun StudentsAdminScreen(
     }
 }
 
+private fun filteredStudentInstitutions(uiState: AdminUsersUiState): List<String> = when (uiState) {
+    is AdminUsersUiState.Success -> uiState.students.map { it.institution }.distinct()
+    is AdminUsersUiState.StudentsSuccess -> uiState.students.map { it.institution }.distinct()
+    else -> sampleStudents.map { it.institution }.distinct()
+}
+
+private fun filteredStudentCourses(uiState: AdminUsersUiState): List<String> = when (uiState) {
+    is AdminUsersUiState.Success -> uiState.students.map { it.course }.distinct()
+    is AdminUsersUiState.StudentsSuccess -> uiState.students.map { it.course }.distinct()
+    else -> sampleStudents.map { it.course }.distinct()
+}
+
+private fun filteredMentorInstitutions(uiState: AdminUsersUiState): List<String> = when (uiState) {
+    is AdminUsersUiState.Success -> uiState.mentors.map { it.institution }.distinct()
+    is AdminUsersUiState.MentorsSuccess -> uiState.mentors.map { it.institution }.distinct()
+    else -> sampleMentors.map { it.institution }.distinct()
+}
+
 // region Students Tab
 
 @Composable
@@ -180,29 +230,19 @@ private fun StudentsTabContent(
 ) {
     var showAddDialog by remember { mutableStateOf(false) }
 
-    val filtered = sampleStudents.filter { student ->
-        val matchesSearch = searchQuery.isBlank() ||
-                student.name.contains(searchQuery, ignoreCase = true) ||
-                student.course.contains(searchQuery, ignoreCase = true) ||
-                student.institution.contains(searchQuery, ignoreCase = true)
-        val matchesStatus = when (filterStatus) {
-            "Em estágio" -> student.hasActiveInternship
-            "Sem estágio" -> !student.hasActiveInternship
-            else -> true
-        }
-        val matchesInstitution = filterInstitution.isEmpty() ||
-                student.institution.contains(filterInstitution, ignoreCase = true)
-        val matchesCourse = filterCourse.isEmpty() ||
-                student.course.contains(filterCourse, ignoreCase = true)
-        matchesSearch && matchesStatus && matchesInstitution && matchesCourse
+    val usersUiState by viewModel<AdminUsersViewModel>(factory = AdminUsersViewModelFactory()).uiState.collectAsState()
+    val filtered = when (val state = usersUiState) {
+        is AdminUsersUiState.StudentsSuccess -> state.students
+        is AdminUsersUiState.Success -> state.students
+        else -> emptyList()
     }
 
     val grouped = filtered
         .groupBy { it.institution }
         .mapValues { (_, students) -> students.groupBy { it.course } }
 
-    val expandedInstitutions = remember {
-        sampleStudents.map { it.institution }.distinct().map { it to true }.toMutableStateMap()
+    val expandedInstitutions = remember(filtered) {
+        filtered.map { it.institution }.distinct().map { it to true }.toMutableStateMap()
     }
 
     if (showAddDialog) {
@@ -370,22 +410,17 @@ private fun MentorsTabContent(
 ) {
     var showAddDialog by remember { mutableStateOf(false) }
 
-    val filtered = sampleMentors.filter { mentor ->
-        val matchesSearch = searchQuery.isBlank() ||
-                mentor.name.contains(searchQuery, ignoreCase = true) ||
-                mentor.email.contains(searchQuery, ignoreCase = true) ||
-                mentor.institution.contains(searchQuery, ignoreCase = true)
-        val matchesInstitution = filterInstitution.isEmpty() ||
-                mentor.institution == filterInstitution
-        val matchesDepartment = filterDepartment.isEmpty() ||
-                mentor.department.contains(filterDepartment, ignoreCase = true)
-        matchesSearch && matchesInstitution && matchesDepartment
+    val usersUiState by viewModel<AdminUsersViewModel>(factory = AdminUsersViewModelFactory()).uiState.collectAsState()
+    val filtered = when (val state = usersUiState) {
+        is AdminUsersUiState.MentorsSuccess -> state.mentors
+        is AdminUsersUiState.Success -> state.mentors
+        else -> emptyList()
     }
 
     val grouped = filtered.groupBy { it.institution }
 
-    val expandedInstitutions = remember {
-        sampleMentors.map { it.institution }.distinct().map { it to true }.toMutableStateMap()
+    val expandedInstitutions = remember(filtered) {
+        filtered.map { it.institution }.distinct().map { it to true }.toMutableStateMap()
     }
 
     if (showAddDialog) {
@@ -606,6 +641,8 @@ private fun StudentFilterDialog(
     currentStatus: String,
     currentInstitution: String,
     currentCourse: String,
+    institutionOptions: List<String>,
+    courseOptions: List<String>,
     onApply: (status: String, institution: String, course: String) -> Unit,
     onDismiss: () -> Unit,
 ) {
@@ -616,7 +653,8 @@ private fun StudentFilterDialog(
     var institutionExpanded by remember { mutableStateOf(false) }
 
     val statusOptions = listOf("Todos", "Em estágio", "Sem estágio")
-    val institutionOptions = sampleStudents.map { it.institution }.distinct()
+    val institutionOptions = institutionOptions.ifEmpty { sampleStudents.map { it.institution }.distinct() }
+    val courseOptions = courseOptions.ifEmpty { sampleStudents.map { it.course }.distinct() }
 
     LinkStageDialog(
         title = "Filtros",
@@ -746,6 +784,7 @@ private fun StudentFilterDialog(
 private fun MentorFilterDialog(
     currentInstitution: String,
     currentDepartment: String,
+    institutionOptions: List<String>,
     onApply: (institution: String, department: String) -> Unit,
     onDismiss: () -> Unit,
 ) {
@@ -753,7 +792,7 @@ private fun MentorFilterDialog(
     var department by remember { mutableStateOf(currentDepartment) }
     var institutionExpanded by remember { mutableStateOf(false) }
 
-    val institutionOptions = sampleMentors.map { it.institution }.distinct()
+    val institutionOptions = institutionOptions.ifEmpty { sampleMentors.map { it.institution }.distinct() }
 
     LinkStageDialog(
         title = "Filtros",
