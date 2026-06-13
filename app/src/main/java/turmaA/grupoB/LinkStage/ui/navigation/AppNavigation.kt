@@ -33,9 +33,14 @@ import turmaA.grupoB.LinkStage.ui.instituicao.InstitutionPendingScreen
 import turmaA.grupoB.LinkStage.ui.orientador.OrientadorMainScreen
 import turmaA.grupoB.LinkStage.data.remote.model.enums.UserRole
 import turmaA.grupoB.LinkStage.data.repository.auth.AuthRepository
+import turmaA.grupoB.LinkStage.data.repository.student.StudentRepository
 import turmaA.grupoB.LinkStage.viewmodel.auth.AuthUiState
 import turmaA.grupoB.LinkStage.viewmodel.auth.AuthViewModel
 import turmaA.grupoB.LinkStage.viewmodel.auth.AuthViewModelFactory
+import turmaA.grupoB.LinkStage.viewmodel.auth.RegisterStudentInput
+import turmaA.grupoB.LinkStage.viewmodel.auth.RegisterStudentUiState
+import turmaA.grupoB.LinkStage.viewmodel.auth.RegisterStudentViewModel
+import turmaA.grupoB.LinkStage.viewmodel.auth.RegisterStudentViewModelFactory
 
 object Routes {
     const val SPLASH = "splash"
@@ -247,12 +252,35 @@ fun AppNavigation(
             )
         }
         composable(Routes.REGISTER_SKILLS) {
+            val registerStudentViewModel: RegisterStudentViewModel = viewModel(
+                factory = RegisterStudentViewModelFactory(
+                    authRepository = AuthRepository(),
+                    studentRepository = StudentRepository()
+                )
+            )
+
+            val registerStudentUiState by registerStudentViewModel.uiState.collectAsState()
+
+            LaunchedEffect(registerStudentUiState) {
+                val state = registerStudentUiState
+
+                if (state is RegisterStudentUiState.Success) {
+                    pendingStudentRegisterData = null
+                    registerStudentViewModel.resetState()
+
+                    navController.navigate(Routes.LOGIN) {
+                        popUpTo(Routes.REGISTER) { inclusive = true }
+                    }
+                }
+            }
+
             RegisterSkillsScreen(
                 onBackClick = {
                     navController.popBackStack()
                 },
                 onRegisterClick = { skills ->
                     val registerData = pendingStudentRegisterData
+
                     if (registerData == null) {
                         navController.navigate(Routes.REGISTER) {
                             popUpTo(Routes.LOGIN) { inclusive = true }
@@ -260,9 +288,18 @@ fun AppNavigation(
                         return@RegisterSkillsScreen
                     }
 
-                    navController.navigate(Routes.LOGIN) {
-                        popUpTo(Routes.LOGIN) { inclusive = true }
-                    }
+                    registerStudentViewModel.registerStudent(
+                        RegisterStudentInput(
+                            name = registerData["name"].orEmpty(),
+                            email = registerData["email"].orEmpty(),
+                            password = registerData["password"].orEmpty(),
+                            phone = null,
+                            studentNumber = registerData["email"].orEmpty(),
+                            course = registerData["institute"].orEmpty(),
+                            academicYear = null,
+                            rgpdConsent = true
+                        )
+                    )
                 }
             )
         }
