@@ -37,10 +37,7 @@ import turmaA.grupoB.LinkStage.ui.common.PrivacyPolicyScreen
 import turmaA.grupoB.LinkStage.ui.aluno.activity.InternshipResultScreen
 import turmaA.grupoB.LinkStage.ui.aluno.activity.RecentActivityAlunoScreen
 import turmaA.grupoB.LinkStage.ui.aluno.chat.ChatAlunoScreen
-import turmaA.grupoB.LinkStage.ui.aluno.chat.ChatScreen
-import turmaA.grupoB.LinkStage.ui.aluno.chat.sampleConversations
-import turmaA.grupoB.LinkStage.ui.aluno.chat.getSampleContacts
-import turmaA.grupoB.LinkStage.ui.aluno.chat.Conversation
+import turmaA.grupoB.LinkStage.ui.aluno.chat.StudentChatScreen
 import turmaA.grupoB.LinkStage.ui.aluno.home.HomeAlunoScreen
 import turmaA.grupoB.LinkStage.ui.aluno.notifications.NotificationsAlunoScreen
 import turmaA.grupoB.LinkStage.ui.aluno.activity.ActivityDetailAlunoScreen
@@ -316,24 +313,8 @@ fun AlunoMainScreen(onLogout: () -> Unit = {}) {
             ) { backStackEntry ->
                 val conversationId = backStackEntry.arguments?.getString("conversationId") ?: return@composable
                 
-                // Primeiro procura nas conversas existentes
-                val existingConversation = sampleConversations.find { it.id == conversationId }
-                
-                // Se não existir, procura nos contactos para criar uma nova conversa
-                val contacts = getSampleContacts()
-                val conversation = existingConversation ?: contacts.find { it.id == conversationId }?.let { contact ->
-                    Conversation(
-                        id = contact.id,
-                        name = contact.name,
-                        initials = contact.initials,
-                        lastMessage = "Inicia uma nova conversa.",
-                        time = "Agora",
-                        avatarColorIndex = contact.avatarColorIndex
-                    )
-                } ?: return@composable
-
-                ChatScreen(
-                    conversation = conversation,
+                StudentChatScreen(
+                    threadId = conversationId,
                     onBack = { navController.popBackStack() },
                 )
             }

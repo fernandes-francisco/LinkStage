@@ -4,6 +4,13 @@ import turmaA.grupoB.LinkStage.data.remote.model.communication.MessageModel
 import turmaA.grupoB.LinkStage.data.remote.model.communication.MessageThreadModel
 import turmaA.grupoB.LinkStage.data.remote.model.communication.MessageThreadParticipantModel
 import turmaA.grupoB.LinkStage.data.remote.model.communication.NotificationModel
+import turmaA.grupoB.LinkStage.data.remote.model.user.ProfileModel
+
+data class StudentConversationDetails(
+    val thread: MessageThreadModel,
+    val participant: ProfileModel?,
+    val messages: List<MessageModel>,
+)
 
 sealed class CommunicationUiState {
     data object Idle: CommunicationUiState()
@@ -16,6 +23,8 @@ sealed class CommunicationUiState {
     data class SuccessThreadList(val messages: List<MessageThreadModel>) : CommunicationUiState()
     data class SuccessParticipantsThread(val message: MessageThreadParticipantModel) : CommunicationUiState()
     data class SuccessParticipantsThreadList(val messages: List<MessageThreadParticipantModel>) : CommunicationUiState()
+    data class SuccessConversationList(val conversations: List<StudentConversationDetails>) : CommunicationUiState()
+    data class SuccessConversation(val conversation: StudentConversationDetails) : CommunicationUiState()
     data object Empty: CommunicationUiState()
     data class Error(val message : String): CommunicationUiState()
 }

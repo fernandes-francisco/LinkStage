@@ -8,10 +8,116 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import turmaA.grupoB.LinkStage.data.remote.model.communication.SendMessageInput
 import turmaA.grupoB.LinkStage.data.repository.communication.CommunicationRepositoryInterface
+import turmaA.grupoB.LinkStage.data.repository.profile.ProfileRepositoryInterface
 
-class CommunicationViewModel(private val messageRepository: CommunicationRepositoryInterface) : ViewModel() {
+class CommunicationViewModel(
+    private val messageRepository: CommunicationRepositoryInterface,
+    private val profileRepository: ProfileRepositoryInterface? = null,
+) : ViewModel() {
     private val _uiState = MutableStateFlow<CommunicationUiState>(CommunicationUiState.Idle)
     val uiState: StateFlow<CommunicationUiState> = _uiState.asStateFlow()
+
+    private val _conversationsUiState = MutableStateFlow<CommunicationUiState>(CommunicationUiState.Idle)
+    val conversationsUiState: StateFlow<CommunicationUiState> = _conversationsUiState.asStateFlow()
+
+    private val _chatUiState = MutableStateFlow<CommunicationUiState>(CommunicationUiState.Idle)
+    val chatUiState: StateFlow<CommunicationUiState> = _chatUiState.asStateFlow()
+
+    fun loadConversationsByUser(userId: String) {
+        viewModelScope.launch {
+            _conversationsUiState.value = CommunicationUiState.Loading
+
+            try {
+                val conversations = messageRepository.getThreadsByUser(userId)
+                    .map { thread -> buildConversation(thread, userId) }
+                    .sortedByDescending { conversation ->
+                        conversation.messages.maxOfOrNull { it.createdAt } ?: conversation.thread.createdAt
+                    }
+
+                _conversationsUiState.value = if (conversations.isEmpty()) {
+                    CommunicationUiState.Empty
+                } else {
+                    CommunicationUiState.SuccessConversationList(conversations)
+                }
+            } catch (e: Exception) {
+                _conversationsUiState.value = CommunicationUiState.Error(
+                    e.message ?: "Erro ao carregar conversas."
+                )
+            }
+        }
+    }
+
+    fun loadConversation(threadId: String, userId: String) {
+        viewModelScope.launch {
+            _chatUiState.value = CommunicationUiState.Loading
+
+            try {
+                loadConversationState(threadId, userId)
+            } catch (e: Exception) {
+                _chatUiState.value = CommunicationUiState.Error(
+                    e.message ?: "Erro ao carregar conversa."
+                )
+            }
+        }
+    }
+
+    fun sendStudentMessage(threadId: String, senderId: String, content: String) {
+        val messageContent = content.trim()
+        if (messageContent.isEmpty()) return
+
+        viewModelScope.launch {
+            try {
+                messageRepository.sendMessage(
+                    SendMessageInput(
+                        threadId = threadId,
+                        senderId = senderId,
+                        content = messageContent,
+                    )
+                ) ?: error("Não foi possível enviar a mensagem.")
+
+                loadConversationState(threadId, senderId)
+            } catch (e: Exception) {
+                _chatUiState.value = CommunicationUiState.Error(
+                    e.message ?: "Erro ao enviar mensagem."
+                )
+            }
+        }
+    }
+
+    private suspend fun loadConversationState(threadId: String, userId: String) {
+        val thread = messageRepository.getThreadById(threadId)
+
+        if (thread == null) {
+            _chatUiState.value = CommunicationUiState.Empty
+            return
+        }
+
+        val conversation = buildConversation(thread, userId)
+        conversation.messages
+            .filter { message -> message.senderId != userId && !message.isRead }
+            .forEach { message ->
+                runCatching { messageRepository.markMessageAsRead(message.id) }
+            }
+
+        _chatUiState.value = CommunicationUiState.SuccessConversation(conversation)
+    }
+
+    private suspend fun buildConversation(
+        thread: turmaA.grupoB.LinkStage.data.remote.model.communication.MessageThreadModel,
+        userId: String,
+    ): StudentConversationDetails {
+        val participant = messageRepository.getParticipantsByThread(thread.id)
+            .firstOrNull { it.userId != userId }
+            ?.let { profileRepository?.getProfileById(it.userId) }
+        val messages = messageRepository.getMessagesByThread(thread.id)
+            .sortedBy { it.createdAt }
+
+        return StudentConversationDetails(
+            thread = thread,
+            participant = participant,
+            messages = messages,
+        )
+    }
     
     fun getNotificationsByUser(userId: String){
         viewModelScope.launch { 

@@ -11,6 +11,7 @@ interface CommunicationRepositoryInterface {
     suspend fun getUnreadNotificationsByUser(userId: String): List<NotificationModel>
     suspend fun markNotificationAsRead(notificationId: String): NotificationModel?
     suspend fun getThreadById(threadId: String): MessageThreadModel?
+    suspend fun getThreadsByUser(userId: String): List<MessageThreadModel> = emptyList()
     suspend fun getThreadsByInternship(internshipId: String): List<MessageThreadModel>
     suspend fun getThreadByApplication(applicationId: String): List<MessageThreadModel>
     suspend fun getParticipantsByThread(threadId: String): List<MessageThreadParticipantModel>

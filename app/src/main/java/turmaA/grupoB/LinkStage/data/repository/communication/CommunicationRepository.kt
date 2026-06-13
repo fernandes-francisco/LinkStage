@@ -63,6 +63,21 @@ class CommunicationRepository : CommunicationRepositoryInterface {
             .firstOrNull()
     }
 
+    override suspend fun getThreadsByUser(userId: String): List<MessageThreadModel> {
+        val participants = supabase
+            .from("message_thread_participants")
+            .select {
+                filter {
+                    eq("user_id", userId)
+                }
+            }
+            .decodeList<MessageThreadParticipantModel>()
+
+        return participants
+            .mapNotNull { participant -> getThreadById(participant.threadId) }
+            .distinctBy { thread -> thread.id }
+    }
+
     override suspend fun getThreadsByInternship(internshipId: String): List<MessageThreadModel> {
         return supabase
             .from("message_threads")
