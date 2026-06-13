@@ -1,5 +1,7 @@
 package turmaA.grupoB.LinkStage.ui.auth.register
 
+import android.R.attr.onClick
+import android.R.attr.text
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -32,7 +34,9 @@ import turmaA.grupoB.LinkStage.ui.theme.*
 @Composable
 fun RegisterSkillsScreen(
     onBackClick: () -> Unit = {},
-    onRegisterClick: (List<String>) -> Unit = {}
+    onRegisterClick: (List<String>) -> Unit = {},
+    isLoading: Boolean = false,
+    errorMessage: String? = null
 ) {
     var searchQuery by remember { mutableStateOf("") }
     val mySkills = remember { mutableStateListOf<String>() }
@@ -285,9 +289,25 @@ fun RegisterSkillsScreen(
 
             // Bottom Buttons
             Column(modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)) {
+                if (errorMessage != null) {
+                    Text(
+                        text = errorMessage,
+                        color = Red,
+                        fontSize = 14.sp,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+
                 LinkStageButton(
-                    text = stringResource(R.string.register_skills_register),
-                    onClick = { showSuccessDialog = true }
+                    text = if (isLoading) {
+                        stringResource(R.string.register_loading)
+                    } else {
+                        stringResource(R.string.register_skills_register)
+                    },
+                    onClick = { showSuccessDialog = true },
+                    enabled = !isLoading
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))

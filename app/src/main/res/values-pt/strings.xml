@@ -52,6 +52,7 @@
     <string name="register_profile_institution_f4">Avaliações</string>
     <string name="register_continue">Continuar</string>
     <string name="register_back">Voltar</string>
+    <string name="register_loading">A registar…</string>
 
     <!-- REGISTER — STEP 1 DATA -->
     <string name="register_data_step_student">Passo 1 de 2 — Dados Pessoais</string>

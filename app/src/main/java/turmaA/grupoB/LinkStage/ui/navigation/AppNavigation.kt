@@ -300,7 +300,9 @@ fun AppNavigation(
                             rgpdConsent = true
                         )
                     )
-                }
+                },
+                isLoading = registerStudentUiState is RegisterStudentUiState.Loading,
+                errorMessage = (registerStudentUiState as? RegisterStudentUiState.Error)?.message
             )
         }
         composable(Routes.ADMIN_MAIN) {
