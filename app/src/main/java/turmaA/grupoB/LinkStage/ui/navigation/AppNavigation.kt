@@ -283,7 +283,7 @@ fun AppNavigation(
 
                     if (registerData == null) {
                         navController.navigate(Routes.REGISTER) {
-                            popUpTo(Routes.LOGIN) { inclusive = true }
+                            popUpTo(Routes.REGISTER) { inclusive = true }
                         }
                         return@RegisterSkillsScreen
                     }
