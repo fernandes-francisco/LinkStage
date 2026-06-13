@@ -235,7 +235,6 @@ fun AlunoMainScreen(onLogout: () -> Unit = {}) {
             }
             composable(AlunoRoutes.ACTIVITY) {
                 RecentActivityAlunoScreen(
-                    homeViewModel = homeViewModel,
                     onBack = { navController.popBackStack() },
                     onActivityClick = { checkpointId ->
                         navController.navigate(AlunoRoutes.activityDetailRoute(checkpointId))

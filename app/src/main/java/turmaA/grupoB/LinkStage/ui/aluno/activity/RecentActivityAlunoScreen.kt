@@ -29,7 +29,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Upload
@@ -45,7 +44,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -76,9 +74,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import turmaA.grupoB.LinkStage.R
+import turmaA.grupoB.LinkStage.data.remote.model.enums.InternshipStatus
+import turmaA.grupoB.LinkStage.data.remote.model.internship.InternshipModel
 import turmaA.grupoB.LinkStage.data.repository.application.ApplicationRepository
 import turmaA.grupoB.LinkStage.data.repository.auth.AuthRepository
 import turmaA.grupoB.LinkStage.data.repository.institution.InstitutionRepository
+import turmaA.grupoB.LinkStage.data.repository.internship.InternshipRepository
 import turmaA.grupoB.LinkStage.data.repository.offer.OfferRepository
 import turmaA.grupoB.LinkStage.data.repository.student.StudentRepository
 import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
@@ -96,7 +97,6 @@ import turmaA.grupoB.LinkStage.ui.theme.Fade2
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.ui.theme.Red
 import turmaA.grupoB.LinkStage.ui.aluno.home.ApplicationStatus
-import turmaA.grupoB.LinkStage.viewmodel.HomeViewModel
 import turmaA.grupoB.LinkStage.viewmodel.application.StudentApplicationDetails
 import turmaA.grupoB.LinkStage.viewmodel.application.StudentApplicationsUiState
 import turmaA.grupoB.LinkStage.viewmodel.application.StudentApplicationsViewModel
@@ -104,6 +104,9 @@ import turmaA.grupoB.LinkStage.viewmodel.application.StudentApplicationsViewMode
 import turmaA.grupoB.LinkStage.viewmodel.auth.AuthUiState
 import turmaA.grupoB.LinkStage.viewmodel.auth.AuthViewModel
 import turmaA.grupoB.LinkStage.viewmodel.auth.AuthViewModelFactory
+import turmaA.grupoB.LinkStage.viewmodel.internships.InternshipUiState
+import turmaA.grupoB.LinkStage.viewmodel.internships.InternshipViewModel
+import turmaA.grupoB.LinkStage.viewmodel.internships.InternshipViewModelFactory
 import turmaA.grupoB.LinkStage.viewmodel.student.StudentUiState
 import turmaA.grupoB.LinkStage.viewmodel.student.StudentViewModel
 import turmaA.grupoB.LinkStage.viewmodel.student.StudentViewModelFactory
@@ -185,7 +188,6 @@ private fun formatDate(date: LocalDate): String {
 @Composable
 fun RecentActivityAlunoScreen(
     modifier: Modifier = Modifier,
-    homeViewModel: HomeViewModel = viewModel(),
     authViewModel: AuthViewModel = viewModel(
         factory = AuthViewModelFactory(AuthRepository())
     ),
@@ -199,20 +201,19 @@ fun RecentActivityAlunoScreen(
             InstitutionRepository(),
         )
     ),
+    internshipViewModel: InternshipViewModel = viewModel(
+        factory = InternshipViewModelFactory(InternshipRepository())
+    ),
     onBack: (() -> Unit)? = null,
     onSubmitReport: () -> Unit = {},
     onActivityClick: (String) -> Unit = {},
     onViewResult: (String) -> Unit = {},
 ) {
     val authUiState by authViewModel.uiState.collectAsState()
-
-    val hasActiveInternship by homeViewModel.hasActiveInternship.collectAsState()
-    val activeInternship by homeViewModel.activeInternship.collectAsState()
-
     val studentUiState by studentViewModel.uiState.collectAsState()
     val studentApplicationsUiState by studentApplicationsViewModel.uiState.collectAsState()
+    val internshipUiState by internshipViewModel.uiState.collectAsState()
 
-    var showAddActivityModal by remember { mutableStateOf(false) }
     var showFilterModal by remember { mutableStateOf(false) }
     var currentFilter by remember { mutableStateOf<ApplicationStatus?>(null) }
     var searchQuery by remember { mutableStateOf("") }
@@ -234,8 +235,14 @@ fun RecentActivityAlunoScreen(
 
         if (state is StudentUiState.Success) {
             studentApplicationsViewModel.loadApplicationsByStudent(state.student.id)
+            internshipViewModel.getInternshipByStudent(state.student.id)
         }
     }
+
+    val activeInternshipModel = (internshipUiState as? InternshipUiState.SuccessList)
+        ?.internships
+        ?.firstOrNull { it.status == InternshipStatus.IN_PROGRESS }
+    val activeInternship = activeInternshipModel?.toActiveInternship()
 
     val realApplications: List<ApplicationItem> = when (val state = studentApplicationsUiState) {
         is StudentApplicationsUiState.SuccessList -> state.applications.map { application ->
@@ -264,36 +271,16 @@ fun RecentActivityAlunoScreen(
         )
     }
 
-    if (showAddActivityModal) {
-        AddActivityModal(
-            onSave = { title, desc, _ ->
-                homeViewModel.addActivityLog(title, desc)
-                showAddActivityModal = false
-            },
-            onDismiss = { showAddActivityModal = false },
-        )
-    }
-
-    if (hasActiveInternship && activeInternship != null) {
+    if (activeInternship != null) {
         Scaffold(
             modifier = modifier,
-            floatingActionButton = {
-                FloatingActionButton(
-                    onClick = { showAddActivityModal = true },
-                    containerColor = LightBlue,
-                    contentColor = Color.White,
-                    shape = RoundedCornerShape(16.dp),
-                ) {
-                    Icon(Icons.Default.Add, contentDescription = stringResource(R.string.activity_add))
-                }
-            },
             containerColor = BackgroundLight,
         ) { innerPadding ->
             Column(modifier = Modifier.fillMaxSize()) {
                 CommonTopBar()
                 
                 ActiveInternshipContent(
-                    internship = activeInternship!!,
+                    internship = activeInternship,
                     onSubmitReport = onSubmitReport,
                     onActivityClick = onActivityClick,
                     onViewResult = onViewResult,
@@ -301,6 +288,37 @@ fun RecentActivityAlunoScreen(
                         .weight(1f)
                         .padding(bottom = innerPadding.calculateBottomPadding()),
                 )
+            }
+        }
+    } else if (activeInternshipModel != null) {
+        Column(
+            modifier = modifier
+                .fillMaxSize()
+                .background(BackgroundLight)
+        ) {
+            CommonTopBar()
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+            ) {
+                Column(modifier = Modifier.padding(20.dp)) {
+                    Text(
+                        text = activeInternshipModel.title,
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = DarkBlue,
+                        ),
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = stringResource(R.string.home_internship_dates_unavailable),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = DarkGrey,
+                    )
+                }
             }
         }
     } else {
@@ -1179,6 +1197,21 @@ private fun StudentApplicationDetails.toApplicationItem(): ApplicationItem {
         company = institutionName,
         appliedAgo = application.createdAt,
         status = application.status.toUiApplicationStatus()
+    )
+}
+
+private fun InternshipModel.toActiveInternship(): ActiveInternship? {
+    val parsedStartDate = startDate?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
+        ?: return null
+    val parsedEndDate = endDate?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
+        ?: return null
+
+    return ActiveInternship(
+        id = id,
+        title = title,
+        startDate = parsedStartDate,
+        endDate = parsedEndDate,
+        activityLogs = emptyList(),
     )
 }
 
