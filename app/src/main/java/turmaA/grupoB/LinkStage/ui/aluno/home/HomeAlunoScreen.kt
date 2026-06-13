@@ -48,9 +48,14 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import turmaA.grupoB.LinkStage.R
+import turmaA.grupoB.LinkStage.data.repository.application.ApplicationRepository
 import turmaA.grupoB.LinkStage.data.repository.auth.AuthRepository
+import turmaA.grupoB.LinkStage.data.repository.institution.InstitutionRepository
+import turmaA.grupoB.LinkStage.data.repository.offer.OfferRepository
+import turmaA.grupoB.LinkStage.data.repository.student.StudentRepository
 import turmaA.grupoB.LinkStage.ui.aluno.AlunoRoutes
 import turmaA.grupoB.LinkStage.ui.aluno.activity.ApplicationCard
+import turmaA.grupoB.LinkStage.ui.aluno.activity.ApplicationItem
 import turmaA.grupoB.LinkStage.ui.aluno.activity.InternshipHeader
 import turmaA.grupoB.LinkStage.ui.aluno.activity.calculateInternshipProgress
 import turmaA.grupoB.LinkStage.ui.aluno.chat.ConversationItem
@@ -67,9 +72,17 @@ import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.Fade3
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.viewmodel.HomeViewModel
+import turmaA.grupoB.LinkStage.viewmodel.application.StudentApplicationDetails
+import turmaA.grupoB.LinkStage.viewmodel.application.StudentApplicationsUiState
+import turmaA.grupoB.LinkStage.viewmodel.application.StudentApplicationsViewModel
+import turmaA.grupoB.LinkStage.viewmodel.application.StudentApplicationsViewModelFactory
 import turmaA.grupoB.LinkStage.viewmodel.auth.AuthUiState
 import turmaA.grupoB.LinkStage.viewmodel.auth.AuthViewModel
 import turmaA.grupoB.LinkStage.viewmodel.auth.AuthViewModelFactory
+import turmaA.grupoB.LinkStage.viewmodel.student.StudentUiState
+import turmaA.grupoB.LinkStage.viewmodel.student.StudentViewModel
+import turmaA.grupoB.LinkStage.viewmodel.student.StudentViewModelFactory
+import turmaA.grupoB.LinkStage.data.remote.model.enums.ApplicationStatus as RemoteApplicationStatus
 
 // region Data models
 
@@ -103,16 +116,27 @@ fun HomeAlunoScreen(
     homeViewModel: HomeViewModel = viewModel(),
     authViewModel: AuthViewModel = viewModel(
         factory = AuthViewModelFactory(AuthRepository())
-    )
+    ),
+    studentViewModel: StudentViewModel = viewModel(
+        factory = StudentViewModelFactory(StudentRepository())
+    ),
+    studentApplicationsViewModel: StudentApplicationsViewModel = viewModel(
+        factory = StudentApplicationsViewModelFactory(
+            ApplicationRepository(),
+            OfferRepository(),
+            InstitutionRepository(),
+        )
+    ),
 ) {
     val hasActiveInternship by homeViewModel.hasActiveInternship.collectAsState()
     val activeInternship by homeViewModel.activeInternship.collectAsState()
-    val recentApplications by homeViewModel.recentApplications.collectAsState()
     val recentConversations by homeViewModel.recentConversations.collectAsState()
     val hasSeenResult by homeViewModel.hasSeenEvaluationResult.collectAsState()
     val hasDismissedModal by homeViewModel.hasDismissedEvaluationModal.collectAsState()
 
     val authUiState by authViewModel.uiState.collectAsState()
+    val studentUiState by studentViewModel.uiState.collectAsState()
+    val studentApplicationsUiState by studentApplicationsViewModel.uiState.collectAsState()
 
     val profile = (authUiState as? AuthUiState.Success)?.profile
     val userName = profile?.name ?: "Tomás"
@@ -121,6 +145,30 @@ fun HomeAlunoScreen(
 
     LaunchedEffect(Unit) {
         authViewModel.loadCurrentUserProfile()
+    }
+
+    LaunchedEffect(authUiState) {
+        val state = authUiState
+
+        if (state is AuthUiState.Success) {
+            studentViewModel.loadStudentByUserId(state.profile.id)
+        }
+    }
+
+    LaunchedEffect(studentUiState) {
+        val state = studentUiState
+
+        if (state is StudentUiState.Success) {
+            studentApplicationsViewModel.loadApplicationsByStudent(state.student.id)
+        }
+    }
+
+    val recentApplications = when (val state = studentApplicationsUiState) {
+        is StudentApplicationsUiState.SuccessList -> state.applications.map {
+            it.toApplicationItem()
+        }
+
+        else -> emptyList()
     }
 
     // Evaluation sample data for demo
@@ -266,8 +314,31 @@ fun HomeAlunoScreen(
                     onAction = { navController.navigate(AlunoRoutes.ACTIVITY) }
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        recentApplications.take(2).forEach { application ->
-                            ApplicationCard(application = application)
+                        when (val state = studentApplicationsUiState) {
+                            StudentApplicationsUiState.Idle,
+                            StudentApplicationsUiState.Loading -> Text(
+                                text = stringResource(R.string.applications_loading),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = DarkGrey,
+                            )
+
+                            StudentApplicationsUiState.Empty -> Text(
+                                text = stringResource(R.string.applications_empty),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = DarkGrey,
+                            )
+
+                            is StudentApplicationsUiState.Error -> Text(
+                                text = state.message,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = DarkGrey,
+                            )
+
+                            is StudentApplicationsUiState.SuccessList -> {
+                                recentApplications.take(2).forEach { application ->
+                                    ApplicationCard(application = application)
+                                }
+                            }
                         }
                     }
                 }
@@ -306,6 +377,24 @@ fun HomeAlunoScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
         }
+    }
+}
+
+private fun StudentApplicationDetails.toApplicationItem(): ApplicationItem {
+    return ApplicationItem(
+        id = application.id,
+        offerTitle = offerTitle,
+        company = institutionName,
+        appliedAgo = application.createdAt,
+        status = application.status.toUiApplicationStatus(),
+    )
+}
+
+private fun RemoteApplicationStatus.toUiApplicationStatus(): ApplicationStatus {
+    return when (this) {
+        RemoteApplicationStatus.PENDING -> ApplicationStatus.PENDING
+        RemoteApplicationStatus.ACCEPTED -> ApplicationStatus.ACCEPTED
+        RemoteApplicationStatus.REJECTED -> ApplicationStatus.REJECTED
     }
 }
 
