@@ -8,6 +8,10 @@ sealed class InternshipUiState {
     data object Loading : InternshipUiState()
     data class Success(val internship: InternshipModel) : InternshipUiState()
     data class SuccessList(val internships: List<InternshipModel>) : InternshipUiState()
+    data class ActiveInternshipSuccess(
+        val internship: InternshipModel,
+        val activityLogs: List<ActivityLogModel>,
+    ) : InternshipUiState()
     data class SuccessActivity(val activityLogModel: ActivityLogModel) : InternshipUiState()
     data class SuccessActivityList(val activityLogModel: List<ActivityLogModel>) : InternshipUiState()
     data object Empty : InternshipUiState()

@@ -74,8 +74,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import turmaA.grupoB.LinkStage.R
-import turmaA.grupoB.LinkStage.data.remote.model.enums.InternshipStatus
-import turmaA.grupoB.LinkStage.data.remote.model.internship.InternshipModel
+import turmaA.grupoB.LinkStage.data.remote.model.internship.ActivityLogModel
 import turmaA.grupoB.LinkStage.data.repository.application.ApplicationRepository
 import turmaA.grupoB.LinkStage.data.repository.auth.AuthRepository
 import turmaA.grupoB.LinkStage.data.repository.institution.InstitutionRepository
@@ -235,14 +234,13 @@ fun RecentActivityAlunoScreen(
 
         if (state is StudentUiState.Success) {
             studentApplicationsViewModel.loadApplicationsByStudent(state.student.id)
-            internshipViewModel.getInternshipByStudent(state.student.id)
+            internshipViewModel.loadActiveInternshipByStudent(state.student.id)
         }
     }
 
-    val activeInternshipModel = (internshipUiState as? InternshipUiState.SuccessList)
-        ?.internships
-        ?.firstOrNull { it.status == InternshipStatus.IN_PROGRESS }
-    val activeInternship = activeInternshipModel?.toActiveInternship()
+    val activeInternshipState = internshipUiState as? InternshipUiState.ActiveInternshipSuccess
+    val activeInternshipModel = activeInternshipState?.internship
+    val activeInternship = activeInternshipState?.toActiveInternship()
 
     val realApplications: List<ApplicationItem> = when (val state = studentApplicationsUiState) {
         is StudentApplicationsUiState.SuccessList -> state.applications.map { application ->
@@ -1200,18 +1198,33 @@ private fun StudentApplicationDetails.toApplicationItem(): ApplicationItem {
     )
 }
 
-private fun InternshipModel.toActiveInternship(): ActiveInternship? {
-    val parsedStartDate = startDate?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
+private fun InternshipUiState.ActiveInternshipSuccess.toActiveInternship(): ActiveInternship? {
+    val parsedStartDate = internship.startDate
+        ?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
         ?: return null
-    val parsedEndDate = endDate?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
+    val parsedEndDate = internship.endDate
+        ?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
         ?: return null
 
     return ActiveInternship(
-        id = id,
-        title = title,
+        id = internship.id,
+        title = internship.title,
         startDate = parsedStartDate,
         endDate = parsedEndDate,
-        activityLogs = emptyList(),
+        activityLogs = activityLogs.mapNotNull { it.toActivityLog() },
+    )
+}
+
+private fun ActivityLogModel.toActivityLog(): ActivityLog? {
+    val parsedDate = runCatching { LocalDate.parse(activityDate) }.getOrNull()
+        ?: return null
+
+    return ActivityLog(
+        id = id,
+        title = type?.takeIf { it.isNotBlank() } ?: description,
+        description = description,
+        date = parsedDate,
+        status = ActivityLogStatus.COMPLETED,
     )
 }
 

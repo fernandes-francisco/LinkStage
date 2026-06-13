@@ -51,6 +51,36 @@ class InternshipViewModel(
             }
         }
     }
+
+    fun loadActiveInternshipByStudent(studentId: String) {
+        viewModelScope.launch {
+            _uiState.value = InternshipUiState.Loading
+
+            try {
+                val activeInternship = internshipRepository
+                    .getInternshipsByStudent(studentId)
+                    .firstOrNull { it.status == InternshipStatus.IN_PROGRESS }
+
+                if (activeInternship == null) {
+                    _uiState.value = InternshipUiState.Empty
+                    return@launch
+                }
+
+                val activityLogs = internshipRepository.getActivityLogsByInternship(
+                    activeInternship.id
+                )
+
+                _uiState.value = InternshipUiState.ActiveInternshipSuccess(
+                    internship = activeInternship,
+                    activityLogs = activityLogs,
+                )
+            } catch (e: Exception) {
+                _uiState.value = InternshipUiState.Error(
+                    e.message ?: "Erro ao carregar estágio ativo."
+                )
+            }
+        }
+    }
     fun getInternshipsByInstitution(institutionId: String) {
         viewModelScope.launch {
             _uiState.value = InternshipUiState.Loading
