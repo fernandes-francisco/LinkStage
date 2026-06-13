@@ -360,6 +360,9 @@
     <string name="report_message">Your internship ends in %1$d days. Prepare and upload your final report for advisor validation.</string>
     <string name="report_submit_title">Submit Report</string>
     <string name="report_submit_message">Are you sure you want to submit the final report? This action cannot be undone and will mark your internship as completed.</string>
+    <string name="report_loading">Loading final report…</string>
+    <string name="report_not_found">No final report draft was found.</string>
+    <string name="report_already_submitted">The final report has already been submitted.</string>
     <string name="report_final_grade">Final Grade</string>
     <string name="report_out_of_20">out of 20 values</string>
     <string name="report_view_result">View full result</string>

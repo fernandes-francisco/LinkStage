@@ -75,24 +75,22 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.data.remote.model.internship.ActivityLogModel
+import turmaA.grupoB.LinkStage.data.remote.model.enums.ReportStatus
+import turmaA.grupoB.LinkStage.data.remote.model.report.FinalReportModel
 import turmaA.grupoB.LinkStage.data.repository.application.ApplicationRepository
 import turmaA.grupoB.LinkStage.data.repository.auth.AuthRepository
 import turmaA.grupoB.LinkStage.data.repository.institution.InstitutionRepository
 import turmaA.grupoB.LinkStage.data.repository.internship.InternshipRepository
 import turmaA.grupoB.LinkStage.data.repository.offer.OfferRepository
+import turmaA.grupoB.LinkStage.data.repository.report.ReportRepository
 import turmaA.grupoB.LinkStage.data.repository.student.StudentRepository
 import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
 import turmaA.grupoB.LinkStage.ui.common.LinkStageDialog
 import turmaA.grupoB.LinkStage.ui.common.SectionLabel
-import turmaA.grupoB.LinkStage.ui.common.formatGrade
-import turmaA.grupoB.LinkStage.ui.orientador.EvaluationState
-import turmaA.grupoB.LinkStage.ui.orientador.InternshipEvaluation
-import turmaA.grupoB.LinkStage.ui.orientador.InternshipType
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
-import turmaA.grupoB.LinkStage.ui.theme.Fade2
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.ui.theme.Red
 import turmaA.grupoB.LinkStage.ui.aluno.home.ApplicationStatus
@@ -106,6 +104,9 @@ import turmaA.grupoB.LinkStage.viewmodel.auth.AuthViewModelFactory
 import turmaA.grupoB.LinkStage.viewmodel.internships.InternshipUiState
 import turmaA.grupoB.LinkStage.viewmodel.internships.InternshipViewModel
 import turmaA.grupoB.LinkStage.viewmodel.internships.InternshipViewModelFactory
+import turmaA.grupoB.LinkStage.viewmodel.report.ReportUiState
+import turmaA.grupoB.LinkStage.viewmodel.report.ReportViewModel
+import turmaA.grupoB.LinkStage.viewmodel.report.ReportViewModelFactory
 import turmaA.grupoB.LinkStage.viewmodel.student.StudentUiState
 import turmaA.grupoB.LinkStage.viewmodel.student.StudentViewModel
 import turmaA.grupoB.LinkStage.viewmodel.student.StudentViewModelFactory
@@ -203,6 +204,9 @@ fun RecentActivityAlunoScreen(
     internshipViewModel: InternshipViewModel = viewModel(
         factory = InternshipViewModelFactory(InternshipRepository())
     ),
+    reportViewModel: ReportViewModel = viewModel(
+        factory = ReportViewModelFactory(ReportRepository())
+    ),
     onBack: (() -> Unit)? = null,
     onSubmitReport: () -> Unit = {},
     onActivityClick: (String) -> Unit = {},
@@ -212,8 +216,10 @@ fun RecentActivityAlunoScreen(
     val studentUiState by studentViewModel.uiState.collectAsState()
     val studentApplicationsUiState by studentApplicationsViewModel.uiState.collectAsState()
     val internshipUiState by internshipViewModel.uiState.collectAsState()
+    val reportUiState by reportViewModel.uiState.collectAsState()
 
     var showFilterModal by remember { mutableStateOf(false) }
+    var reportSubmissionRequested by remember { mutableStateOf(false) }
     var currentFilter by remember { mutableStateOf<ApplicationStatus?>(null) }
     var searchQuery by remember { mutableStateOf("") }
 
@@ -241,6 +247,25 @@ fun RecentActivityAlunoScreen(
     val activeInternshipState = internshipUiState as? InternshipUiState.ActiveInternshipSuccess
     val activeInternshipModel = activeInternshipState?.internship
     val activeInternship = activeInternshipState?.toActiveInternship()
+
+    LaunchedEffect(activeInternshipModel?.id) {
+        activeInternshipModel?.let {
+            reportViewModel.loadReportByInternship(it.id)
+        }
+    }
+
+    LaunchedEffect(reportUiState, reportSubmissionRequested) {
+        val state = reportUiState
+
+        if (
+            reportSubmissionRequested &&
+            state is ReportUiState.Success &&
+            state.report.status == ReportStatus.SUBMITTED
+        ) {
+            reportSubmissionRequested = false
+            onSubmitReport()
+        }
+    }
 
     val realApplications: List<ApplicationItem> = when (val state = studentApplicationsUiState) {
         is StudentApplicationsUiState.SuccessList -> state.applications.map { application ->
@@ -279,7 +304,11 @@ fun RecentActivityAlunoScreen(
                 
                 ActiveInternshipContent(
                     internship = activeInternship,
-                    onSubmitReport = onSubmitReport,
+                    reportUiState = reportUiState,
+                    onSubmitReport = { reportId ->
+                        reportSubmissionRequested = true
+                        reportViewModel.submitReport(reportId)
+                    },
                     onActivityClick = onActivityClick,
                     onViewResult = onViewResult,
                     modifier = Modifier
@@ -557,36 +586,22 @@ fun StatusBadge(status: ApplicationStatus) {
 @Composable
 private fun ActiveInternshipContent(
     internship: ActiveInternship,
-    onSubmitReport: () -> Unit,
+    reportUiState: ReportUiState,
+    onSubmitReport: (String) -> Unit,
     onActivityClick: (String) -> Unit = {},
     onViewResult: (String) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
-    val evaluation: InternshipEvaluation? = remember {
-        InternshipEvaluation(
-            internshipId = internship.id,
-            internshipType = InternshipType.COMPANY_SCHOOL,
-            state = EvaluationState.COMPLETED,
-            companyResponsibleGrade = 16.5f,
-            companyResponsibleObservation = "Excelente desempenho técnico.",
-            companyResponsibleName = "Ana Costa",
-            companyMentorGrade = 15.0f,
-            companyMentorObservation = "Bom trabalho em equipa.",
-            companyMentorName = "Prof. Tiago Alexandre",
-            schoolMentorGrade = 16f,
-            schoolMentorObservation = "Bom desempenho global.",
-            schoolMentorName = "Prof. Carvalho",
-        )
-    }
-
     var showSubmitConfirmation by remember { mutableStateOf(false) }
+    val report = (reportUiState as? ReportUiState.Success)?.report
+    val canSubmitReport = report?.status == ReportStatus.DRAFT
 
     if (showSubmitConfirmation) {
         LinkStageDialog(
             title = stringResource(R.string.report_submit_title),
             onConfirm = {
                 showSubmitConfirmation = false
-                onSubmitReport()
+                report?.let { onSubmitReport(it.id) }
             },
             onDismiss = { showSubmitConfirmation = false },
             confirmText = stringResource(R.string.activity_submit),
@@ -649,69 +664,14 @@ private fun ActiveInternshipContent(
             item {
                 Spacer(modifier = Modifier.height(8.dp))
 
-                if (evaluation?.state == EvaluationState.COMPLETED && evaluation.schoolMentorGrade != null) {
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp),
-                        shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .background(Fade2)
-                                .padding(20.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                            ) {
-                                Text(
-                                    text = stringResource(R.string.report_final_grade),
-                                    color = Color.White.copy(alpha = 0.8f),
-                                    fontSize = 13.sp,
-                                )
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Text(
-                                    text = formatGrade(evaluation.schoolMentorGrade),
-                                    color = Color.White,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 48.sp,
-                                )
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Text(
-                                    text = stringResource(R.string.report_out_of_20),
-                                    color = Color.White.copy(alpha = 0.7f),
-                                    fontSize = 13.sp,
-                                )
-                            }
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Button(
-                        onClick = { onViewResult(internship.id) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp)
-                            .height(50.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = LightBlue,
-                            contentColor = Color.White,
-                        ),
-                    ) {
-                        Text(
-                            text = stringResource(R.string.report_view_result),
-                            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
-                        )
-                    }
-                } else {
-                    ReportSubmissionCard(
-                        daysRemaining = daysRemaining,
-                        onSubmit = { showSubmitConfirmation = true },
-                    )
-                }
+                ReportSubmissionCard(
+                    daysRemaining = daysRemaining,
+                    report = report,
+                    isLoading = reportUiState is ReportUiState.Loading,
+                    errorMessage = (reportUiState as? ReportUiState.Error)?.message,
+                    onSubmit = { showSubmitConfirmation = true },
+                    enabled = canSubmitReport,
+                )
             }
         }
     }
@@ -893,7 +853,11 @@ fun ActivityLogCard(
 @Composable
 private fun ReportSubmissionCard(
     daysRemaining: Long,
+    report: FinalReportModel?,
+    isLoading: Boolean,
+    errorMessage: String?,
     onSubmit: () -> Unit,
+    enabled: Boolean,
 ) {
     Column(
         modifier = Modifier
@@ -911,7 +875,14 @@ private fun ReportSubmissionCard(
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = stringResource(R.string.report_message, daysRemaining.toInt()),
+            text = when {
+                isLoading -> stringResource(R.string.report_loading)
+                errorMessage != null -> errorMessage
+                report == null -> stringResource(R.string.report_not_found)
+                report.status == ReportStatus.DRAFT ->
+                    stringResource(R.string.report_message, daysRemaining.toInt())
+                else -> stringResource(R.string.report_already_submitted)
+            },
             style = MaterialTheme.typography.bodyMedium,
             color = DarkGrey,
             lineHeight = 20.sp,
@@ -921,6 +892,7 @@ private fun ReportSubmissionCard(
 
         Button(
             onClick = onSubmit,
+            enabled = enabled,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp),
@@ -937,7 +909,12 @@ private fun ReportSubmissionCard(
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = stringResource(R.string.activity_submit),
+                text = when (report?.status) {
+                    ReportStatus.SUBMITTED,
+                    ReportStatus.REVIEWED -> stringResource(R.string.activity_submitted)
+
+                    else -> stringResource(R.string.activity_submit)
+                },
                 style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
             )
         }

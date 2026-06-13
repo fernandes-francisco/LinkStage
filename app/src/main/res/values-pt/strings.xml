@@ -363,6 +363,9 @@
     <string name="report_message">O teu estágio termina em %1$d dias. Prepara e submete o teu relatório final para validação do orientador.</string>
     <string name="report_submit_title">Submeter Relatório</string>
     <string name="report_submit_message">Tens a certeza que pretendes submeter o relatório final? Esta ação não pode ser desfeita e marcará o teu estágio como concluído.</string>
+    <string name="report_loading">A carregar relatório final…</string>
+    <string name="report_not_found">Não foi encontrado um rascunho do relatório final.</string>
+    <string name="report_already_submitted">O relatório final já foi submetido.</string>
     <string name="report_final_grade">Nota Final</string>
     <string name="report_out_of_20">em 20 valores</string>
     <string name="report_view_result">Ver resultado completo</string>
