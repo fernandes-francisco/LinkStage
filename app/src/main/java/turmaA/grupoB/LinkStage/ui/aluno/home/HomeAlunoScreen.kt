@@ -41,6 +41,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -53,6 +54,8 @@ import turmaA.grupoB.LinkStage.data.repository.auth.AuthRepository
 import turmaA.grupoB.LinkStage.data.repository.communication.CommunicationRepository
 import turmaA.grupoB.LinkStage.data.repository.institution.InstitutionRepository
 import turmaA.grupoB.LinkStage.data.repository.internship.InternshipRepository
+import turmaA.grupoB.LinkStage.data.repository.internship.LocalActivityRepository
+import turmaA.grupoB.LinkStage.data.room.AtDatabase
 import turmaA.grupoB.LinkStage.data.repository.offer.OfferRepository
 import turmaA.grupoB.LinkStage.data.repository.profile.ProfileRepository
 import turmaA.grupoB.LinkStage.data.repository.student.StudentRepository
@@ -126,7 +129,12 @@ fun HomeAlunoScreen(
         )
     ),
     internshipViewModel: InternshipViewModel = viewModel(
-        factory = InternshipViewModelFactory(InternshipRepository())
+        factory = InternshipViewModelFactory(
+            InternshipRepository(),
+            LocalActivityRepository(
+                AtDatabase.getDatabase(LocalContext.current).atividadeDAO()
+            ),
+        )
     ),
     communicationViewModel: CommunicationViewModel = viewModel(
         factory = CommunicationViewModelFactory(

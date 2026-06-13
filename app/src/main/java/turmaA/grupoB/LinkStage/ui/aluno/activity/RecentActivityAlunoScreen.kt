@@ -68,6 +68,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -81,6 +82,8 @@ import turmaA.grupoB.LinkStage.data.repository.application.ApplicationRepository
 import turmaA.grupoB.LinkStage.data.repository.auth.AuthRepository
 import turmaA.grupoB.LinkStage.data.repository.institution.InstitutionRepository
 import turmaA.grupoB.LinkStage.data.repository.internship.InternshipRepository
+import turmaA.grupoB.LinkStage.data.repository.internship.LocalActivityRepository
+import turmaA.grupoB.LinkStage.data.room.AtDatabase
 import turmaA.grupoB.LinkStage.data.repository.offer.OfferRepository
 import turmaA.grupoB.LinkStage.data.repository.report.ReportRepository
 import turmaA.grupoB.LinkStage.data.repository.student.StudentRepository
@@ -202,7 +205,12 @@ fun RecentActivityAlunoScreen(
         )
     ),
     internshipViewModel: InternshipViewModel = viewModel(
-        factory = InternshipViewModelFactory(InternshipRepository())
+        factory = InternshipViewModelFactory(
+            InternshipRepository(),
+            LocalActivityRepository(
+                AtDatabase.getDatabase(LocalContext.current).atividadeDAO()
+            ),
+        )
     ),
     reportViewModel: ReportViewModel = viewModel(
         factory = ReportViewModelFactory(ReportRepository())

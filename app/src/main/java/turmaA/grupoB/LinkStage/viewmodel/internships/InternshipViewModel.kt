@@ -11,9 +11,14 @@ import turmaA.grupoB.LinkStage.data.remote.model.internship.AssignSupervisorInpu
 import turmaA.grupoB.LinkStage.data.remote.model.internship.CreateActivityLogInput
 import turmaA.grupoB.LinkStage.data.remote.model.internship.CreateInternshipInput
 import turmaA.grupoB.LinkStage.data.repository.internship.InternshipRepositoryInterface
+import turmaA.grupoB.LinkStage.data.repository.internship.LocalActivityRepositoryInterface
+import turmaA.grupoB.LinkStage.data.remote.model.internship.ActivityLogModel
+import java.time.Instant
+import java.util.UUID
 
 class InternshipViewModel(
-    private val internshipRepository: InternshipRepositoryInterface
+    private val internshipRepository: InternshipRepositoryInterface,
+    private val localActivityRepository: LocalActivityRepositoryInterface? = null,
 ) : ViewModel (){
     private val _uiState = MutableStateFlow<InternshipUiState>(InternshipUiState.Idle)
     val uiState: StateFlow<InternshipUiState> = _uiState.asStateFlow()
@@ -66,9 +71,15 @@ class InternshipViewModel(
                     return@launch
                 }
 
-                val activityLogs = internshipRepository.getActivityLogsByInternship(
-                    activeInternship.id
-                )
+                syncPendingActivities()
+                val activityLogs = try {
+                    internshipRepository.getActivityLogsByInternship(activeInternship.id)
+                        .also { localActivityRepository?.saveAll(it) }
+                } catch (_: Exception) {
+                    localActivityRepository
+                        ?.getByInternship(activeInternship.id)
+                        .orEmpty()
+                }
 
                 _uiState.value = InternshipUiState.ActiveInternshipSuccess(
                     internship = activeInternship,
@@ -169,16 +180,22 @@ class InternshipViewModel(
         viewModelScope.launch {
             _uiState.value = InternshipUiState.Loading
             try {
+                syncPendingActivities()
                 val activity = internshipRepository.createActivityLog(input)
-                _uiState.value = if (activity != null){
-                    InternshipUiState.SuccessActivity(activity)
-                }else{
-                    InternshipUiState.Empty
-                }
+                localActivityRepository?.save(activity)
+                _uiState.value = InternshipUiState.SuccessActivity(activity)
             }catch (e: Exception){
-                _uiState.value = InternshipUiState.Error(
-                    e.message ?: "Erro ao carregar estágios"
-                )
+                val localRepository = localActivityRepository
+                if (localRepository == null) {
+                    _uiState.value = InternshipUiState.Error(
+                        e.message ?: "Erro ao criar atividade."
+                    )
+                    return@launch
+                }
+
+                val pendingActivity = input.toPendingActivityLog()
+                localRepository.save(pendingActivity, pendingSync = true)
+                _uiState.value = InternshipUiState.SuccessActivity(pendingActivity)
             }
         }
     }
@@ -186,16 +203,25 @@ class InternshipViewModel(
         viewModelScope.launch {
             _uiState.value = InternshipUiState.Loading
             try {
+                syncPendingActivities()
                 val activity = internshipRepository.getActivityLogsByInternship(internshipId)
+                localActivityRepository?.saveAll(activity)
                 _uiState.value = if (activity.isEmpty()){
                     InternshipUiState.Empty
                 }else{
                     InternshipUiState.SuccessActivityList(activity)
                 }
             }catch (e: Exception){
-                _uiState.value = InternshipUiState.Error(
-                    e.message ?: "Erro ao carregar estágios"
-                )
+                val cachedActivities = localActivityRepository
+                    ?.getByInternship(internshipId)
+                    .orEmpty()
+                _uiState.value = if (cachedActivities.isEmpty()) {
+                    InternshipUiState.Error(
+                        e.message ?: "Erro ao carregar atividades."
+                    )
+                } else {
+                    InternshipUiState.SuccessActivityList(cachedActivities)
+                }
             }
         }
     }
@@ -205,7 +231,9 @@ class InternshipViewModel(
             _uiState.value = InternshipUiState.Loading
 
             try {
+                syncPendingActivities()
                 val activityLog = internshipRepository.getActivityLogById(activityLogId)
+                activityLog?.let { localActivityRepository?.save(it) }
 
                 _uiState.value = if (activityLog != null) {
                     InternshipUiState.SuccessActivity(activityLog)
@@ -213,9 +241,28 @@ class InternshipViewModel(
                     InternshipUiState.Empty
                 }
             } catch (e: Exception) {
-                _uiState.value = InternshipUiState.Error(
-                    e.message ?: "Erro ao carregar atividade."
+                val cachedActivity = localActivityRepository?.getById(activityLogId)
+                _uiState.value = if (cachedActivity != null) {
+                    InternshipUiState.SuccessActivity(cachedActivity)
+                } else {
+                    InternshipUiState.Error(
+                        e.message ?: "Erro ao carregar atividade."
+                    )
+                }
+            }
+        }
+    }
+
+    private suspend fun syncPendingActivities() {
+        val localRepository = localActivityRepository ?: return
+        localRepository.getPending().forEach { pendingActivity ->
+            runCatching {
+                internshipRepository.createActivityLog(
+                    localRepository.toCreateInput(pendingActivity)
                 )
+            }.onSuccess { syncedActivity ->
+                localRepository.delete(pendingActivity)
+                localRepository.save(syncedActivity)
             }
         }
     }
@@ -224,3 +271,15 @@ class InternshipViewModel(
         _uiState.value = InternshipUiState.Idle
     }
 }
+
+private fun CreateActivityLogInput.toPendingActivityLog() = ActivityLogModel(
+    id = UUID.randomUUID().toString(),
+    internshipId = internshipId,
+    studentId = studentId,
+    description = description,
+    activityDate = activityDate,
+    hours = hours,
+    type = type,
+    location = location,
+    createdAt = Instant.now().toString(),
+)

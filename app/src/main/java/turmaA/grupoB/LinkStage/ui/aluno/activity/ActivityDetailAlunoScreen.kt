@@ -45,6 +45,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -54,6 +55,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.data.remote.model.internship.ActivityLogModel
 import turmaA.grupoB.LinkStage.data.repository.internship.InternshipRepository
+import turmaA.grupoB.LinkStage.data.repository.internship.LocalActivityRepository
+import turmaA.grupoB.LinkStage.data.room.AtDatabase
 import turmaA.grupoB.LinkStage.ui.common.CheckItem
 import turmaA.grupoB.LinkStage.ui.common.ContentSection
 import turmaA.grupoB.LinkStage.ui.common.ContentSectionColored
@@ -86,7 +89,12 @@ fun ActivityDetailAlunoScreen(
     onBack: () -> Unit,
     activityLog: ActivityLog? = null,
     internshipViewModel: InternshipViewModel = viewModel(
-        factory = InternshipViewModelFactory(InternshipRepository())
+        factory = InternshipViewModelFactory(
+            InternshipRepository(),
+            LocalActivityRepository(
+                AtDatabase.getDatabase(LocalContext.current).atividadeDAO()
+            ),
+        )
     ),
 ) {
     val context = LocalContext.current
