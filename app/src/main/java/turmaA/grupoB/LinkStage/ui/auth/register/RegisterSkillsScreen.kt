@@ -35,7 +35,9 @@ import turmaA.grupoB.LinkStage.ui.theme.*
 fun RegisterSkillsScreen(
     onBackClick: () -> Unit = {},
     onRegisterClick: (List<String>) -> Unit = {},
+    onSuccessConfirm: () -> Unit = {},
     isLoading: Boolean = false,
+    isSuccess: Boolean = false,
     errorMessage: String? = null
 ) {
     var searchQuery by remember { mutableStateOf("") }
@@ -67,8 +69,17 @@ fun RegisterSkillsScreen(
     SuccessDialog(
         message = stringResource(R.string.register_data_success_message),
         show = showSuccessDialog,
-        onConfirm = { onRegisterClick(mySkills.toList()) }
+        onConfirm = {
+            showSuccessDialog = false
+            onSuccessConfirm()
+        }
     )
+
+    LaunchedEffect(isSuccess) {
+        if (isSuccess) {
+            showSuccessDialog = true
+        }
+    }
 
     if (showAddSkillDialog) {
         AlertDialog(
@@ -306,7 +317,7 @@ fun RegisterSkillsScreen(
                     } else {
                         stringResource(R.string.register_skills_register)
                     },
-                    onClick = { showSuccessDialog = true },
+                    onClick = { onRegisterClick(mySkills.toList()) },
                     enabled = !isLoading
                 )
 

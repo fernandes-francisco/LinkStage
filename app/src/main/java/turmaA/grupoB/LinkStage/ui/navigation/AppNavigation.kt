@@ -261,19 +261,6 @@ fun AppNavigation(
 
             val registerStudentUiState by registerStudentViewModel.uiState.collectAsState()
 
-            LaunchedEffect(registerStudentUiState) {
-                val state = registerStudentUiState
-
-                if (state is RegisterStudentUiState.Success) {
-                    pendingStudentRegisterData = null
-                    registerStudentViewModel.resetState()
-
-                    navController.navigate(Routes.LOGIN) {
-                        popUpTo(Routes.REGISTER) { inclusive = true }
-                    }
-                }
-            }
-
             RegisterSkillsScreen(
                 onBackClick = {
                     navController.popBackStack()
@@ -301,7 +288,16 @@ fun AppNavigation(
                         )
                     )
                 },
+                onSuccessConfirm = {
+                    pendingStudentRegisterData = null
+                    registerStudentViewModel.resetState()
+
+                    navController.navigate(Routes.LOGIN) {
+                        popUpTo(Routes.REGISTER) { inclusive = true }
+                    }
+                },
                 isLoading = registerStudentUiState is RegisterStudentUiState.Loading,
+                isSuccess = registerStudentUiState is RegisterStudentUiState.Success,
                 errorMessage = (registerStudentUiState as? RegisterStudentUiState.Error)?.message
             )
         }
