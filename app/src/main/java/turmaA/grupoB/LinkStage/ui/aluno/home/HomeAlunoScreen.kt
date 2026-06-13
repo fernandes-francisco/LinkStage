@@ -50,9 +50,11 @@ import turmaA.grupoB.LinkStage.data.remote.model.internship.ActivityLogModel
 import turmaA.grupoB.LinkStage.data.remote.model.internship.InternshipModel
 import turmaA.grupoB.LinkStage.data.repository.application.ApplicationRepository
 import turmaA.grupoB.LinkStage.data.repository.auth.AuthRepository
+import turmaA.grupoB.LinkStage.data.repository.communication.CommunicationRepository
 import turmaA.grupoB.LinkStage.data.repository.institution.InstitutionRepository
 import turmaA.grupoB.LinkStage.data.repository.internship.InternshipRepository
 import turmaA.grupoB.LinkStage.data.repository.offer.OfferRepository
+import turmaA.grupoB.LinkStage.data.repository.profile.ProfileRepository
 import turmaA.grupoB.LinkStage.data.repository.student.StudentRepository
 import turmaA.grupoB.LinkStage.ui.aluno.AlunoRoutes
 import turmaA.grupoB.LinkStage.ui.aluno.activity.ActiveInternship
@@ -61,6 +63,7 @@ import turmaA.grupoB.LinkStage.ui.aluno.activity.ApplicationItem
 import turmaA.grupoB.LinkStage.ui.aluno.activity.InternshipHeader
 import turmaA.grupoB.LinkStage.ui.aluno.activity.calculateInternshipProgress
 import turmaA.grupoB.LinkStage.ui.aluno.chat.ConversationItem
+import turmaA.grupoB.LinkStage.ui.aluno.chat.Conversation
 import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
@@ -68,7 +71,6 @@ import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.Fade3
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
-import turmaA.grupoB.LinkStage.viewmodel.HomeViewModel
 import turmaA.grupoB.LinkStage.viewmodel.application.StudentApplicationDetails
 import turmaA.grupoB.LinkStage.viewmodel.application.StudentApplicationsUiState
 import turmaA.grupoB.LinkStage.viewmodel.application.StudentApplicationsViewModel
@@ -76,6 +78,10 @@ import turmaA.grupoB.LinkStage.viewmodel.application.StudentApplicationsViewMode
 import turmaA.grupoB.LinkStage.viewmodel.auth.AuthUiState
 import turmaA.grupoB.LinkStage.viewmodel.auth.AuthViewModel
 import turmaA.grupoB.LinkStage.viewmodel.auth.AuthViewModelFactory
+import turmaA.grupoB.LinkStage.viewmodel.communication.CommunicationUiState
+import turmaA.grupoB.LinkStage.viewmodel.communication.CommunicationViewModel
+import turmaA.grupoB.LinkStage.viewmodel.communication.CommunicationViewModelFactory
+import turmaA.grupoB.LinkStage.viewmodel.communication.StudentConversationDetails
 import turmaA.grupoB.LinkStage.viewmodel.internships.InternshipUiState
 import turmaA.grupoB.LinkStage.viewmodel.internships.InternshipViewModel
 import turmaA.grupoB.LinkStage.viewmodel.internships.InternshipViewModelFactory
@@ -106,7 +112,6 @@ data class Entrega(
 @Composable
 fun HomeAlunoScreen(
     navController: NavController,
-    homeViewModel: HomeViewModel = viewModel(),
     authViewModel: AuthViewModel = viewModel(
         factory = AuthViewModelFactory(AuthRepository())
     ),
@@ -123,16 +128,20 @@ fun HomeAlunoScreen(
     internshipViewModel: InternshipViewModel = viewModel(
         factory = InternshipViewModelFactory(InternshipRepository())
     ),
+    communicationViewModel: CommunicationViewModel = viewModel(
+        factory = CommunicationViewModelFactory(
+            CommunicationRepository(),
+            ProfileRepository(),
+        )
+    ),
 ) {
-    val recentConversations by homeViewModel.recentConversations.collectAsState()
-
     val authUiState by authViewModel.uiState.collectAsState()
     val studentUiState by studentViewModel.uiState.collectAsState()
     val studentApplicationsUiState by studentApplicationsViewModel.uiState.collectAsState()
     val internshipUiState by internshipViewModel.uiState.collectAsState()
+    val conversationsUiState by communicationViewModel.conversationsUiState.collectAsState()
 
     val profile = (authUiState as? AuthUiState.Success)?.profile
-    val userName = profile?.name ?: "Tomás"
     
     LaunchedEffect(Unit) {
         authViewModel.loadCurrentUserProfile()
@@ -143,6 +152,7 @@ fun HomeAlunoScreen(
 
         if (state is AuthUiState.Success) {
             studentViewModel.loadStudentByUserId(state.profile.id)
+            communicationViewModel.loadConversationsByUser(state.profile.id)
         }
     }
 
@@ -173,6 +183,12 @@ fun HomeAlunoScreen(
         ?.take(2)
         ?.map { it.entrega }
         .orEmpty()
+    val recentConversations = when (val state = conversationsUiState) {
+        is CommunicationUiState.SuccessConversationList -> state.conversations.map {
+            it.toHomeConversation()
+        }
+        else -> emptyList()
+    }
 
     Column(
         modifier = Modifier
@@ -186,13 +202,15 @@ fun HomeAlunoScreen(
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp, vertical = 12.dp)
         ) {
-            Text(
-                stringResource(R.string.home_greeting, userName),
-                style = MaterialTheme.typography.headlineLarge.copy(
-                    fontWeight = FontWeight.Bold,
-                    color = DarkBlue,
-                ),
-            )
+            profile?.let {
+                Text(
+                    stringResource(R.string.home_greeting, it.name),
+                    style = MaterialTheme.typography.headlineLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = DarkBlue,
+                    ),
+                )
+            }
             Text(
                 stringResource(R.string.home_welcome),
                 style = MaterialTheme.typography.bodyMedium,
@@ -304,13 +322,38 @@ fun HomeAlunoScreen(
                 onAction = { navController.navigate(AlunoRoutes.MESSAGES) }
             ) {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    recentConversations.take(3).forEach { conversation ->
-                        ConversationItem(
-                            conversation = conversation,
-                            onClick = {
-                                navController.navigate(AlunoRoutes.chatRoute(conversation.id))
-                            },
+                    when (val state = conversationsUiState) {
+                        CommunicationUiState.Idle,
+                        CommunicationUiState.Loading -> Text(
+                            text = "A carregar conversas...",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = DarkGrey,
                         )
+
+                        CommunicationUiState.Empty -> Text(
+                            text = "Ainda não existem conversas.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = DarkGrey,
+                        )
+
+                        is CommunicationUiState.Error -> Text(
+                            text = state.message,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = DarkGrey,
+                        )
+
+                        is CommunicationUiState.SuccessConversationList -> {
+                            recentConversations.take(3).forEach { conversation ->
+                                ConversationItem(
+                                    conversation = conversation,
+                                    onClick = {
+                                        navController.navigate(AlunoRoutes.chatRoute(conversation.id))
+                                    },
+                                )
+                            }
+                        }
+
+                        else -> Unit
                     }
                 }
             }
@@ -318,6 +361,34 @@ fun HomeAlunoScreen(
             Spacer(modifier = Modifier.height(8.dp))
         }
     }
+}
+
+private fun StudentConversationDetails.toHomeConversation(): Conversation {
+    val participantName = participant?.name ?: "Conversa"
+    val lastMessage = messages.lastOrNull()
+
+    return Conversation(
+        id = thread.id,
+        name = participantName,
+        initials = participantName.toHomeInitials(),
+        lastMessage = lastMessage?.content ?: "Sem mensagens.",
+        time = lastMessage?.createdAt.toHomeTimeLabel(),
+        unreadCount = messages.count { !it.isRead && it.senderId == participant?.id },
+        avatarColorIndex = participantName.hashCode() and Int.MAX_VALUE,
+    )
+}
+
+private fun String.toHomeInitials(): String = trim()
+    .split(Regex("\\s+"))
+    .filter { it.isNotBlank() }
+    .take(2)
+    .mapNotNull { it.firstOrNull()?.uppercase() }
+    .joinToString("")
+    .ifBlank { "?" }
+
+private fun String?.toHomeTimeLabel(): String {
+    if (this == null) return ""
+    return substringAfter('T', this).take(5)
 }
 
 private data class DatedEntrega(

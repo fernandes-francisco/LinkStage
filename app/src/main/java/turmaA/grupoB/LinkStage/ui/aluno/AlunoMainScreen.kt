@@ -51,7 +51,6 @@ import turmaA.grupoB.LinkStage.ui.aluno.settings.SettingsAlunoScreen
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.viewmodel.ApplyViewModel
-import turmaA.grupoB.LinkStage.viewmodel.HomeViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import turmaA.grupoB.LinkStage.ui.aluno.offers.OfferDetail
 
@@ -98,7 +97,6 @@ private val alunoTabs = listOf(
 @Composable
 fun AlunoMainScreen(onLogout: () -> Unit = {}) {
     val navController = rememberNavController()
-    val homeViewModel: HomeViewModel = viewModel()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
@@ -153,7 +151,7 @@ fun AlunoMainScreen(onLogout: () -> Unit = {}) {
             modifier = Modifier.padding(innerPadding),
         ) {
             composable(AlunoRoutes.HOME) {
-                HomeAlunoScreen(navController = navController, homeViewModel = homeViewModel)
+                HomeAlunoScreen(navController = navController)
             }
             composable(AlunoRoutes.DISCOVER) {
                 OffersAlunoScreen(
