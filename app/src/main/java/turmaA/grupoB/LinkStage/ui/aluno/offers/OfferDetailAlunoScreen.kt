@@ -22,28 +22,22 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.TaskAlt
 import androidx.compose.material.icons.outlined.Work
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -59,7 +53,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import turmaA.grupoB.LinkStage.R
+import turmaA.grupoB.LinkStage.data.remote.model.offer.InternshipOfferModel
+import turmaA.grupoB.LinkStage.data.repository.offer.OfferRepository
 import turmaA.grupoB.LinkStage.ui.common.CheckItem
 import turmaA.grupoB.LinkStage.ui.common.ContentSection
 import turmaA.grupoB.LinkStage.ui.common.ContentSectionColored
@@ -71,8 +68,10 @@ import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
-import turmaA.grupoB.LinkStage.ui.theme.MediumBlue
 import turmaA.grupoB.LinkStage.ui.theme.Red
+import turmaA.grupoB.LinkStage.viewmodel.offer.OfferUiState
+import turmaA.grupoB.LinkStage.viewmodel.offer.OfferViewModel
+import turmaA.grupoB.LinkStage.viewmodel.offer.OfferViewModelFactory
 
 // region Data model
 
@@ -128,16 +127,57 @@ private val sampleOfferDetail = OfferDetail(
 
 // region Main Screen
 
+private fun InternshipOfferModel.toOfferDetail(): OfferDetail {
+    val requirementsList = requirements
+        ?.split("\n", ";")
+        ?.map { it.trim() }
+        ?.filter { it.isNotBlank() }
+        .orEmpty()
+
+    return OfferDetail(
+        id = id,
+        title = title,
+        company = institutionId,
+        logoInitial = institutionId.firstOrNull()?.uppercaseChar()?.toString() ?: "?",
+        logoColor = Color(0xFF212121),
+        location = location.orEmpty(),
+        duration = "",
+        type = modality.orEmpty(),
+        aboutCompany = description,
+        responsibilities = listOf(description),
+        requirements = requirementsList,
+        benefits = emptyList(),
+        deadlineDays = 0,
+        applicantsCount = vacancies,
+        isFavourite = false,
+        hasApplied = false,
+    )
+}
+
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun OfferDetailAlunoScreen(
     offerId: String,
     onBack: () -> Unit,
     onApply: (String) -> Unit = {},
-    offer: OfferDetail = sampleOfferDetail,
+    offerViewModel: OfferViewModel = viewModel(
+        factory = OfferViewModelFactory(OfferRepository())
+    ),
+    fallbackOffer: OfferDetail = sampleOfferDetail
 ) {
-    var isFavourite by remember { mutableStateOf(offer.isFavourite) }
-    var hasApplied by remember { mutableStateOf(offer.hasApplied) }
+    val offerUiState by offerViewModel.uiState.collectAsState()
+
+    LaunchedEffect(offerId) {
+        offerViewModel.loadOfferById(offerId)
+    }
+
+    val offer = when (val state = offerUiState) {
+        is OfferUiState.Success -> state.offer.toOfferDetail()
+        else -> fallbackOffer
+    }
+
+    var isFavourite by remember(offer.id) { mutableStateOf(offer.isFavourite) }
+    var hasApplied by remember(offer.id) { mutableStateOf(offer.hasApplied) }
     var showApplyDialog by remember { mutableStateOf(false) }
 
     if (showApplyDialog) {
@@ -150,6 +190,8 @@ fun OfferDetailAlunoScreen(
             onDismiss = { showApplyDialog = false },
         )
     }
+
+    val errorMessage = (offerUiState as? OfferUiState.Error)?.message
 
     Scaffold(
         topBar = { SecondaryTopBar(title = stringResource(R.string.offer_detail_title), onBack = onBack) },
@@ -179,52 +221,62 @@ fun OfferDetailAlunoScreen(
             ) {
                 Spacer(modifier = Modifier.height(12.dp))
 
+                if (errorMessage != null) {
+                    Text(
+                        text = errorMessage,
+                        color = Red,
+                        fontSize = 14.sp,
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
+
                 OfferMetaChips(offer = offer)
 
-            Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-            ContentSection(title = stringResource(R.string.offer_about_company)) {
-                Text(
-                    text = offer.aboutCompany,
-                    fontSize = 14.sp,
-                    color = DarkGrey,
-                    lineHeight = 22.sp,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-                )
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            ContentSection(title = stringResource(R.string.offer_responsibilities)) {
-                offer.responsibilities.forEach { item ->
-                    ResponsibilityItem(text = item)
+                ContentSection(title = stringResource(R.string.offer_about_company)) {
+                    Text(
+                        text = offer.aboutCompany,
+                        fontSize = 14.sp,
+                        color = DarkGrey,
+                        lineHeight = 22.sp,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                    )
                 }
-                Spacer(modifier = Modifier.height(8.dp))
-            }
 
-            Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
-            ContentSectionColored(title = stringResource(R.string.offer_requirements)) {
-                offer.requirements.forEach { item ->
-                    CheckItem(text = item)
+                ContentSection(title = stringResource(R.string.offer_responsibilities)) {
+                    offer.responsibilities.forEach { item ->
+                        ResponsibilityItem(text = item)
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
                 }
-            }
 
-            Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
-            ContentSection(title = stringResource(R.string.offer_benefits)) {
-                FlowRow(
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    offer.benefits.forEach { benefit ->
-                        BenefitChip(text = benefit)
+                ContentSectionColored(title = stringResource(R.string.offer_requirements)) {
+                    offer.requirements.forEach { item ->
+                        CheckItem(text = item)
                     }
                 }
-            }
 
-            Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(12.dp))
+
+                ContentSection(title = stringResource(R.string.offer_benefits)) {
+                    Column(
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        offer.benefits.forEach { benefit ->
+                            BenefitChip(text = benefit)
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
             }
         }
     }
