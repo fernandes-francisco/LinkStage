@@ -318,6 +318,8 @@
     <!-- ==================== STUDENT — ACTIVITY ==================== -->
     <string name="activity_recent">Recent Activity</string>
     <string name="activity_detail_title">Activity Details</string>
+    <string name="activity_detail_loading">Loading activity…</string>
+    <string name="activity_detail_not_found">Activity not found.</string>
     <string name="activity_delivery_date">Delivery Date</string>
     <string name="activity_description">Description</string>
     <string name="activity_requirements">Requirements</string>

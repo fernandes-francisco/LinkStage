@@ -16,5 +16,6 @@ interface InternshipRepositoryInterface {
     suspend fun createInternship(input: CreateInternshipInput): InternshipModel
     suspend fun assignSupervisor(internshipId: String, input: AssignSupervisorInput): InternshipModel
     suspend fun getActivityLogsByInternship(internshipId: String): List<ActivityLogModel>
+    suspend fun getActivityLogById(activityLogId: String): ActivityLogModel? = null
     suspend fun createActivityLog(input: CreateActivityLogInput): ActivityLogModel
 }

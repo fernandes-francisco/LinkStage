@@ -321,6 +321,8 @@
     <!-- ==================== STUDENT — ACTIVITY ==================== -->
     <string name="activity_recent">Atividade Recente</string>
     <string name="activity_detail_title">Detalhes da Atividade</string>
+    <string name="activity_detail_loading">A carregar atividade…</string>
+    <string name="activity_detail_not_found">Atividade não encontrada.</string>
     <string name="activity_delivery_date">Data de Entrega</string>
     <string name="activity_description">Descrição</string>
     <string name="activity_requirements">Requisitos</string>

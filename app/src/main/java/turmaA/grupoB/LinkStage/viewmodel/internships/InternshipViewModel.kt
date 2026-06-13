@@ -200,6 +200,26 @@ class InternshipViewModel(
         }
     }
 
+    fun loadActivityLogById(activityLogId: String) {
+        viewModelScope.launch {
+            _uiState.value = InternshipUiState.Loading
+
+            try {
+                val activityLog = internshipRepository.getActivityLogById(activityLogId)
+
+                _uiState.value = if (activityLog != null) {
+                    InternshipUiState.SuccessActivity(activityLog)
+                } else {
+                    InternshipUiState.Empty
+                }
+            } catch (e: Exception) {
+                _uiState.value = InternshipUiState.Error(
+                    e.message ?: "Erro ao carregar atividade."
+                )
+            }
+        }
+    }
+
     fun resetState() {
         _uiState.value = InternshipUiState.Idle
     }
