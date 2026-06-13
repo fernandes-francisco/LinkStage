@@ -5,10 +5,15 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import turmaA.grupoB.LinkStage.data.remote.model.auth.SignInInput
 import turmaA.grupoB.LinkStage.ui.admin.AdminMainScreen
 import turmaA.grupoB.LinkStage.ui.aluno.AlunoMainScreen
 import turmaA.grupoB.LinkStage.ui.auth.ForceChangePasswordScreen
@@ -24,6 +29,10 @@ import turmaA.grupoB.LinkStage.ui.instituicao.InstituicaoMainScreen
 import turmaA.grupoB.LinkStage.ui.instituicao.InstitutionPendingScreen
 import turmaA.grupoB.LinkStage.ui.orientador.OrientadorMainScreen
 import turmaA.grupoB.LinkStage.data.remote.model.enums.UserRole
+import turmaA.grupoB.LinkStage.data.repository.auth.AuthRepository
+import turmaA.grupoB.LinkStage.viewmodel.auth.AuthUiState
+import turmaA.grupoB.LinkStage.viewmodel.auth.AuthViewModel
+import turmaA.grupoB.LinkStage.viewmodel.auth.AuthViewModelFactory
 
 object Routes {
     const val SPLASH = "splash"
@@ -44,6 +53,7 @@ object Routes {
     const val INSTITUICAO_MAIN = "instituicao"
 }
 
+private const val USE_MOCK_LOGIN_FALLBACK = false // Only for local UI testing.
 @Composable
 fun AppNavigation(
     navController: NavHostController = rememberNavController(),
@@ -96,18 +106,51 @@ fun AppNavigation(
             )
         }
         composable(Routes.LOGIN) {
+            val authViewModel: AuthViewModel = viewModel(
+                factory = AuthViewModelFactory(AuthRepository())
+            )
+
+            val authUiState by authViewModel.uiState.collectAsState()
+
+            LaunchedEffect(authUiState) {
+                val state = authUiState
+
+                if (state is AuthUiState.Success) {
+                    val destination = when (state.profile.role) {
+                        UserRole.ADMIN -> Routes.ADMIN_MAIN
+                        UserRole.STUDENT -> Routes.ALUNO_MAIN
+                        UserRole.SUPERVISOR -> Routes.ORIENTADOR_MAIN
+                        UserRole.INSTITUTION -> Routes.INSTITUICAO_MAIN
+                    }
+
+                    authViewModel.resetState()
+
+                    navController.navigate(destination) {
+                        popUpTo(Routes.LOGIN) { inclusive = true }
+                    }
+                }
+            }
+
             LoginScreen(
-                onLoginClick = { _, _ ->
-                    // TODO: Replace with real auth check.
-                    // Hardcoded: simulate a mentor account that must change password.
-                    val mustChangePassword = false
-                    if (mustChangePassword) {
-                        navController.navigate(Routes.FORCE_CHANGE_PASSWORD) {
-                            popUpTo(Routes.LOGIN) { inclusive = true }
-                        }
+                onLoginClick = { email, password ->
+                    if (!USE_MOCK_LOGIN_FALLBACK) {
+                        authViewModel.signIn(
+                            SignInInput(
+                                email = email.trim(),
+                                password = password
+                            )
+                        )
                     } else {
-                        navController.navigate(Routes.ORIENTADOR_MAIN) {
-                            popUpTo(Routes.LOGIN) { inclusive = true }
+                        // Hardcoded: simulate a mentor account that must change password.
+                        val mustChangePassword = false
+                        if (mustChangePassword) {
+                            navController.navigate(Routes.FORCE_CHANGE_PASSWORD) {
+                                popUpTo(Routes.LOGIN) { inclusive = true }
+                            }
+                        } else {
+                            navController.navigate(Routes.ORIENTADOR_MAIN) {
+                                popUpTo(Routes.LOGIN) { inclusive = true }
+                            }
                         }
                     }
                 },
@@ -116,7 +159,9 @@ fun AppNavigation(
                 },
                 onForgotPasswordClick = {
                     navController.navigate(Routes.FORGOT_PASSWORD)
-                }
+                },
+                isLoading = authUiState is AuthUiState.Loading,
+                errorMessage = (authUiState as? AuthUiState.Error)?.message
             )
         }
         composable(Routes.FORCE_CHANGE_PASSWORD) {
