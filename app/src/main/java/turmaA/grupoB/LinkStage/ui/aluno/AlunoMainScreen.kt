@@ -16,7 +16,9 @@ import androidx.compose.material3.Text
 import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -54,6 +56,7 @@ import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.viewmodel.ApplyViewModel
 import turmaA.grupoB.LinkStage.viewmodel.HomeViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import turmaA.grupoB.LinkStage.ui.aluno.offers.OfferDetail
 
 object AlunoRoutes {
     const val HOME = "home"
@@ -101,6 +104,10 @@ fun AlunoMainScreen(onLogout: () -> Unit = {}) {
     val homeViewModel: HomeViewModel = viewModel()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
+
+    var pendingApplyOffer by remember {
+        mutableStateOf<OfferDetail?>(null)
+    }
 
     val showBottomBar = alunoTabs.any { tab ->
         currentDestination?.hierarchy?.any { it.route == tab.route } == true
@@ -166,7 +173,10 @@ fun AlunoMainScreen(onLogout: () -> Unit = {}) {
                 OfferDetailAlunoScreen(
                     offerId = offerId,
                     onBack = { navController.popBackStack() },
-                    onApply = { id -> navController.navigate(AlunoRoutes.applyRoute(id)) },
+                    onApply = { offer ->
+                        pendingApplyOffer = offer
+                        navController.navigate(AlunoRoutes.applyRoute(offer.id))
+                    },
                 )
             }
             composable(
@@ -175,8 +185,13 @@ fun AlunoMainScreen(onLogout: () -> Unit = {}) {
             ) { backStackEntry ->
                 val offerId = backStackEntry.arguments?.getString("offerId") ?: return@composable
                 val applyViewModel: ApplyViewModel = viewModel(backStackEntry)
+                val selectedOffer = pendingApplyOffer
                 ApplyScreen(
                     offerId = offerId,
+                    offerTitle = selectedOffer?.title ?: "",
+                    offerCompany = selectedOffer?.company ?: "",
+                    offerLogoInitial = selectedOffer?.logoInitial ?: "?",
+                    offerLogoColor = selectedOffer?.logoColor ?: Color(0xFF212121),
                     viewModel = applyViewModel,
                     onBack = { navController.popBackStack() },
                     onNavigateToEditSkills = { navController.navigate(AlunoRoutes.EDIT_SKILLS) },
@@ -202,9 +217,16 @@ fun AlunoMainScreen(onLogout: () -> Unit = {}) {
                 arguments = listOf(navArgument("offerId") { type = NavType.StringType }),
             ) { backStackEntry ->
                 val offerId = backStackEntry.arguments?.getString("offerId") ?: return@composable
+                val selectedOffer = pendingApplyOffer
                 ApplySuccessScreen(
                     offerId = offerId,
+                    offerTitle = selectedOffer?.title ?: "",
+                    offerCompany = selectedOffer?.company ?: "",
+                    offerLogoInitial = selectedOffer?.logoInitial ?: "?",
+                    offerLogoColor = selectedOffer?.logoColor ?: Color(0xFF212121),
                     onNavigateBack = {
+                        pendingApplyOffer = null
+
                         navController.navigate(AlunoRoutes.DISCOVER) {
                             popUpTo(AlunoRoutes.HOME) { inclusive = false }
                         }

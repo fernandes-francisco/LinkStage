@@ -159,7 +159,7 @@ private fun InternshipOfferModel.toOfferDetail(): OfferDetail {
 fun OfferDetailAlunoScreen(
     offerId: String,
     onBack: () -> Unit,
-    onApply: (String) -> Unit = {},
+    onApply: (OfferDetail) -> Unit = {},
     offerViewModel: OfferViewModel = viewModel(
         factory = OfferViewModelFactory(OfferRepository())
     ),
@@ -185,7 +185,7 @@ fun OfferDetailAlunoScreen(
             offerTitle = offer.title,
             onConfirm = {
                 showApplyDialog = false
-                onApply(offerId)
+                onApply(offer)
             },
             onDismiss = { showApplyDialog = false },
         )
