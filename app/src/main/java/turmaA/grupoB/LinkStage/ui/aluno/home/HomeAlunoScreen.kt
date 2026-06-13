@@ -48,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import turmaA.grupoB.LinkStage.R
+import turmaA.grupoB.LinkStage.data.repository.auth.AuthRepository
 import turmaA.grupoB.LinkStage.ui.aluno.AlunoRoutes
 import turmaA.grupoB.LinkStage.ui.aluno.activity.ApplicationCard
 import turmaA.grupoB.LinkStage.ui.aluno.activity.InternshipHeader
@@ -56,7 +57,6 @@ import turmaA.grupoB.LinkStage.ui.aluno.chat.ConversationItem
 import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
 import turmaA.grupoB.LinkStage.ui.common.EvaluationNotificationModal
 import turmaA.grupoB.LinkStage.ui.common.EvaluationPendingCard
-import turmaA.grupoB.LinkStage.ui.common.LinkStageLogo
 import turmaA.grupoB.LinkStage.ui.orientador.EvaluationState
 import turmaA.grupoB.LinkStage.ui.orientador.InternshipEvaluation
 import turmaA.grupoB.LinkStage.ui.orientador.InternshipType
@@ -67,6 +67,9 @@ import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.Fade3
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.viewmodel.HomeViewModel
+import turmaA.grupoB.LinkStage.viewmodel.auth.AuthUiState
+import turmaA.grupoB.LinkStage.viewmodel.auth.AuthViewModel
+import turmaA.grupoB.LinkStage.viewmodel.auth.AuthViewModelFactory
 
 // region Data models
 
@@ -98,16 +101,27 @@ fun getMockEntregas(): List<Entrega> {
 fun HomeAlunoScreen(
     navController: NavController,
     homeViewModel: HomeViewModel = viewModel(),
+    authViewModel: AuthViewModel = viewModel(
+        factory = AuthViewModelFactory(AuthRepository())
+    )
 ) {
-    val userName = "Tomás"
     val hasActiveInternship by homeViewModel.hasActiveInternship.collectAsState()
     val activeInternship by homeViewModel.activeInternship.collectAsState()
     val recentApplications by homeViewModel.recentApplications.collectAsState()
     val recentConversations by homeViewModel.recentConversations.collectAsState()
     val hasSeenResult by homeViewModel.hasSeenEvaluationResult.collectAsState()
     val hasDismissedModal by homeViewModel.hasDismissedEvaluationModal.collectAsState()
+
+    val authUiState by authViewModel.uiState.collectAsState()
+
+    val profile = (authUiState as? AuthUiState.Success)?.profile
+    val userName = profile?.name ?: "Tomás"
     
     val mockEntregas = getMockEntregas()
+
+    LaunchedEffect(Unit) {
+        authViewModel.loadCurrentUserProfile()
+    }
 
     // Evaluation sample data for demo
     val evaluation: InternshipEvaluation? = remember {
