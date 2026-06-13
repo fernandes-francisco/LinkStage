@@ -39,6 +39,6 @@ class RetrofitInstanceTest {
             ?: error("Could not find Retrofit field in ${handlerClass.name}: ${handlerClass.declaredFields.map { "${it.type.simpleName} ${it.name}" }}")
         retrofitField.isAccessible = true
         val retrofit = retrofitField.get(handler) as Retrofit
-        assertEquals("https://restcountries.com/", retrofit.baseUrl().toString())
+        assertEquals("https://api.restcountries.com/", retrofit.baseUrl().toString())
     }
 }
