@@ -963,6 +963,9 @@
     <string name="offer_filter_part_time">Part Time</string>
     <string name="offer_filter_remote">Remote</string>
     <string name="offer_filter_hybrid">Hybrid</string>
+    <string name="offers_loading">Loading offers…</string>
+    <string name="offers_empty">No published offers available.</string>
+
 
     <!-- ==================== ASSIGN MENTOR ==================== -->
     <string name="assign_mentor_confirm_title">Assign advisor?</string>

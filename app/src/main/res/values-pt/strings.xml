@@ -279,6 +279,8 @@
     <string name="offer_confirm_apply_title">Confirmar Candidatura</string>
     <string name="offer_confirm_apply_message">Tem a certeza que se pretende candidatar a \"%1$s\"?</string>
     <string name="offer_deadline_info">Candidaturas terminam em %1$d dias  •  %2$d alunos candidataram-se</string>
+    <string name="offers_loading">A carregar ofertas…</string>
+    <string name="offers_empty">Não existem ofertas publicadas.</string>
 
     <!-- ==================== STUDENT — APPLICATION ==================== -->
     <string name="apply_title">Completar Candidatura</string>
