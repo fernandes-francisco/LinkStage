@@ -1,5 +1,7 @@
 package turmaA.grupoB.LinkStage.ui.auth.login
 
+import android.R.attr.enabled
+import android.R.attr.onClick
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -63,7 +65,9 @@ import turmaA.grupoB.LinkStage.ui.theme.Red
 fun LoginScreen(
     onLoginClick: (String, String) -> Unit = { _, _ -> },
     onRegisterClick: () -> Unit = {},
-    onForgotPasswordClick: () -> Unit = {}
+    onForgotPasswordClick: () -> Unit = {},
+    isLoading: Boolean = false,
+    errorMessage: String? = null,
 ) {
     var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
@@ -102,6 +106,8 @@ fun LoginScreen(
         onPasswordVisibilityChange = { passwordVisible = !passwordVisible },
         onLoginClick = { onLoginClick(email, password) },
         isLoginEnabled = isFormValid,
+        isLoading = isLoading,
+        errorMessage = errorMessage,
         onRegisterClick = onRegisterClick,
         onForgotPasswordClick = onForgotPasswordClick
     )
@@ -118,6 +124,8 @@ fun LoginScreenContent(
     onPasswordVisibilityChange: () -> Unit,
     onLoginClick: () -> Unit,
     isLoginEnabled: Boolean,
+    isLoading: Boolean,
+    errorMessage: String?,
     onRegisterClick: () -> Unit,
     onForgotPasswordClick: () -> Unit
 ) {
@@ -236,10 +244,25 @@ fun LoginScreenContent(
                 )
             }
 
+            if (errorMessage != null) {
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = errorMessage,
+                    color = Red,
+                    fontSize = 14.sp,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+
             Spacer(modifier = Modifier.height(32.dp))
 
             LinkStageButton(
-                text = stringResource(R.string.login_button),
+                text = if (isLoading) {
+                    stringResource(R.string.login_loading)
+                } else {
+                    stringResource(R.string.login_button)
+                },
                 onClick = onLoginClick,
                 enabled = isLoginEnabled
             )
