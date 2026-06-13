@@ -51,6 +51,7 @@
     <string name="register_profile_institution_f4">Assessments</string>
     <string name="register_continue">Continue</string>
     <string name="register_back">Back</string>
+    <string name="register_loading">Registering…</string>
 
     <!-- REGISTER — STEP 1 DATA -->
     <string name="register_data_step_student">Step 1 of 2 — Personal Data</string>
