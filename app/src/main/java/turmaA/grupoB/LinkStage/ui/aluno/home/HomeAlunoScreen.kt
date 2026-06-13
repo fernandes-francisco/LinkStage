@@ -62,11 +62,6 @@ import turmaA.grupoB.LinkStage.ui.aluno.activity.InternshipHeader
 import turmaA.grupoB.LinkStage.ui.aluno.activity.calculateInternshipProgress
 import turmaA.grupoB.LinkStage.ui.aluno.chat.ConversationItem
 import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
-import turmaA.grupoB.LinkStage.ui.common.EvaluationNotificationModal
-import turmaA.grupoB.LinkStage.ui.common.EvaluationPendingCard
-import turmaA.grupoB.LinkStage.ui.orientador.EvaluationState
-import turmaA.grupoB.LinkStage.ui.orientador.InternshipEvaluation
-import turmaA.grupoB.LinkStage.ui.orientador.InternshipType
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
@@ -138,8 +133,6 @@ fun HomeAlunoScreen(
     ),
 ) {
     val recentConversations by homeViewModel.recentConversations.collectAsState()
-    val hasSeenResult by homeViewModel.hasSeenEvaluationResult.collectAsState()
-    val hasDismissedModal by homeViewModel.hasDismissedEvaluationModal.collectAsState()
 
     val authUiState by authViewModel.uiState.collectAsState()
     val studentUiState by studentViewModel.uiState.collectAsState()
@@ -185,42 +178,6 @@ fun HomeAlunoScreen(
         ?.firstOrNull { it.status == InternshipStatus.IN_PROGRESS }
     val activeInternship = activeInternshipModel?.toActiveInternship()
 
-    // Evaluation sample data for demo
-    val evaluation: InternshipEvaluation? = remember {
-        InternshipEvaluation(
-            internshipId = "int1",
-            internshipType = InternshipType.COMPANY_SCHOOL,
-            state = EvaluationState.COMPLETED,
-            companyResponsibleGrade = 16.5f,
-            companyResponsibleObservation = "Excelente desempenho técnico.",
-            companyResponsibleName = "Ana Costa",
-            companyMentorGrade = 15.0f,
-            companyMentorObservation = "Bom trabalho em equipa.",
-            companyMentorName = "Prof. Tiago Alexandre",
-            schoolMentorGrade = 16f,
-            schoolMentorObservation = "Bom desempenho global.",
-            schoolMentorName = "Prof. Carvalho",
-            hasSeenNotification = false,
-        )
-    }
-
-    val showEvaluationModal = evaluation?.state == EvaluationState.COMPLETED &&
-            !hasSeenResult &&
-            !hasDismissedModal
-
-    if (showEvaluationModal) {
-        EvaluationNotificationModal(
-            title = stringResource(R.string.home_eval_result_title),
-            message = stringResource(R.string.home_eval_result_message),
-            actionLabel = stringResource(R.string.home_result_action),
-            onAction = {
-                homeViewModel.setHasSeenEvaluationResult(true)
-                navController.navigate(AlunoRoutes.internshipResultRoute(evaluation.internshipId))
-            },
-            onDismiss = { homeViewModel.setHasDismissedEvaluationModal(true) },
-        )
-    }
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -245,20 +202,6 @@ fun HomeAlunoScreen(
                 style = MaterialTheme.typography.bodyMedium,
                 color = DarkGrey
             )
-        }
-
-        if (evaluation?.state == EvaluationState.COMPLETED && !hasSeenResult) {
-            EvaluationPendingCard(
-                title = stringResource(R.string.home_result_available),
-                message = stringResource(R.string.home_result_message),
-                actionLabel = stringResource(R.string.home_result_action),
-                isDanger = false,
-                onClick = {
-                    homeViewModel.setHasSeenEvaluationResult(true)
-                    navController.navigate(AlunoRoutes.internshipResultRoute(evaluation.internshipId))
-                },
-            )
-            Spacer(modifier = Modifier.height(8.dp))
         }
 
         Column(

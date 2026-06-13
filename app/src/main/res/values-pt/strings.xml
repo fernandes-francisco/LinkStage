@@ -651,6 +651,8 @@
     <string name="result_back_home">Voltar ao Início</string>
     <string name="result_observations">Observações</string>
     <string name="result_grade_values">%1$s valores</string>
+    <string name="result_loading">A carregar resultado do estágio…</string>
+    <string name="result_not_available">O resultado do estágio não está disponível.</string>
 
     <!-- ==================== PRIVACY POLICY SECTIONS ==================== -->
     <string name="privacy_section_1_title">1. Introdução</string>

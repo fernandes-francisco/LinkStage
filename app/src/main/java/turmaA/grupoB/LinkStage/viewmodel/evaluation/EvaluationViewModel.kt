@@ -9,9 +9,15 @@ import kotlinx.coroutines.launch
 import turmaA.grupoB.LinkStage.data.remote.model.enums.EvaluationType
 import turmaA.grupoB.LinkStage.data.remote.model.evaluation.CreateEvaluationInput
 import turmaA.grupoB.LinkStage.data.repository.evaluation.EvaluationRepositoryInterface
+import turmaA.grupoB.LinkStage.data.repository.institution.InstitutionRepositoryInterface
+import turmaA.grupoB.LinkStage.data.repository.internship.InternshipRepositoryInterface
+import turmaA.grupoB.LinkStage.data.repository.profile.ProfileRepositoryInterface
 
 class EvaluationViewModel(
-    private val evaluationRepository: EvaluationRepositoryInterface
+    private val evaluationRepository: EvaluationRepositoryInterface,
+    private val internshipRepository: InternshipRepositoryInterface? = null,
+    private val profileRepository: ProfileRepositoryInterface? = null,
+    private val institutionRepository: InstitutionRepositoryInterface? = null,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<EvaluationUiState>(EvaluationUiState.Idle)
@@ -114,6 +120,54 @@ class EvaluationViewModel(
             } catch (e: Exception) {
                 _uiState.value = EvaluationUiState.Error(
                     e.message ?: "Erro ao carregar nota final."
+                )
+            }
+        }
+    }
+
+    fun loadInternshipResult(internshipId: String) {
+        viewModelScope.launch {
+            _uiState.value = EvaluationUiState.Loading
+
+            try {
+                val internships = requireNotNull(internshipRepository) {
+                    "InternshipRepository não configurado."
+                }
+                val profiles = requireNotNull(profileRepository) {
+                    "ProfileRepository não configurado."
+                }
+                val institutions = requireNotNull(institutionRepository) {
+                    "InstitutionRepository não configurado."
+                }
+
+                val internship = internships.getInternshipById(internshipId)
+                val finalGrade = evaluationRepository.getFinalGradeByInternship(internshipId)
+
+                if (internship == null || finalGrade == null) {
+                    _uiState.value = EvaluationUiState.Empty
+                    return@launch
+                }
+
+                val evaluations = evaluationRepository.getEvaluationsByInternship(internshipId)
+                val evaluatorProfiles = evaluations
+                    .map { it.evaluatorUserId }
+                    .distinct()
+                    .mapNotNull { userId ->
+                        profiles.getProfileById(userId)?.let { userId to it }
+                    }
+                    .toMap()
+                val institution = institutions.getInstitutionById(internship.institutionId)
+
+                _uiState.value = EvaluationUiState.InternshipResultSuccess(
+                    internship = internship,
+                    institution = institution,
+                    finalGrade = finalGrade,
+                    evaluations = evaluations,
+                    evaluatorProfiles = evaluatorProfiles,
+                )
+            } catch (e: Exception) {
+                _uiState.value = EvaluationUiState.Error(
+                    e.message ?: "Erro ao carregar resultado do estágio."
                 )
             }
         }

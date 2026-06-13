@@ -648,6 +648,8 @@
     <string name="result_back_home">Back to Home</string>
     <string name="result_observations">Observations</string>
     <string name="result_grade_values">%1$s values</string>
+    <string name="result_loading">Loading internship result…</string>
+    <string name="result_not_available">The internship result is not available.</string>
 
     <!-- ==================== PRIVACY POLICY SECTIONS ==================== -->
     <string name="privacy_section_1_title">1. Introduction</string>
