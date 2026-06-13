@@ -17,3 +17,10 @@ sealed class InternshipUiState {
     data object Empty : InternshipUiState()
     data class Error(val message: String) : InternshipUiState()
 }
+
+sealed class ActivityCreationUiState {
+    data object Idle : ActivityCreationUiState()
+    data object Loading : ActivityCreationUiState()
+    data class Success(val activityLog: ActivityLogModel) : ActivityCreationUiState()
+    data class Error(val message: String) : ActivityCreationUiState()
+}

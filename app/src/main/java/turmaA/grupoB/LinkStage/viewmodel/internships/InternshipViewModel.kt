@@ -22,6 +22,12 @@ class InternshipViewModel(
 ) : ViewModel (){
     private val _uiState = MutableStateFlow<InternshipUiState>(InternshipUiState.Idle)
     val uiState: StateFlow<InternshipUiState> = _uiState.asStateFlow()
+
+    private val _activityCreationUiState = MutableStateFlow<ActivityCreationUiState>(
+        ActivityCreationUiState.Idle
+    )
+    val activityCreationUiState: StateFlow<ActivityCreationUiState> =
+        _activityCreationUiState.asStateFlow()
     fun getInternships(){
         viewModelScope.launch {
             _uiState.value = InternshipUiState.Loading
@@ -178,16 +184,17 @@ class InternshipViewModel(
     }
     fun createActivityLog(input: CreateActivityLogInput ){
         viewModelScope.launch {
-            _uiState.value = InternshipUiState.Loading
+            _activityCreationUiState.value = ActivityCreationUiState.Loading
             try {
                 syncPendingActivities()
                 val activity = internshipRepository.createActivityLog(input)
                 localActivityRepository?.save(activity)
-                _uiState.value = InternshipUiState.SuccessActivity(activity)
+                appendCreatedActivity(activity)
+                _activityCreationUiState.value = ActivityCreationUiState.Success(activity)
             }catch (e: Exception){
                 val localRepository = localActivityRepository
                 if (localRepository == null) {
-                    _uiState.value = InternshipUiState.Error(
+                    _activityCreationUiState.value = ActivityCreationUiState.Error(
                         e.message ?: "Erro ao criar atividade."
                     )
                     return@launch
@@ -195,8 +202,22 @@ class InternshipViewModel(
 
                 val pendingActivity = input.toPendingActivityLog()
                 localRepository.save(pendingActivity, pendingSync = true)
-                _uiState.value = InternshipUiState.SuccessActivity(pendingActivity)
+                appendCreatedActivity(pendingActivity)
+                _activityCreationUiState.value = ActivityCreationUiState.Success(pendingActivity)
             }
+        }
+    }
+
+    fun resetActivityCreationState() {
+        _activityCreationUiState.value = ActivityCreationUiState.Idle
+    }
+
+    private fun appendCreatedActivity(activity: ActivityLogModel) {
+        val state = _uiState.value
+        if (state is InternshipUiState.ActiveInternshipSuccess) {
+            _uiState.value = state.copy(
+                activityLogs = (state.activityLogs + activity).distinctBy { it.id }
+            )
         }
     }
     fun getActivityLogsByInternship(internshipId : String){
