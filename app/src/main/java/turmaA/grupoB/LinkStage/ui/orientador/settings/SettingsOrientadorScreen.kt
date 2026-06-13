@@ -63,7 +63,7 @@ import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.Fade1
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.ui.theme.Red
-import turmaA.grupoB.LinkStage.viewmodel.SettingsViewModel
+import turmaA.grupoB.LinkStage.viewmodel.settings.SettingsViewModel
 import turmaA.grupoB.LinkStage.viewmodel.flags.FlagsUIState
 import turmaA.grupoB.LinkStage.viewmodel.flags.FlagsViewModel
 import turmaA.grupoB.LinkStage.viewmodel.flags.FlagsViewModelFactory
@@ -78,6 +78,10 @@ fun SettingsOrientadorScreen(
     modifier: Modifier = Modifier,
 ) {
     val user by settingsViewModel.user.collectAsState()
+    val displayedUser = remember(user) {
+        user.takeIf { it.name.isNotBlank() && it.email.isNotBlank() }
+            ?: LoggedUser(name = "JJ", email = "jj@linkstage.pt")
+    }
     val currentLanguage by settingsViewModel.currentLanguage.collectAsState()
     val flagsUIState by flagsViewModel.uiState.collectAsState()
     LaunchedEffect(Unit) {
@@ -145,18 +149,18 @@ fun SettingsOrientadorScreen(
                         .padding(16.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    UserAvatar(user = user, size = 48)
+                    UserAvatar(user = displayedUser, size = 48)
                     Spacer(modifier = Modifier.width(12.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = user.name,
+                            text = displayedUser.name,
                             style = MaterialTheme.typography.bodyLarge.copy(
                                 fontWeight = FontWeight.Bold,
                                 color = DarkBlue,
                             ),
                         )
                         Text(
-                            text = user.email,
+                            text = displayedUser.email,
                             style = MaterialTheme.typography.bodySmall,
                             color = DarkGrey,
                         )

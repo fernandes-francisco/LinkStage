@@ -68,6 +68,7 @@ internal fun List<StudentModel>.toAdminStudents(
     applicationsByStudentId: Map<String, List<ApplicationModel>>,
     internshipsByStudentId: Map<String, List<InternshipModel>>,
     offersById: Map<String, InternshipOfferModel>,
+    institutionsById: Map<String, String> = emptyMap(),
 ): List<AdminStudent> = map { student ->
     val profile = profilesByUserId[student.userId]
     val applications = applicationsByStudentId[student.id].orEmpty()
@@ -86,7 +87,11 @@ internal fun List<StudentModel>.toAdminStudents(
         gpa = student.averageGrade?.toFloat() ?: 0f,
         registeredAgo = student.createdAt.relativeTime(),
         hasActiveInternship = activeInternship != null,
-        internshipCompany = internshipOffer?.title ?: "",
+        internshipCompany = activeInternship?.let { internship ->
+            institutionsById[internship.institutionId]
+                ?: internshipOffer?.title
+                ?: internship.title
+        } ?: "",
         applicationCount = applications.size,
         avatarInitials = profile?.name?.initials() ?: student.studentNumber.take(2).uppercase(),
         avatarColorIndex = student.id.hashCode().absMod(avatarColors.size),

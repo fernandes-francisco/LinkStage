@@ -50,7 +50,7 @@ import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
-import turmaA.grupoB.LinkStage.viewmodel.ApplyViewModel
+import turmaA.grupoB.LinkStage.viewmodel.apply.ApplyViewModel
 
 @Composable
 fun getSkillCategories(): Map<String, List<String>> {

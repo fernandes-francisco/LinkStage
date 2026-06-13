@@ -46,7 +46,7 @@ import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.Fade2
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
-import turmaA.grupoB.LinkStage.viewmodel.SettingsViewModel
+import turmaA.grupoB.LinkStage.viewmodel.settings.SettingsViewModel
 
 @Composable
 fun NotificationsOrientadorScreen(

@@ -87,7 +87,7 @@ import turmaA.grupoB.LinkStage.ui.theme.Fade1
 import turmaA.grupoB.LinkStage.ui.theme.Fade2
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.ui.theme.Red
-import turmaA.grupoB.LinkStage.viewmodel.SettingsViewModel
+import turmaA.grupoB.LinkStage.viewmodel.settings.SettingsViewModel
 import turmaA.grupoB.LinkStage.viewmodel.flags.FlagsUIState
 import turmaA.grupoB.LinkStage.viewmodel.flags.FlagsViewModel
 import turmaA.grupoB.LinkStage.viewmodel.flags.FlagsViewModelFactory

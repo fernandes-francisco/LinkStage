@@ -36,6 +36,7 @@ import turmaA.grupoB.LinkStage.ui.admin.students.InternshipDetailAdminScreen
 import turmaA.grupoB.LinkStage.ui.admin.students.MentorDetailAdminScreen
 import turmaA.grupoB.LinkStage.ui.admin.students.StudentDetailAdminScreen
 import turmaA.grupoB.LinkStage.ui.admin.students.StudentsAdminScreen
+import turmaA.grupoB.LinkStage.ui.common.PrivacyPolicyScreen
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 
@@ -48,6 +49,7 @@ object AdminRoutes {
     const val INSTITUTION_DETAIL = "admin_institution/{id}"
     const val INTERNSHIP_DETAIL = "admin_internship/{id}"
     const val SETTINGS = "admin_settings"
+    const val PRIVACY_POLICY = "admin_privacy_policy"
 
     fun studentDetail(id: String) = "admin_student/$id"
     fun mentorDetail(id: String) = "admin_mentor/$id"
@@ -132,8 +134,8 @@ fun AdminMainScreen(onLogout: () -> Unit = {}) {
                 StudentDetailAdminScreen(
                     studentId = id,
                     onBack = { navController.popBackStack() },
-                    onViewInternship = { studentId ->
-                        navController.navigate(AdminRoutes.internshipDetail(studentId))
+                    onViewInternship = { internshipId ->
+                        navController.navigate(AdminRoutes.internshipDetail(internshipId))
                     }
                 )
             }
@@ -171,7 +173,17 @@ fun AdminMainScreen(onLogout: () -> Unit = {}) {
                 )
             }
             composable(AdminRoutes.SETTINGS) {
-                SettingsAdminScreen(onLogout = onLogout)
+                SettingsAdminScreen(
+                    onLogout = onLogout,
+                    onPrivacyPolicyClick = {
+                        navController.navigate(AdminRoutes.PRIVACY_POLICY)
+                    }
+                )
+            }
+            composable(AdminRoutes.PRIVACY_POLICY) {
+                PrivacyPolicyScreen(
+                    onBack = { navController.popBackStack() }
+                )
             }
         }
     }

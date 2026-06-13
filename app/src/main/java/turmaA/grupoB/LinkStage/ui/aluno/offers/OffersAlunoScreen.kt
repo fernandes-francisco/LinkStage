@@ -79,7 +79,7 @@ import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.Fade1
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.ui.theme.Red
-import turmaA.grupoB.LinkStage.viewmodel.DiscoverViewModel
+import turmaA.grupoB.LinkStage.viewmodel.discover.DiscoverViewModel
 
 // region Data models
 

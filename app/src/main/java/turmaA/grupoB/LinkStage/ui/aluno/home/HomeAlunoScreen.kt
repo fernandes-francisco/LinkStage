@@ -66,7 +66,7 @@ import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.Fade3
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
-import turmaA.grupoB.LinkStage.viewmodel.HomeViewModel
+import turmaA.grupoB.LinkStage.viewmodel.home.HomeViewModel
 
 // region Data models
 

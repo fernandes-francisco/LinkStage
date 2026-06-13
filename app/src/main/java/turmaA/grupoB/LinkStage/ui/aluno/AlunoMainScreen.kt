@@ -51,8 +51,8 @@ import turmaA.grupoB.LinkStage.ui.aluno.offers.OffersAlunoScreen
 import turmaA.grupoB.LinkStage.ui.aluno.settings.SettingsAlunoScreen
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
-import turmaA.grupoB.LinkStage.viewmodel.ApplyViewModel
-import turmaA.grupoB.LinkStage.viewmodel.HomeViewModel
+import turmaA.grupoB.LinkStage.viewmodel.apply.ApplyViewModel
+import turmaA.grupoB.LinkStage.viewmodel.home.HomeViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 
 object AlunoRoutes {

@@ -100,7 +100,7 @@ import turmaA.grupoB.LinkStage.ui.theme.Fade2
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.ui.theme.Red
 import turmaA.grupoB.LinkStage.ui.aluno.home.ApplicationStatus
-import turmaA.grupoB.LinkStage.viewmodel.HomeViewModel
+import turmaA.grupoB.LinkStage.viewmodel.home.HomeViewModel
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit

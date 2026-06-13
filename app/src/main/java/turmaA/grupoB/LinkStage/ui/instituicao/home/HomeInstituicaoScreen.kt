@@ -37,6 +37,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -69,14 +70,18 @@ import turmaA.grupoB.LinkStage.ui.instituicao.InstituicaoRoutes
 import turmaA.grupoB.LinkStage.ui.orientador.EvaluationState
 import turmaA.grupoB.LinkStage.ui.orientador.InternshipEvaluation
 import turmaA.grupoB.LinkStage.ui.orientador.InternshipType
-import androidx.compose.ui.platform.LocalContext
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.ui.theme.Red
-import turmaA.grupoB.LinkStage.viewmodel.InstitutionHomeViewModel
+import turmaA.grupoB.LinkStage.viewmodel.institutionhome.InstitutionDashboardUiState
+import turmaA.grupoB.LinkStage.viewmodel.institutionhome.InstitutionHomeViewModel
+import turmaA.grupoB.LinkStage.viewmodel.chat.ChatUiState
+import turmaA.grupoB.LinkStage.viewmodel.chat.ChatViewModel
+import turmaA.grupoB.LinkStage.viewmodel.institutionhome.InstitutionHomeViewModelFactory
+import turmaA.grupoB.LinkStage.viewmodel.settings.SettingsViewModel
 
 private val sampleInstitutionOffers = listOf(
     OfferItem("1", "Designer de Produto", "ESTG-IPVC", "Tempo Inteiro", "5h atras", Color(0xFF1565C0), "E", duration = "6 Meses", area = "Design", location = "Porto"),
@@ -87,21 +92,32 @@ private val sampleInstitutionOffers = listOf(
 fun HomeInstituicaoScreen(
     navController: NavController,
     modifier: Modifier = Modifier,
-    institutionHomeViewModel: InstitutionHomeViewModel = viewModel(),
+    institutionHomeViewModel: InstitutionHomeViewModel = viewModel(factory = InstitutionHomeViewModelFactory()),
+    settingsViewModel: SettingsViewModel = viewModel(),
+    chatViewModel: ChatViewModel? = null,
 ) {
-    val context = LocalContext.current
-    val internships = turmaA.grupoB.LinkStage.ui.instituicao.sampleInstitutionInternships(context)
-    val activeOffersCount = 5
-    val applicationsCount = 12
-    val activeInternships = internships.count {
-        it.status == turmaA.grupoB.LinkStage.ui.instituicao.InternshipStatus.IN_PROGRESS
+    val user by settingsViewModel.user.collectAsState()
+    val dashboardUiState by institutionHomeViewModel.dashboardUiState.collectAsState()
+    val dashboardData = dashboardUiState as? InstitutionDashboardUiState.Success
+    val institutionName = user.name.ifBlank { "Instituição" }
+    val activeOffersCount = dashboardData?.activeOffersCount ?: 5
+    val applicationsCount = dashboardData?.applicationsCount ?: 12
+    val activeInternshipsCount = dashboardData?.activeInternshipsCount ?: 3
+    val pendingEvaluationsCount = dashboardData?.pendingEvaluationsCount ?: 1
+    val noMentorCount = dashboardData?.noMentorCount ?: 1
+
+    LaunchedEffect(Unit) {
+        institutionHomeViewModel.loadDashboardForCurrentUser()
+        chatViewModel?.loadConversations()
     }
-    val pendingEvaluations = internships.count {
-        it.status == turmaA.grupoB.LinkStage.ui.instituicao.InternshipStatus.PENDING_REVIEW
-    }
-    val noMentorCount = internships.count {
-        it.status == turmaA.grupoB.LinkStage.ui.instituicao.InternshipStatus.NO_MENTOR || !it.hasMentor
-    }
+
+    val chatState = chatViewModel?.chatUiState?.collectAsState()
+    val recentMessages = chatState?.value?.let { state ->
+        when (state) {
+            is ChatUiState.Success -> state.conversations.take(3)
+            else -> sampleConversations.take(3)
+        }
+    } ?: sampleConversations.take(3)
 
     val evaluation: InternshipEvaluation? = remember {
         InternshipEvaluation(
@@ -149,7 +165,7 @@ fun HomeInstituicaoScreen(
                     horizontalAlignment = Alignment.Start,
                 ) {
                     Text(
-                        text = stringResource(R.string.institution_home_greeting, "ESTG-IPVC"),
+                        text = stringResource(R.string.institution_home_greeting, institutionName),
                         style = MaterialTheme.typography.headlineMedium.copy(
                             fontWeight = FontWeight.Bold,
                             color = DarkBlue,
@@ -235,7 +251,7 @@ fun HomeInstituicaoScreen(
                 StatCard(
                     icon = Icons.Outlined.CalendarMonth,
                     label = stringResource(R.string.institution_home_active_internships),
-                    count = activeInternships,
+                    count = activeInternshipsCount,
                     color = LightBlue,
                     modifier = Modifier.weight(1f),
                     onClick = {
@@ -248,7 +264,7 @@ fun HomeInstituicaoScreen(
                 StatCard(
                     icon = Icons.Outlined.RateReview,
                     label = stringResource(R.string.institution_home_pending_eval),
-                    count = pendingEvaluations,
+                    count = pendingEvaluationsCount,
                     color = Red,
                     modifier = Modifier.weight(1f),
                     onClick = {
@@ -352,7 +368,7 @@ fun HomeInstituicaoScreen(
             )
             Spacer(modifier = Modifier.height(8.dp))
 
-            if (sampleConversations.isNotEmpty()) {
+            if (recentMessages.isNotEmpty()) {
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -361,7 +377,7 @@ fun HomeInstituicaoScreen(
                     colors = CardDefaults.cardColors(containerColor = Color.White),
                     elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
                 ) {
-                    sampleConversations.take(3).forEachIndexed { index, conversation ->
+                    recentMessages.forEachIndexed { index, conversation ->
                         MessageRow(
                             conversation = conversation,
                             onClick = {

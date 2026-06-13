@@ -588,6 +588,8 @@ private class FakeCommunicationRepository : CommunicationRepositoryInterface {
         return threadsList
     }
 
+    override suspend fun getThreadsWithParticipants(userIds: List<String>): List<MessageThreadModel> = threadsList
+
     override suspend fun getParticipantsByThread(threadId: String): List<MessageThreadParticipantModel> {
         if (shouldThrowOnGetParticipants) {
             throw IllegalStateException("Erro ao carregar participantes.")
@@ -621,6 +623,26 @@ private class FakeCommunicationRepository : CommunicationRepositoryInterface {
         if (returnNullMessageOnMarkRead) return null
         return defaultMessage.copy(id = messageId, isRead = true)
     }
+
+    override suspend fun createThread(
+        internshipId: String?,
+        applicationId: String?
+    ): MessageThreadModel? = MessageThreadModel(
+        id = "new-thread",
+        internshipId = internshipId,
+        applicationId = applicationId,
+        createdAt = "2026-01-01T00:00:00Z",
+    )
+
+    override suspend fun createThreadParticipant(
+        threadId: String,
+        userId: String
+    ): MessageThreadParticipantModel = MessageThreadParticipantModel(
+        id = "$threadId-$userId",
+        threadId = threadId,
+        userId = userId,
+        createdAt = "2026-01-01T00:00:00Z",
+    )
 }
 
 // --- MainDispatcherRule (kept local) ---

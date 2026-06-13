@@ -14,6 +14,7 @@ import turmaA.grupoB.LinkStage.data.remote.model.user.SupervisorModel
 import turmaA.grupoB.LinkStage.data.repository.application.ApplicationRepositoryInterface
 import turmaA.grupoB.LinkStage.data.repository.institution.InstitutionRepositoryInterface
 import turmaA.grupoB.LinkStage.data.repository.internship.InternshipRepositoryInterface
+import turmaA.grupoB.LinkStage.data.repository.offer.OfferRepositoryInterface
 import turmaA.grupoB.LinkStage.data.repository.profile.ProfileRepositoryInterface
 import turmaA.grupoB.LinkStage.data.repository.student.StudentRepositoryInterface
 import turmaA.grupoB.LinkStage.data.repository.supervisor.SupervisorRepositoryInterface
@@ -207,6 +208,7 @@ class AdminStudentDetailViewModel(
     private val internshipRepository: InternshipRepositoryInterface,
     private val applicationRepository: ApplicationRepositoryInterface,
     private val institutionRepository: InstitutionRepositoryInterface,
+    private val offerRepository: OfferRepositoryInterface,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<AdminStudentDetailUiState>(AdminStudentDetailUiState.Idle)
@@ -228,7 +230,13 @@ class AdminStudentDetailViewModel(
         val profile = profileRepository.getProfileById(student.userId)
         val applications = applicationRepository.getApplicationsByStudent(student.id)
         val internships = internshipRepository.getInternshipsByStudent(student.id)
-        val offersById = emptyMap<String, turmaA.grupoB.LinkStage.data.remote.model.offer.InternshipOfferModel>()
+        val offersById = runCatching {
+            internships
+                .map { it.offerId }
+                .distinct()
+                .mapNotNull { offerRepository.getOfferById(it) }
+                .associateBy { it.id }
+        }.getOrDefault(emptyMap())
         val institutions = institutionRepository.getInstitutions().associateBy { it.id }
 
         val adminStudent = listOf(student).toAdminStudents(
@@ -236,6 +244,7 @@ class AdminStudentDetailViewModel(
             applicationsByStudentId = mapOf(student.id to applications),
             internshipsByStudentId = mapOf(student.id to internships),
             offersById = offersById,
+            institutionsById = institutions.mapValues { it.value.name },
         ).first().copy(
             institution = institutions[internships.firstOrNull()?.institutionId]?.name ?: student.institutionFallback(),
             institutionCode = institutions[internships.firstOrNull()?.institutionId]?.id ?: student.course.substringBefore(" ").uppercase(),
@@ -462,7 +471,10 @@ class AdminInternshipDetailViewModel(
     }
 
     private suspend fun loadInternshipData(internshipId: String): AdminInternshipDetailData = try {
-        val internship = internshipRepository.getInternshipById(internshipId) ?: return fallbackInternshipDetail(internshipId)
+        val internship = internshipRepository.getInternshipById(internshipId)
+            ?: internshipRepository.getInternshipsByStudent(internshipId)
+                .firstOrNull { it.status == InternshipStatus.IN_PROGRESS }
+            ?: return fallbackInternshipDetail(internshipId)
         val offer = offerRepository.getOfferById(internship.offerId) ?: return fallbackInternshipDetail(internshipId)
         val institution = institutionRepository.getInstitutionById(offer.institutionId)
         val student = studentRepository.getStudentById(internship.studentId)

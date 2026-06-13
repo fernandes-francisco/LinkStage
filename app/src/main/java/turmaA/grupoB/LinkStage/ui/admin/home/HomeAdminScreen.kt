@@ -23,6 +23,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -58,21 +59,27 @@ import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
+import turmaA.grupoB.LinkStage.viewmodel.settings.SettingsViewModel
 
 @Composable
 fun HomeAdminScreen(
     navController: NavController,
     modifier: Modifier = Modifier,
+    settingsViewModel: SettingsViewModel = viewModel(),
 ) {
     val dashboardViewModel: AdminDashboardViewModel = viewModel(factory = AdminDashboardViewModelFactory())
     val dashboardUiState by dashboardViewModel.uiState.collectAsState()
+    val user by settingsViewModel.user.collectAsState()
+    val adminUserName = user.name.ifBlank { "Admin" }
     val pendingInstitutions = when (val state = dashboardUiState) {
         is AdminDashboardUiState.Success -> state.data.pendingInstitutions
         else -> emptyList()
     }
     var showPendingModal by remember { mutableStateOf(false) }
 
-    dashboardViewModel.loadDashboard()
+    LaunchedEffect(dashboardViewModel) {
+        dashboardViewModel.loadDashboard()
+    }
 
     if (showPendingModal) {
         EvaluationNotificationModal(
@@ -105,7 +112,7 @@ fun HomeAdminScreen(
                 .padding(horizontal = 20.dp, vertical = 12.dp)
         ) {
             Text(
-                text = stringResource(R.string.admin_home_greeting),
+                text = stringResource(R.string.home_greeting, adminUserName),
                 style = MaterialTheme.typography.headlineLarge.copy(
                     fontWeight = FontWeight.Bold,
                     color = DarkBlue,

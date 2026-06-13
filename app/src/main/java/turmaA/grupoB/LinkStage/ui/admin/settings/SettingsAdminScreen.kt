@@ -51,7 +51,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -69,6 +68,7 @@ import turmaA.grupoB.LinkStage.ui.common.LinkStageButton
 import turmaA.grupoB.LinkStage.ui.common.LinkStageDialog
 import turmaA.grupoB.LinkStage.ui.common.LinkStageLogo
 import turmaA.grupoB.LinkStage.ui.common.ValidationItem
+import turmaA.grupoB.LinkStage.ui.aluno.settings.LoggedUser
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
@@ -77,7 +77,7 @@ import turmaA.grupoB.LinkStage.ui.theme.Fade1
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.ui.theme.Red
 import turmaA.grupoB.LinkStage.data.repository.flags.FlagsRepository
-import turmaA.grupoB.LinkStage.viewmodel.SettingsViewModel
+import turmaA.grupoB.LinkStage.viewmodel.settings.SettingsViewModel
 import turmaA.grupoB.LinkStage.viewmodel.flags.FlagsUIState
 import turmaA.grupoB.LinkStage.viewmodel.flags.FlagsViewModel
 import turmaA.grupoB.LinkStage.viewmodel.flags.FlagsViewModelFactory
@@ -85,11 +85,17 @@ import turmaA.grupoB.LinkStage.viewmodel.flags.FlagsViewModelFactory
 @Composable
 fun SettingsAdminScreen(
     onLogout: () -> Unit = {},
+    onPrivacyPolicyClick: () -> Unit = {},
     settingsViewModel: SettingsViewModel = viewModel(),
     flagsViewModel: FlagsViewModel = viewModel(factory = FlagsViewModelFactory(FlagsRepository())),
     modifier: Modifier = Modifier,
 ) {
     val currentLanguage by settingsViewModel.currentLanguage.collectAsState()
+    val user by settingsViewModel.user.collectAsState()
+    val displayedUser = remember(user) {
+        user.takeIf { it.name.isNotBlank() && it.email.isNotBlank() }
+            ?: LoggedUser(name = "Admin", email = "admin@linkstage.pt")
+    }
     val flagsUIState by flagsViewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     LaunchedEffect(Unit) {
@@ -97,7 +103,6 @@ fun SettingsAdminScreen(
     }
     var showLogoutDialog by remember { mutableStateOf(false) }
     var showPasswordDialog by remember { mutableStateOf(false) }
-    val uriHandler = LocalUriHandler.current
 
     if (showLogoutDialog) {
         LogoutConfirmDialog(
@@ -159,7 +164,7 @@ fun SettingsAdminScreen(
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
-                        text = "A",
+                        text = displayedUser.name.split(" ").take(2).joinToString("") { it.firstOrNull()?.uppercaseChar()?.toString().orEmpty() },
                         color = Color.White,
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp,
@@ -168,14 +173,14 @@ fun SettingsAdminScreen(
                 Spacer(modifier = Modifier.width(12.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = stringResource(R.string.admin_role),
+                        text = displayedUser.name,
                         style = MaterialTheme.typography.bodyLarge.copy(
                             fontWeight = FontWeight.Bold,
                             color = DarkBlue,
                         ),
                     )
                     Text(
-                        text = "admin@linkstage.pt",
+                        text = displayedUser.email,
                         style = MaterialTheme.typography.bodySmall,
                         color = DarkGrey,
                     )
@@ -186,9 +191,7 @@ fun SettingsAdminScreen(
 
             SettingsRowItem(
                 label = stringResource(R.string.settings_privacy_policy),
-                onClick = {
-                    uriHandler.openUri("https://www.google.com")
-                },
+                onClick = onPrivacyPolicyClick,
             )
         }
 

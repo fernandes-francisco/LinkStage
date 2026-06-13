@@ -1,4 +1,4 @@
-package turmaA.grupoB.LinkStage.viewmodel
+package turmaA.grupoB.LinkStage.viewmodel.apply
 
 import android.net.Uri
 import androidx.compose.runtime.getValue

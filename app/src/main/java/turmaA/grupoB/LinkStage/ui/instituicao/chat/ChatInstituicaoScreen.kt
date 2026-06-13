@@ -33,6 +33,8 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -47,7 +49,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import turmaA.grupoB.LinkStage.R
+import turmaA.grupoB.LinkStage.data.repository.application.ApplicationRepository
+import turmaA.grupoB.LinkStage.data.repository.auth.AuthRepository
+import turmaA.grupoB.LinkStage.data.repository.communication.CommunicationRepository
+import turmaA.grupoB.LinkStage.data.repository.institution.InstitutionRepository
+import turmaA.grupoB.LinkStage.data.repository.internship.InternshipRepository
+import turmaA.grupoB.LinkStage.data.repository.offer.OfferRepository
+import turmaA.grupoB.LinkStage.data.repository.profile.ProfileRepository
+import turmaA.grupoB.LinkStage.data.repository.student.StudentRepository
 import turmaA.grupoB.LinkStage.ui.aluno.chat.Contact
 import turmaA.grupoB.LinkStage.ui.aluno.chat.Conversation
 import turmaA.grupoB.LinkStage.ui.aluno.chat.ConversationItem
@@ -56,21 +67,61 @@ import turmaA.grupoB.LinkStage.ui.aluno.chat.getSampleContacts
 import turmaA.grupoB.LinkStage.ui.aluno.chat.sampleConversations
 import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
 import turmaA.grupoB.LinkStage.ui.common.LinkStageDialog
+import turmaA.grupoB.LinkStage.viewmodel.chat.ChatDataSource
+import turmaA.grupoB.LinkStage.viewmodel.chat.ChatUiState
+import turmaA.grupoB.LinkStage.viewmodel.chat.ChatViewModel
+import turmaA.grupoB.LinkStage.viewmodel.chat.ChatViewModelFactory
+import turmaA.grupoB.LinkStage.viewmodel.chat.InstituicaoChatDataSource
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
+import turmaA.grupoB.LinkStage.viewmodel.chat.EnsureThreadResult
 
 @Composable
 fun ChatInstituicaoScreen(
     onOpenChat: (String) -> Unit,
     modifier: Modifier = Modifier,
+    chatViewModel: ChatViewModel? = null,
 ) {
     var searchQuery by rememberSaveable { mutableStateOf("") }
-    var currentConversations by remember { mutableStateOf(sampleConversations) }
     var conversationToDelete by remember { mutableStateOf<Conversation?>(null) }
     var showNewMessageModal by rememberSaveable { mutableStateOf(false) }
+    var currentConversations by remember { mutableStateOf(sampleConversations) }
+
+    val dataSource: ChatDataSource = remember {
+        InstituicaoChatDataSource(
+            authRepository = AuthRepository(),
+            institutionRepository = InstitutionRepository(),
+            offerRepository = OfferRepository(),
+            internshipRepository = InternshipRepository(),
+            applicationRepository = ApplicationRepository(),
+            studentRepository = StudentRepository(),
+            profileRepository = ProfileRepository(),
+            communicationRepository = CommunicationRepository(),
+        )
+    }
+    val chatViewModelInstance = chatViewModel ?: viewModel(factory = ChatViewModelFactory(dataSource))
+    val uiState by chatViewModelInstance.chatUiState.collectAsState()
+
+    LaunchedEffect(Unit) {
+        chatViewModelInstance.loadConversations()
+    }
+
+    val realConversations = when (val state = uiState) {
+        is ChatUiState.Success -> state.conversations
+        else -> emptyList()
+    }
+    LaunchedEffect(realConversations) {
+        if (realConversations.isNotEmpty()) currentConversations = realConversations
+    }
+
+    val realContacts = when (val state = uiState) {
+        is ChatUiState.Success -> state.contacts
+        else -> emptyList()
+    }
+    val currentContacts = if (realContacts.isEmpty()) getSampleContacts() else realContacts
 
     val filtered = if (searchQuery.isEmpty()) currentConversations
     else currentConversations.filter {
@@ -80,12 +131,24 @@ fun ChatInstituicaoScreen(
 
     if (showNewMessageModal) {
         NewMessageModal(
+            contacts = currentContacts,
             onDismiss = { showNewMessageModal = false },
             onContactSelected = { contactId ->
                 showNewMessageModal = false
-                onOpenChat(contactId)
+                chatViewModelInstance.ensureThreadForStudent(contactId)
             }
         )
+    }
+
+    if (chatViewModel != null || chatViewModelInstance != null) {
+        val vm = chatViewModel ?: chatViewModelInstance
+        val ensureResult by vm!!.ensureThreadResult.collectAsState()
+        LaunchedEffect(ensureResult) {
+            if (ensureResult != null) {
+                onOpenChat(ensureResult!!.threadId)
+                vm.clearEnsureThreadResult()
+            }
+        }
     }
 
     if (conversationToDelete != null) {
@@ -184,11 +247,12 @@ fun ChatInstituicaoScreen(
 
 @Composable
 private fun NewMessageModal(
+    contacts: List<Contact>,
     onDismiss: () -> Unit,
     onContactSelected: (String) -> Unit,
 ) {
     var query by rememberSaveable { mutableStateOf("") }
-    val filteredContacts = getSampleContacts().filter {
+    val filteredContacts = contacts.filter {
         it.name.contains(query, ignoreCase = true) || it.role.contains(query, ignoreCase = true)
     }
 

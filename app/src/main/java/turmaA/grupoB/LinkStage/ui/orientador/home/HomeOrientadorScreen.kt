@@ -75,11 +75,14 @@ import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.Fade3
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.ui.theme.MediumBlue
-import turmaA.grupoB.LinkStage.viewmodel.AdvisorHomeViewModel
+import turmaA.grupoB.LinkStage.viewmodel.advisorhome.AdvisorHomeViewModel
+import turmaA.grupoB.LinkStage.viewmodel.settings.SettingsViewModel
 import turmaA.grupoB.LinkStage.viewmodel.orientador.OrientadorDashboardData
 import turmaA.grupoB.LinkStage.viewmodel.orientador.OrientadorDashboardUiState
 import turmaA.grupoB.LinkStage.viewmodel.orientador.OrientadorDashboardViewModel
 import turmaA.grupoB.LinkStage.viewmodel.orientador.OrientadorDashboardViewModelFactory
+import turmaA.grupoB.LinkStage.viewmodel.chat.ChatUiState
+import turmaA.grupoB.LinkStage.viewmodel.chat.ChatViewModel
 
 @Composable
 fun HomeOrientadorScreen(
@@ -87,13 +90,29 @@ fun HomeOrientadorScreen(
     modifier: Modifier = Modifier,
     advisorHomeViewModel: AdvisorHomeViewModel = viewModel(),
     orientadorDashboardViewModel: OrientadorDashboardViewModel = viewModel(factory = OrientadorDashboardViewModelFactory()),
+    settingsViewModel: SettingsViewModel = viewModel(),
+    chatViewModel: ChatViewModel? = null,
 ) {
     val context = LocalContext.current
+    val user by settingsViewModel.user.collectAsState()
+    val orientadorUserName = user.name.ifBlank { "JJ" }
     val dashboardUiState by orientadorDashboardViewModel.uiState.collectAsState()
     val dashboardData = dashboardUiState.dashboardData(context)
     val evaluation = dashboardData.evaluation ?: sampleEvaluation(context)
     val hasSeenResult by advisorHomeViewModel.hasSeenEvaluations.collectAsState()
     val hasDismissedModal by advisorHomeViewModel.hasDismissedEvaluationModal.collectAsState()
+
+    LaunchedEffect(Unit) {
+        chatViewModel?.loadConversations()
+    }
+
+    val chatState = chatViewModel?.chatUiState?.collectAsState()
+    val recentMessages = chatState?.value?.let { state ->
+        when (state) {
+            is ChatUiState.Success -> state.conversations.take(3)
+            else -> sampleConversations.take(3)
+        }
+    } ?: sampleConversations.take(3)
 
     LaunchedEffect(orientadorDashboardViewModel) {
         orientadorDashboardViewModel.loadDashboard()
@@ -140,7 +159,7 @@ fun HomeOrientadorScreen(
                 .padding(horizontal = 20.dp, vertical = 8.dp)
         ) {
             Text(
-                stringResource(R.string.home_greeting, "JJ"),
+                stringResource(R.string.home_greeting, orientadorUserName),
                 style = MaterialTheme.typography.headlineLarge.copy(
                     fontWeight = FontWeight.Bold,
                     color = DarkBlue,
@@ -261,7 +280,7 @@ fun HomeOrientadorScreen(
             )
             Spacer(modifier = Modifier.height(8.dp))
 
-            if (sampleConversations.isNotEmpty()) {
+            if (recentMessages.isNotEmpty()) {
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -270,7 +289,7 @@ fun HomeOrientadorScreen(
                     colors = CardDefaults.cardColors(containerColor = Color.White),
                     elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
                 ) {
-                    sampleConversations.take(3).forEachIndexed { index, conversation ->
+                    recentMessages.forEachIndexed { index, conversation ->
                         MessageRow(
                             conversation = conversation,
                             onClick = {

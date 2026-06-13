@@ -139,10 +139,17 @@ fun ChatScreen(
     conversation: Conversation,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
+    initialMessages: List<ChatMessage> = emptyList(),
+    onSendMessage: (String) -> Unit = {},
+    useSampleMessages: Boolean = true,
 ) {
     val sampleMessages = getSampleMessages()
-    val initialMessages = sampleMessages[conversation.id] ?: emptyList()
-    val messages = remember { mutableStateListOf(*initialMessages.toTypedArray()) }
+    val resolvedInitialMessages = if (useSampleMessages && initialMessages.isEmpty()) {
+        sampleMessages[conversation.id] ?: emptyList()
+    } else {
+        initialMessages
+    }
+    val messages = remember(conversation.id, resolvedInitialMessages) { mutableStateListOf(*resolvedInitialMessages.toTypedArray()) }
     var inputText by remember { mutableStateOf("") }
     var searchQueries by remember { mutableStateOf("") }
     var isSearchActive by remember { mutableStateOf(false) }
@@ -169,15 +176,15 @@ fun ChatScreen(
     fun sendMessage() {
         val text = inputText.trim()
         if (text.isEmpty()) return
-        messages.add(
-            ChatMessage(
-                id = "new_${messages.size}",
-                text = text,
-                isSentByMe = true,
-                time = nowLabel,
-            )
+        val optimisticMessage = ChatMessage(
+            id = "local_${messages.size}_${System.currentTimeMillis()}",
+            text = text,
+            isSentByMe = true,
+            time = nowLabel,
         )
+        messages.add(optimisticMessage)
         inputText = ""
+        onSendMessage(text)
         coroutineScope.launch {
             listState.animateScrollToItem(messages.size - 1)
         }

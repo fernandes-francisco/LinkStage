@@ -1,14 +1,36 @@
-package turmaA.grupoB.LinkStage.viewmodel
+package turmaA.grupoB.LinkStage.viewmodel.settings
 
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import turmaA.grupoB.LinkStage.data.remote.model.user.ProfileModel
+import turmaA.grupoB.LinkStage.data.repository.auth.AuthRepository
 import turmaA.grupoB.LinkStage.ui.aluno.settings.LoggedUser
 
 class SettingsViewModel : ViewModel() {
+
+    private val authRepository = AuthRepository()
+
+    init {
+        loadCurrentUser()
+    }
+
+    private fun loadCurrentUser() {
+        viewModelScope.launch {
+            val profile = runCatching { authRepository.getCurrentUserProfile() }.getOrNull()
+            _user.value = profile.toLoggedUser()
+        }
+    }
+
+    private fun ProfileModel?.toLoggedUser(): LoggedUser {
+        if (this == null) return LoggedUser(name = "", email = "")
+        return LoggedUser(name = name.ifBlank { email }, email = email)
+    }
 
     private val _currentLanguage = MutableStateFlow(resolveCurrentLanguage())
     val currentLanguage: StateFlow<String> = _currentLanguage.asStateFlow()
@@ -36,8 +58,8 @@ class SettingsViewModel : ViewModel() {
 
     private val _user = MutableStateFlow(
         LoggedUser(
-            name = "Tomás Silva",
-            email = "tomas.silva@ipvc.pt",
+            name = "",
+            email = "",
         )
     )
     val user: StateFlow<LoggedUser> = _user.asStateFlow()

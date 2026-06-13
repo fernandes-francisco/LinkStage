@@ -79,7 +79,7 @@ import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.ui.theme.Red
-import turmaA.grupoB.LinkStage.viewmodel.OfferFormViewModel
+import turmaA.grupoB.LinkStage.viewmodel.offerform.OfferFormViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

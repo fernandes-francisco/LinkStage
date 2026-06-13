@@ -54,7 +54,7 @@ import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.Fade2
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
-import turmaA.grupoB.LinkStage.viewmodel.HomeViewModel
+import turmaA.grupoB.LinkStage.viewmodel.home.HomeViewModel
 
 private val sampleResultEvaluation = InternshipEvaluation(
     internshipId = "int1",
