@@ -76,9 +76,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import turmaA.grupoB.LinkStage.R
-import turmaA.grupoB.LinkStage.data.remote.model.application.ApplicationModel
 import turmaA.grupoB.LinkStage.data.repository.application.ApplicationRepository
 import turmaA.grupoB.LinkStage.data.repository.auth.AuthRepository
+import turmaA.grupoB.LinkStage.data.repository.institution.InstitutionRepository
+import turmaA.grupoB.LinkStage.data.repository.offer.OfferRepository
 import turmaA.grupoB.LinkStage.data.repository.student.StudentRepository
 import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
 import turmaA.grupoB.LinkStage.ui.common.LinkStageDialog
@@ -96,9 +97,10 @@ import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.ui.theme.Red
 import turmaA.grupoB.LinkStage.ui.aluno.home.ApplicationStatus
 import turmaA.grupoB.LinkStage.viewmodel.HomeViewModel
-import turmaA.grupoB.LinkStage.viewmodel.application.ApplicationUiState
-import turmaA.grupoB.LinkStage.viewmodel.application.ApplicationViewModel
-import turmaA.grupoB.LinkStage.viewmodel.application.ApplicationViewModelFactory
+import turmaA.grupoB.LinkStage.viewmodel.application.StudentApplicationDetails
+import turmaA.grupoB.LinkStage.viewmodel.application.StudentApplicationsUiState
+import turmaA.grupoB.LinkStage.viewmodel.application.StudentApplicationsViewModel
+import turmaA.grupoB.LinkStage.viewmodel.application.StudentApplicationsViewModelFactory
 import turmaA.grupoB.LinkStage.viewmodel.auth.AuthUiState
 import turmaA.grupoB.LinkStage.viewmodel.auth.AuthViewModel
 import turmaA.grupoB.LinkStage.viewmodel.auth.AuthViewModelFactory
@@ -190,8 +192,12 @@ fun RecentActivityAlunoScreen(
     studentViewModel: StudentViewModel = viewModel(
         factory = StudentViewModelFactory(StudentRepository())
     ),
-    applicationViewModel: ApplicationViewModel = viewModel(
-        factory = ApplicationViewModelFactory(ApplicationRepository())
+    studentApplicationsViewModel: StudentApplicationsViewModel = viewModel(
+        factory = StudentApplicationsViewModelFactory(
+            ApplicationRepository(),
+            OfferRepository(),
+            InstitutionRepository(),
+        )
     ),
     onBack: (() -> Unit)? = null,
     onSubmitReport: () -> Unit = {},
@@ -204,7 +210,7 @@ fun RecentActivityAlunoScreen(
     val activeInternship by homeViewModel.activeInternship.collectAsState()
 
     val studentUiState by studentViewModel.uiState.collectAsState()
-    val applicationUiState by applicationViewModel.uiState.collectAsState()
+    val studentApplicationsUiState by studentApplicationsViewModel.uiState.collectAsState()
 
     var showAddActivityModal by remember { mutableStateOf(false) }
     var showFilterModal by remember { mutableStateOf(false) }
@@ -227,12 +233,12 @@ fun RecentActivityAlunoScreen(
         val state = studentUiState
 
         if (state is StudentUiState.Success) {
-            applicationViewModel.loadApplicationsByStudent(state.student.id)
+            studentApplicationsViewModel.loadApplicationsByStudent(state.student.id)
         }
     }
 
-    val realApplications: List<ApplicationItem> = when (val state = applicationUiState) {
-        is ApplicationUiState.SuccessList -> state.applications.map { application: ApplicationModel ->
+    val realApplications: List<ApplicationItem> = when (val state = studentApplicationsUiState) {
+        is StudentApplicationsUiState.SuccessList -> state.applications.map { application ->
             application.toApplicationItem()
         }
 
@@ -298,8 +304,9 @@ fun RecentActivityAlunoScreen(
             }
         }
     } else {
-        val applicationsErrorMessage = (applicationUiState as? ApplicationUiState.Error)?.message
-        val isLoadingApplications = applicationUiState is ApplicationUiState.Loading
+        val applicationsErrorMessage =
+            (studentApplicationsUiState as? StudentApplicationsUiState.Error)?.message
+        val isLoadingApplications = studentApplicationsUiState is StudentApplicationsUiState.Loading
         val filteredActive = activeApplications.filter {
             (currentFilter == null || it.status == currentFilter) &&
                     (searchQuery.isBlank() || it.offerTitle.contains(searchQuery, ignoreCase = true) || it.company.contains(searchQuery, ignoreCase = true))
@@ -1165,13 +1172,13 @@ private fun ApplicationSearchBar(
     }
 }
 
-private fun ApplicationModel.toApplicationItem(): ApplicationItem {
+private fun StudentApplicationDetails.toApplicationItem(): ApplicationItem {
     return ApplicationItem(
-        id = id,
-        offerTitle = offerId,
-        company = offerId,
-        appliedAgo = createdAt,
-        status = status.toUiApplicationStatus()
+        id = application.id,
+        offerTitle = offerTitle,
+        company = institutionName,
+        appliedAgo = application.createdAt,
+        status = application.status.toUiApplicationStatus()
     )
 }
 
