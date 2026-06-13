@@ -8,6 +8,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -59,6 +62,11 @@ fun AppNavigation(
     navController: NavHostController = rememberNavController(),
     startDestination: String = Routes.SPLASH,
 ) {
+
+    var pendingStudentRegisterData by remember {
+        mutableStateOf<Map<String, String>?>(null)
+    }
+
     NavHost(
         navController = navController,
         startDestination = startDestination,
@@ -228,6 +236,7 @@ fun AppNavigation(
                 },
                 onContinueClick = { data ->
                     if (profile == UserRole.STUDENT) {
+                        pendingStudentRegisterData = data
                         navController.navigate(Routes.REGISTER_SKILLS)
                     } else {
                         navController.navigate(Routes.LOGIN) {
@@ -243,7 +252,14 @@ fun AppNavigation(
                     navController.popBackStack()
                 },
                 onRegisterClick = { skills ->
-                    // Logic to be implemented by colleagues
+                    val registerData = pendingStudentRegisterData
+                    if (registerData == null) {
+                        navController.navigate(Routes.REGISTER) {
+                            popUpTo(Routes.LOGIN) { inclusive = true }
+                        }
+                        return@RegisterSkillsScreen
+                    }
+
                     navController.navigate(Routes.LOGIN) {
                         popUpTo(Routes.LOGIN) { inclusive = true }
                     }
