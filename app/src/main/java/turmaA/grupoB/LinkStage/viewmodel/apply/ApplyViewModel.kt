@@ -5,6 +5,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import turmaA.grupoB.LinkStage.data.remote.model.user.ProfileModel
+import turmaA.grupoB.LinkStage.data.remote.model.user.StudentModel
 
 class ApplyViewModel : ViewModel() {
 
@@ -44,5 +46,16 @@ class ApplyViewModel : ViewModel() {
 
     fun removeSkill(skill: String) {
         userSkills = userSkills - skill
+    }
+
+    fun applyProfileData(profile: ProfileModel) {
+        fullName = profile.name
+        email = profile.email
+        phone = profile.phone ?: phone
+    }
+
+    fun applyStudentData(student: StudentModel) {
+        course = student.course
+        gpa = student.averageGrade?.toString()?.replace(".", ",") ?: gpa
     }
 }

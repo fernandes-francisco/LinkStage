@@ -29,7 +29,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
@@ -40,9 +39,6 @@ import androidx.compose.material.icons.automirrored.outlined.MenuBook
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Phone
 import androidx.compose.material.icons.outlined.School
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -54,8 +50,9 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -72,7 +69,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import turmaA.grupoB.LinkStage.R
+import turmaA.grupoB.LinkStage.data.remote.model.application.CreateApplicationInput
+import turmaA.grupoB.LinkStage.data.repository.application.ApplicationRepository
+import turmaA.grupoB.LinkStage.data.repository.auth.AuthRepository
+import turmaA.grupoB.LinkStage.data.repository.student.StudentRepository
 import turmaA.grupoB.LinkStage.ui.common.LinkStageButton
 import turmaA.grupoB.LinkStage.ui.common.SecondaryTopBar
 import turmaA.grupoB.LinkStage.ui.common.LinkStageDialog
@@ -84,6 +86,15 @@ import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.ui.theme.Red
 import turmaA.grupoB.LinkStage.viewmodel.apply.ApplyViewModel
+import turmaA.grupoB.LinkStage.viewmodel.application.ApplicationUiState
+import turmaA.grupoB.LinkStage.viewmodel.application.ApplicationViewModel
+import turmaA.grupoB.LinkStage.viewmodel.application.ApplicationViewModelFactory
+import turmaA.grupoB.LinkStage.viewmodel.auth.AuthUiState
+import turmaA.grupoB.LinkStage.viewmodel.auth.AuthViewModel
+import turmaA.grupoB.LinkStage.viewmodel.auth.AuthViewModelFactory
+import turmaA.grupoB.LinkStage.viewmodel.student.StudentUiState
+import turmaA.grupoB.LinkStage.viewmodel.student.StudentViewModel
+import turmaA.grupoB.LinkStage.viewmodel.student.StudentViewModelFactory
 
 // region Main Screen
 
@@ -98,9 +109,22 @@ fun ApplyScreen(
     onBack: () -> Unit,
     onNavigateToEditSkills: () -> Unit,
     onSubmitSuccess: () -> Unit,
+    authViewModel: AuthViewModel = viewModel(
+        factory = AuthViewModelFactory(AuthRepository())
+    ),
+    studentViewModel: StudentViewModel = viewModel(
+        factory = StudentViewModelFactory(StudentRepository())
+    ),
+    applicationViewModel: ApplicationViewModel = viewModel(
+        factory = ApplicationViewModelFactory(ApplicationRepository())
+    ),
 ) {
     val currentStep = viewModel.currentStep
     var showCvIncompleteDialog by remember { mutableStateOf(false) }
+    val authUiState by authViewModel.uiState.collectAsState()
+    val studentUiState by studentViewModel.uiState.collectAsState()
+    val applicationUiState by applicationViewModel.uiState.collectAsState()
+    val isSubmittingApplication = applicationUiState is ApplicationUiState.Loading
 
     // Step 0 validation
     var nameError by rememberSaveable { mutableStateOf(false) }
@@ -109,6 +133,39 @@ fun ApplyScreen(
     var courseError by rememberSaveable { mutableStateOf(false) }
     var institutionError by rememberSaveable { mutableStateOf(false) }
     var gpaError by rememberSaveable { mutableStateOf(false) }
+
+    var currentStudentId by rememberSaveable { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(Unit) {
+        authViewModel.loadCurrentUserProfile()
+    }
+
+    LaunchedEffect(authUiState) {
+        val state = authUiState
+
+        if (state is AuthUiState.Success) {
+            viewModel.applyProfileData(state.profile)
+            studentViewModel.loadStudentByUserId(state.profile.id)
+        }
+    }
+
+    LaunchedEffect(studentUiState) {
+        val state = studentUiState
+
+        if (state is StudentUiState.Success) {
+            currentStudentId = state.student.id
+            viewModel.applyStudentData(state.student)
+        }
+    }
+
+    LaunchedEffect(applicationUiState) {
+        val state = applicationUiState
+
+        if (state is ApplicationUiState.Success) {
+            applicationViewModel.resetState()
+            onSubmitSuccess()
+        }
+    }
 
     if (showCvIncompleteDialog) {
         LinkStageDialog(
@@ -195,7 +252,11 @@ fun ApplyScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             LinkStageButton(
-                text = if (currentStep == 2) stringResource(R.string.apply_submit) else stringResource(R.string.apply_continue),
+                text = when {
+                    currentStep == 2 && isSubmittingApplication -> stringResource(R.string.apply_submitting)
+                    currentStep == 2 -> stringResource(R.string.apply_submit)
+                    else -> stringResource(R.string.apply_continue)
+                },
                 onClick = {
                     when (currentStep) {
                         0 -> {
@@ -217,11 +278,21 @@ fun ApplyScreen(
                             }
                         }
                         2 -> {
-                            viewModel.submitApplication()
-                            onSubmitSuccess()
+                            val studentId = currentStudentId
+
+                            if (studentId != null) {
+                                applicationViewModel.createApplication(
+                                    CreateApplicationInput(
+                                        offerId = offerId,
+                                        studentId = studentId,
+                                        motivationLetter = viewModel.personalStatement.takeIf { it.isNotBlank() }
+                                    )
+                                )
+                            }
                         }
                     }
-                }
+                },
+                enabled = !isSubmittingApplication
             )
 
             TextButton(

@@ -47,11 +47,10 @@ fun ChatDetailScreen(
 
     ChatScreen(
         conversation = conversationMetadata,
-        initialMessages = messages,
+        realMessages = messages,
         onSendMessage = { text ->
             viewModel.sendMessage(threadId, text)
         },
         onBack = onBack,
-        useSampleMessages = false,
     )
 }

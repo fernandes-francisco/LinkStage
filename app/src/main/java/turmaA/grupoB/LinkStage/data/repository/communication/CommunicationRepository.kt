@@ -4,6 +4,8 @@ import io.github.jan.supabase.postgrest.from
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import turmaA.grupoB.LinkStage.data.remote.model.communication.MessageModel
+import turmaA.grupoB.LinkStage.data.remote.model.communication.CreateMessageThreadInput
+import turmaA.grupoB.LinkStage.data.remote.model.communication.CreateMessageThreadParticipantInput
 import turmaA.grupoB.LinkStage.data.remote.model.communication.MessageThreadModel
 import turmaA.grupoB.LinkStage.data.remote.model.communication.MessageThreadParticipantModel
 import turmaA.grupoB.LinkStage.data.remote.model.communication.NotificationModel
@@ -65,6 +67,21 @@ class CommunicationRepository : CommunicationRepositoryInterface {
             .firstOrNull()
     }
 
+    override suspend fun getThreadsByUser(userId: String): List<MessageThreadModel> {
+        val participants = supabase
+            .from("message_thread_participants")
+            .select {
+                filter {
+                    eq("user_id", userId)
+                }
+            }
+            .decodeList<MessageThreadParticipantModel>()
+
+        return participants
+            .mapNotNull { participant -> getThreadById(participant.threadId) }
+            .distinctBy { thread -> thread.id }
+    }
+
     override suspend fun getThreadsByInternship(internshipId: String): List<MessageThreadModel> {
         return supabase
             .from("message_threads")
@@ -122,6 +139,33 @@ class CommunicationRepository : CommunicationRepositoryInterface {
                 }
             }
             .decodeList<MessageModel>()
+    }
+
+    override suspend fun createThread(
+        input: CreateMessageThreadInput,
+        participantUserIds: List<String>,
+    ): MessageThreadModel {
+        val thread = supabase
+            .from("message_threads")
+            .insert(input) {
+                select()
+            }
+            .decodeSingle<MessageThreadModel>()
+
+        val participants = participantUserIds
+            .distinct()
+            .map { userId ->
+                CreateMessageThreadParticipantInput(
+                    threadId = thread.id,
+                    userId = userId,
+                )
+            }
+
+        supabase
+            .from("message_thread_participants")
+            .insert(participants)
+
+        return thread
     }
 
     override suspend fun sendMessage(input: SendMessageInput): MessageModel? {

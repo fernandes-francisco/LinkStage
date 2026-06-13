@@ -22,28 +22,22 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.TaskAlt
 import androidx.compose.material.icons.outlined.Work
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -59,7 +53,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import turmaA.grupoB.LinkStage.R
+import turmaA.grupoB.LinkStage.data.remote.model.offer.InternshipOfferModel
+import turmaA.grupoB.LinkStage.data.remote.model.institution.InstitutionModel
+import turmaA.grupoB.LinkStage.data.repository.institution.InstitutionRepository
+import turmaA.grupoB.LinkStage.data.repository.offer.OfferRepository
 import turmaA.grupoB.LinkStage.ui.common.CheckItem
 import turmaA.grupoB.LinkStage.ui.common.ContentSection
 import turmaA.grupoB.LinkStage.ui.common.ContentSectionColored
@@ -71,8 +70,12 @@ import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
-import turmaA.grupoB.LinkStage.ui.theme.MediumBlue
 import turmaA.grupoB.LinkStage.ui.theme.Red
+import turmaA.grupoB.LinkStage.viewmodel.offer.OfferUiState
+import turmaA.grupoB.LinkStage.viewmodel.offer.OfferViewModel
+import turmaA.grupoB.LinkStage.viewmodel.offer.OfferViewModelFactory
+import java.time.LocalDate
+import java.time.temporal.ChronoUnit
 
 // region Data model
 
@@ -95,49 +98,91 @@ data class OfferDetail(
     val hasApplied: Boolean = false,
 )
 
-private val sampleOfferDetail = OfferDetail(
-    id = "2",
-    title = "UI/UX Designer",
-    company = "Viana S.T.Arts",
-    logoInitial = "V",
-    logoColor = Color(0xFF212121),
-    location = "Viana do Castelo, PT",
-    duration = "6 Meses",
-    type = "Remoto",
-    aboutCompany = "Com o principal objetivo de realizar a reabilitação do antigo Matadouro Municipal de Viana do Castelo, visa transformar o edifício histórico num centro de ciência, arte e inovação.",
-    responsibilities = listOf(
-        "Realizar a prototipagem da app web.",
-        "Colaborar com a equipa, com o objetivo cruzar habilidades.",
-        "Desenvolver o nosso sistema de criação de dashboards.",
-    ),
-    requirements = listOf(
-        "Experiência com Figma e prototipagem interativa.",
-        "Portfólio do UI para demonstração.",
-        "Comunicação excelente escrita e verbal em Inglês.",
-    ),
-    benefits = listOf(
-        "Passe de Transporte Público",
-        "Programa de Mentoria",
-        "Mercado Competitivo",
-    ),
-    deadlineDays = 4,
-    applicantsCount = 12,
-)
-
 // endregion
 
 // region Main Screen
+
+private fun InternshipOfferModel.toOfferDetail(
+    institution: InstitutionModel?,
+): OfferDetail {
+    val requirementsList = requirements
+        ?.split("\n", ";")
+        ?.map { it.trim() }
+        ?.filter { it.isNotBlank() }
+        .orEmpty()
+
+    return OfferDetail(
+        id = id,
+        title = title,
+        company = institution?.name.orEmpty(),
+        logoInitial = institution?.name?.firstOrNull()?.uppercaseChar()?.toString() ?: "?",
+        logoColor = Color(0xFF212121),
+        location = location.orEmpty(),
+        duration = "",
+        type = modality.orEmpty(),
+        aboutCompany = institution?.description.orEmpty(),
+        responsibilities = listOfNotNull(description.takeIf { it.isNotBlank() }),
+        requirements = requirementsList,
+        benefits = emptyList(),
+        deadlineDays = deadline.toDeadlineDays(),
+        applicantsCount = 0,
+        isFavourite = false,
+        hasApplied = false,
+    )
+}
+
+private fun String?.toDeadlineDays(): Int {
+    val deadlineDate = this?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
+        ?: return 0
+    return ChronoUnit.DAYS.between(LocalDate.now(), deadlineDate)
+        .coerceAtLeast(0)
+        .toInt()
+}
+
+private fun emptyOfferDetail(offerId: String) = OfferDetail(
+    id = offerId,
+    title = "",
+    company = "",
+    logoInitial = "?",
+    logoColor = Color(0xFF212121),
+    location = "",
+    duration = "",
+    type = "",
+    aboutCompany = "",
+    responsibilities = emptyList(),
+    requirements = emptyList(),
+    benefits = emptyList(),
+    deadlineDays = 0,
+    applicantsCount = 0,
+)
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun OfferDetailAlunoScreen(
     offerId: String,
     onBack: () -> Unit,
-    onApply: (String) -> Unit = {},
-    offer: OfferDetail = sampleOfferDetail,
+    onApply: (OfferDetail) -> Unit = {},
+    offerViewModel: OfferViewModel = viewModel(
+        factory = OfferViewModelFactory(
+            OfferRepository(),
+            InstitutionRepository(),
+        )
+    ),
 ) {
-    var isFavourite by remember { mutableStateOf(offer.isFavourite) }
-    var hasApplied by remember { mutableStateOf(offer.hasApplied) }
+    val offerUiState by offerViewModel.uiState.collectAsState()
+
+    LaunchedEffect(offerId) {
+        offerViewModel.loadOfferDetailsById(offerId)
+    }
+
+    val offer = when (val state = offerUiState) {
+        is OfferUiState.SuccessDetails -> state.offer.toOfferDetail(state.institution)
+        is OfferUiState.Success -> state.offer.toOfferDetail(null)
+        else -> emptyOfferDetail(offerId)
+    }
+
+    var isFavourite by remember(offer.id) { mutableStateOf(offer.isFavourite) }
+    var hasApplied by remember(offer.id) { mutableStateOf(offer.hasApplied) }
     var showApplyDialog by remember { mutableStateOf(false) }
 
     if (showApplyDialog) {
@@ -145,10 +190,18 @@ fun OfferDetailAlunoScreen(
             offerTitle = offer.title,
             onConfirm = {
                 showApplyDialog = false
-                onApply(offerId)
+                onApply(offer)
             },
             onDismiss = { showApplyDialog = false },
         )
+    }
+
+    val errorMessage = when (val state = offerUiState) {
+        OfferUiState.Idle,
+        OfferUiState.Loading -> "A carregar oferta..."
+        OfferUiState.Empty -> "Oferta não encontrada."
+        is OfferUiState.Error -> state.message
+        else -> null
     }
 
     Scaffold(
@@ -159,7 +212,13 @@ fun OfferDetailAlunoScreen(
                 isFavourite = isFavourite,
                 deadlineDays = offer.deadlineDays,
                 applicantsCount = offer.applicantsCount,
-                onApply = { showApplyDialog = true },
+                onApply = {
+                    if (offerUiState is OfferUiState.SuccessDetails ||
+                        offerUiState is OfferUiState.Success
+                    ) {
+                        showApplyDialog = true
+                    }
+                },
                 onFavouriteToggle = { isFavourite = !isFavourite },
             )
         },
@@ -179,52 +238,62 @@ fun OfferDetailAlunoScreen(
             ) {
                 Spacer(modifier = Modifier.height(12.dp))
 
+                if (errorMessage != null) {
+                    Text(
+                        text = errorMessage,
+                        color = Red,
+                        fontSize = 14.sp,
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
+
                 OfferMetaChips(offer = offer)
 
-            Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-            ContentSection(title = stringResource(R.string.offer_about_company)) {
-                Text(
-                    text = offer.aboutCompany,
-                    fontSize = 14.sp,
-                    color = DarkGrey,
-                    lineHeight = 22.sp,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-                )
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            ContentSection(title = stringResource(R.string.offer_responsibilities)) {
-                offer.responsibilities.forEach { item ->
-                    ResponsibilityItem(text = item)
+                ContentSection(title = stringResource(R.string.offer_about_company)) {
+                    Text(
+                        text = offer.aboutCompany,
+                        fontSize = 14.sp,
+                        color = DarkGrey,
+                        lineHeight = 22.sp,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                    )
                 }
-                Spacer(modifier = Modifier.height(8.dp))
-            }
 
-            Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
-            ContentSectionColored(title = stringResource(R.string.offer_requirements)) {
-                offer.requirements.forEach { item ->
-                    CheckItem(text = item)
+                ContentSection(title = stringResource(R.string.offer_responsibilities)) {
+                    offer.responsibilities.forEach { item ->
+                        ResponsibilityItem(text = item)
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
                 }
-            }
 
-            Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
-            ContentSection(title = stringResource(R.string.offer_benefits)) {
-                FlowRow(
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    offer.benefits.forEach { benefit ->
-                        BenefitChip(text = benefit)
+                ContentSectionColored(title = stringResource(R.string.offer_requirements)) {
+                    offer.requirements.forEach { item ->
+                        CheckItem(text = item)
                     }
                 }
-            }
 
-            Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(12.dp))
+
+                ContentSection(title = stringResource(R.string.offer_benefits)) {
+                    Column(
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        offer.benefits.forEach { benefit ->
+                            BenefitChip(text = benefit)
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
             }
         }
     }

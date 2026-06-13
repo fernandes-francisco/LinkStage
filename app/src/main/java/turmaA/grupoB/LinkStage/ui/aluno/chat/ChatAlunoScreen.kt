@@ -35,6 +35,8 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -49,7 +51,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import turmaA.grupoB.LinkStage.R
+import turmaA.grupoB.LinkStage.data.repository.auth.AuthRepository
+import turmaA.grupoB.LinkStage.data.repository.communication.CommunicationRepository
+import turmaA.grupoB.LinkStage.data.repository.profile.ProfileRepository
+import turmaA.grupoB.LinkStage.data.remote.model.user.ProfileModel
 import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
 import turmaA.grupoB.LinkStage.ui.common.LinkStageDialog
 import turmaA.grupoB.LinkStage.ui.common.LinkStageLogo
@@ -59,6 +66,13 @@ import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.ui.theme.MediumBlue
+import turmaA.grupoB.LinkStage.viewmodel.auth.AuthUiState
+import turmaA.grupoB.LinkStage.viewmodel.auth.AuthViewModel
+import turmaA.grupoB.LinkStage.viewmodel.auth.AuthViewModelFactory
+import turmaA.grupoB.LinkStage.viewmodel.communication.CommunicationUiState
+import turmaA.grupoB.LinkStage.viewmodel.communication.CommunicationViewModel
+import turmaA.grupoB.LinkStage.viewmodel.communication.CommunicationViewModelFactory
+import turmaA.grupoB.LinkStage.viewmodel.communication.StudentConversationDetails
 
 // region Data models
 
@@ -112,27 +126,119 @@ fun getSampleContacts(): List<Contact> {
 
 @Composable
 fun ChatAlunoScreen(
-    onOpenChat: (String) -> Unit,
+    onOpenThread: (String) -> Unit,
     modifier: Modifier = Modifier,
+    authViewModel: AuthViewModel = viewModel(
+        factory = AuthViewModelFactory(AuthRepository())
+    ),
+    communicationViewModel: CommunicationViewModel = viewModel(
+        factory = CommunicationViewModelFactory(
+            CommunicationRepository(),
+            ProfileRepository(),
+        )
+    ),
 ) {
-    val contacts = getSampleContacts()
-    
-    // Update sample conversations time format if needed
-    val processedConversations = sampleConversations.map { conv ->
-        val timeLabel = when (conv.time) {
-            "Yesterday" -> stringResource(R.string.time_yesterday)
-            "2d" -> stringResource(R.string.time_days_ago, "2")
-            else -> conv.time
+    val authUiState by authViewModel.uiState.collectAsState()
+    val conversationsUiState by communicationViewModel.conversationsUiState.collectAsState()
+    val contactsUiState by communicationViewModel.contactsUiState.collectAsState()
+    val creationUiState by communicationViewModel.creationUiState.collectAsState()
+
+    LaunchedEffect(Unit) {
+        authViewModel.loadCurrentUserProfile()
+    }
+
+    LaunchedEffect(authUiState) {
+        val state = authUiState
+        if (state is AuthUiState.Success) {
+            communicationViewModel.loadConversationsByUser(state.profile.id)
+            communicationViewModel.loadAvailableContacts(state.profile.id)
         }
-        conv.copy(time = timeLabel)
+    }
+
+    LaunchedEffect(creationUiState) {
+        val state = creationUiState
+        if (state is CommunicationUiState.ConversationCreated) {
+            onOpenThread(state.threadId)
+            communicationViewModel.resetCreationState()
+        }
+    }
+
+    val conversations = when (val state = conversationsUiState) {
+        is CommunicationUiState.SuccessConversationList -> state.conversations.map {
+            it.toConversation()
+        }
+        else -> emptyList()
+    }
+    val contacts = when (val state = contactsUiState) {
+        is CommunicationUiState.SuccessContactList -> state.contacts.map {
+            it.toContact()
+        }
+        else -> emptyList()
+    }
+
+    val statusMessage = when {
+        authUiState is AuthUiState.Error -> (authUiState as AuthUiState.Error).message
+        conversationsUiState == CommunicationUiState.Loading -> "A carregar conversas..."
+        conversationsUiState == CommunicationUiState.Empty -> "Ainda não existem conversas."
+        conversationsUiState is CommunicationUiState.Error ->
+            (conversationsUiState as CommunicationUiState.Error).message
+        creationUiState is CommunicationUiState.Error ->
+            (creationUiState as CommunicationUiState.Error).message
+        else -> null
     }
 
     MessagesListScreen(
-        conversations = processedConversations,
+        conversations = conversations,
         contacts = contacts,
-        onOpenChat = onOpenChat,
+        onOpenThread = onOpenThread,
+        onCreateConversation = { contactId ->
+            val userId = (authUiState as? AuthUiState.Success)?.profile?.id
+            if (userId != null) {
+                communicationViewModel.createConversation(userId, contactId)
+            }
+        },
         modifier = modifier,
+        statusMessage = statusMessage,
+        canDeleteConversations = false,
     )
+}
+
+private fun ProfileModel.toContact(): Contact {
+    return Contact(
+        id = id,
+        name = name,
+        role = role.name,
+        initials = name.toInitials(),
+        avatarColorIndex = name.hashCode() and Int.MAX_VALUE,
+    )
+}
+
+private fun StudentConversationDetails.toConversation(): Conversation {
+    val participantName = participant?.name ?: "Conversa"
+    val lastMessage = messages.lastOrNull()
+
+    return Conversation(
+        id = thread.id,
+        name = participantName,
+        initials = participantName.toInitials(),
+        lastMessage = lastMessage?.content ?: "Sem mensagens.",
+        time = lastMessage?.createdAt.toTimeLabel(),
+        unreadCount = messages.count { !it.isRead && it.senderId == participant?.id },
+        avatarColorIndex = participantName.hashCode() and Int.MAX_VALUE,
+    )
+}
+
+private fun String.toInitials(): String = trim()
+    .split(Regex("\\s+"))
+    .filter { it.isNotBlank() }
+    .take(2)
+    .mapNotNull { it.firstOrNull()?.uppercase() }
+    .joinToString("")
+    .ifBlank { "?" }
+
+private fun String?.toTimeLabel(): String {
+    if (this == null) return ""
+    return substringAfter('T', this).take(5)
 }
 
 // endregion
@@ -143,12 +249,15 @@ fun ChatAlunoScreen(
 private fun MessagesListScreen(
     conversations: List<Conversation>,
     contacts: List<Contact>,
-    onOpenChat: (String) -> Unit,
+    onOpenThread: (String) -> Unit,
+    onCreateConversation: (String) -> Unit,
     modifier: Modifier = Modifier,
+    statusMessage: String? = null,
+    canDeleteConversations: Boolean = true,
 ) {
     var searchQuery by rememberSaveable { mutableStateOf("") }
     var showNewMessageModal by rememberSaveable { mutableStateOf(false) }
-    var currentConversations by remember { mutableStateOf(conversations) }
+    var currentConversations by remember(conversations) { mutableStateOf(conversations) }
     var conversationToDelete by remember { mutableStateOf<Conversation?>(null) }
 
     val filtered = if (searchQuery.isEmpty()) currentConversations
@@ -163,7 +272,7 @@ private fun MessagesListScreen(
             onDismiss = { showNewMessageModal = false },
             onContactSelected = { contactId ->
                 showNewMessageModal = false
-                onOpenChat(contactId)
+                onCreateConversation(contactId)
             }
         )
     }
@@ -191,13 +300,15 @@ private fun MessagesListScreen(
     Scaffold(
         modifier = modifier,
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = { showNewMessageModal = true },
-                containerColor = LightBlue,
-                contentColor = Color.White,
-                shape = RoundedCornerShape(16.dp),
-            ) {
-                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.chat_new_message))
+            if (contacts.isNotEmpty()) {
+                FloatingActionButton(
+                    onClick = { showNewMessageModal = true },
+                    containerColor = LightBlue,
+                    contentColor = Color.White,
+                    shape = RoundedCornerShape(16.dp),
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = stringResource(R.string.chat_new_message))
+                }
             }
         },
         topBar = {
@@ -227,12 +338,22 @@ private fun MessagesListScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
+            if (statusMessage != null) {
+                Text(
+                    text = statusMessage,
+                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
+                    color = DarkGrey,
+                )
+            }
+
             LazyColumn(modifier = Modifier.fillMaxSize()) {
                 items(filtered, key = { it.id }) { conversation ->
                     ConversationItem(
                         conversation = conversation,
-                        onClick = { onOpenChat(conversation.id) },
-                        onLongClick = { conversationToDelete = conversation }
+                        onClick = { onOpenThread(conversation.id) },
+                        onLongClick = {
+                            if (canDeleteConversations) conversationToDelete = conversation
+                        }
                     )
                     HorizontalDivider(
                         modifier = Modifier.padding(horizontal = 20.dp),

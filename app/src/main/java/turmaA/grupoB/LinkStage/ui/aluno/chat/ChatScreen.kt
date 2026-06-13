@@ -48,6 +48,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -64,15 +65,25 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.launch
 import turmaA.grupoB.LinkStage.ui.common.LinkStageDialog
 import androidx.compose.ui.res.stringResource
 import turmaA.grupoB.LinkStage.R
+import turmaA.grupoB.LinkStage.data.repository.auth.AuthRepository
+import turmaA.grupoB.LinkStage.data.repository.communication.CommunicationRepository
+import turmaA.grupoB.LinkStage.data.repository.profile.ProfileRepository
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
+import turmaA.grupoB.LinkStage.viewmodel.auth.AuthUiState
+import turmaA.grupoB.LinkStage.viewmodel.auth.AuthViewModel
+import turmaA.grupoB.LinkStage.viewmodel.auth.AuthViewModelFactory
+import turmaA.grupoB.LinkStage.viewmodel.communication.CommunicationUiState
+import turmaA.grupoB.LinkStage.viewmodel.communication.CommunicationViewModel
+import turmaA.grupoB.LinkStage.viewmodel.communication.CommunicationViewModelFactory
 
 // region Data models
 
@@ -135,21 +146,135 @@ fun getSampleMessages(): Map<String, List<ChatMessage>> {
 // region Chat Screen
 
 @Composable
+fun StudentChatScreen(
+    threadId: String,
+    onBack: () -> Unit,
+    modifier: Modifier = Modifier,
+    authViewModel: AuthViewModel = viewModel(
+        factory = AuthViewModelFactory(AuthRepository())
+    ),
+    communicationViewModel: CommunicationViewModel = viewModel(
+        factory = CommunicationViewModelFactory(
+            CommunicationRepository(),
+            ProfileRepository(),
+        )
+    ),
+) {
+    val authUiState by authViewModel.uiState.collectAsState()
+    val chatUiState by communicationViewModel.chatUiState.collectAsState()
+    val profile = (authUiState as? AuthUiState.Success)?.profile
+
+    LaunchedEffect(Unit) {
+        authViewModel.loadCurrentUserProfile()
+    }
+
+    LaunchedEffect(threadId, profile?.id) {
+        profile?.id?.let { userId ->
+            communicationViewModel.loadConversation(threadId, userId)
+        }
+    }
+
+    when (val state = chatUiState) {
+        is CommunicationUiState.SuccessConversation -> {
+            val details = state.conversation
+            val participantName = details.participant?.name ?: "Conversa"
+            val conversation = Conversation(
+                id = details.thread.id,
+                name = participantName,
+                initials = participantName.toChatInitials(),
+                lastMessage = details.messages.lastOrNull()?.content.orEmpty(),
+                time = details.messages.lastOrNull()?.createdAt.toChatTimeLabel(),
+                avatarColorIndex = participantName.hashCode() and Int.MAX_VALUE,
+            )
+            val messages = details.messages.map { message ->
+                ChatMessage(
+                    id = message.id,
+                    text = message.content,
+                    isSentByMe = message.senderId == profile?.id,
+                    time = message.createdAt.toChatTimeLabel(),
+                )
+            }
+
+            ChatScreen(
+                conversation = conversation,
+                onBack = onBack,
+                modifier = modifier,
+                realMessages = messages,
+                onSendMessage = { content ->
+                    profile?.id?.let { senderId ->
+                        communicationViewModel.sendStudentMessage(threadId, senderId, content)
+                    }
+                },
+            )
+        }
+
+        is CommunicationUiState.Error -> ChatStatusScreen(state.message, onBack, modifier)
+        CommunicationUiState.Empty -> ChatStatusScreen("Conversa não encontrada.", onBack, modifier)
+        else -> ChatStatusScreen("A carregar conversa...", onBack, modifier)
+    }
+}
+
+@Composable
+private fun ChatStatusScreen(
+    message: String,
+    onBack: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Scaffold(
+        modifier = modifier,
+        topBar = {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .statusBarsPadding()
+                    .padding(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                IconButton(onClick = onBack) {
+                    Icon(
+                        Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = stringResource(R.string.common_back_content_desc),
+                    )
+                }
+            }
+        },
+    ) { paddingValues ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(message, color = DarkGrey)
+        }
+    }
+}
+
+private fun String.toChatInitials(): String = trim()
+    .split(Regex("\\s+"))
+    .filter { it.isNotBlank() }
+    .take(2)
+    .mapNotNull { it.firstOrNull()?.uppercase() }
+    .joinToString("")
+    .ifBlank { "?" }
+
+private fun String?.toChatTimeLabel(): String {
+    if (this == null) return ""
+    return substringAfter('T', this).take(5)
+}
+
+@Composable
 fun ChatScreen(
     conversation: Conversation,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
-    initialMessages: List<ChatMessage> = emptyList(),
-    onSendMessage: (String) -> Unit = {},
-    useSampleMessages: Boolean = true,
+    realMessages: List<ChatMessage>? = null,
+    onSendMessage: ((String) -> Unit)? = null,
 ) {
     val sampleMessages = getSampleMessages()
-    val resolvedInitialMessages = if (useSampleMessages && initialMessages.isEmpty()) {
-        sampleMessages[conversation.id] ?: emptyList()
-    } else {
-        initialMessages
-    }
-    val messages = remember(conversation.id, resolvedInitialMessages) { mutableStateListOf(*resolvedInitialMessages.toTypedArray()) }
+    val initialMessages = sampleMessages[conversation.id] ?: emptyList()
+    val localMessages = remember { mutableStateListOf(*initialMessages.toTypedArray()) }
+    val messages = realMessages ?: localMessages
     var inputText by remember { mutableStateOf("") }
     var searchQueries by remember { mutableStateOf("") }
     var isSearchActive by remember { mutableStateOf(false) }
@@ -176,17 +301,23 @@ fun ChatScreen(
     fun sendMessage() {
         val text = inputText.trim()
         if (text.isEmpty()) return
-        val optimisticMessage = ChatMessage(
-            id = "local_${messages.size}_${System.currentTimeMillis()}",
-            text = text,
-            isSentByMe = true,
-            time = nowLabel,
-        )
-        messages.add(optimisticMessage)
+        if (onSendMessage != null) {
+            onSendMessage(text)
+        } else {
+            localMessages.add(
+                ChatMessage(
+                    id = "new_${messages.size}",
+                    text = text,
+                    isSentByMe = true,
+                    time = nowLabel,
+                )
+            )
+        }
         inputText = ""
-        onSendMessage(text)
-        coroutineScope.launch {
-            listState.animateScrollToItem(messages.size - 1)
+        if (onSendMessage == null) {
+            coroutineScope.launch {
+                listState.animateScrollToItem(localMessages.size - 1)
+            }
         }
     }
 
@@ -203,7 +334,9 @@ fun ChatScreen(
                         onBack()
                     }
                 },
-                onClearHistory = { messages.clear() },
+                onClearHistory = {
+                    if (realMessages == null) localMessages.clear()
+                },
                 isSearchActive = isSearchActive,
                 searchQuery = searchQueries,
                 onSearchQueryChange = { searchQueries = it },

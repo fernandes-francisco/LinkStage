@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -22,15 +21,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.FilterList
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.BadgedBox
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenuItem
@@ -40,12 +36,12 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -61,25 +57,23 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
 import turmaA.grupoB.LinkStage.R
+import turmaA.grupoB.LinkStage.data.remote.model.offer.InternshipOfferModel
+import turmaA.grupoB.LinkStage.data.repository.offer.OfferRepository
 import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
-import turmaA.grupoB.LinkStage.ui.common.LinkStageButton
 import turmaA.grupoB.LinkStage.ui.common.LinkStageDialog
-import turmaA.grupoB.LinkStage.ui.common.LinkStageLogo
-import turmaA.grupoB.LinkStage.ui.common.LinkStageOutlinedButton
-import turmaA.grupoB.LinkStage.ui.common.SecondaryTopBar
 import turmaA.grupoB.LinkStage.ui.common.SectionLabel
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
-import turmaA.grupoB.LinkStage.ui.theme.Fade1
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.ui.theme.Red
 import turmaA.grupoB.LinkStage.viewmodel.discover.DiscoverViewModel
+import turmaA.grupoB.LinkStage.viewmodel.offer.OfferUiState
+import turmaA.grupoB.LinkStage.viewmodel.offer.OfferViewModel
+import turmaA.grupoB.LinkStage.viewmodel.offer.OfferViewModelFactory
 
 // region Data models
 
@@ -114,13 +108,54 @@ fun OffersAlunoScreen(
     modifier: Modifier = Modifier,
     onOfferClick: (String) -> Unit = {},
     discoverViewModel: DiscoverViewModel = viewModel(),
+    offerViewModel: OfferViewModel = viewModel(
+        factory = OfferViewModelFactory(OfferRepository())
+    ),
 ) {
-    val searchQuery by discoverViewModel.searchQuery.collectAsState()
-    val filteredOffers by discoverViewModel.filteredOffers.collectAsState()
-    val currentFilters by discoverViewModel.filters.collectAsState()
+    var searchQuery by remember { mutableStateOf("") }
+    var currentFilters by remember { mutableStateOf(DiscoverFilters()) }
     val hasActiveFilters = currentFilters != DiscoverFilters()
 
+    val offerUiState by offerViewModel.uiState.collectAsState()
+
+    val allOffers: List<OfferItem> = when (val state = offerUiState) {
+        is OfferUiState.SuccessList -> state.offers.map { offer: InternshipOfferModel ->
+            offer.toOfferItem()
+        }
+
+        else -> emptyList()
+    }
+
+    val filteredOffers = allOffers.filter { offer ->
+        val matchesSearch = searchQuery.isBlank() ||
+                offer.title.contains(searchQuery, ignoreCase = true) ||
+                offer.company.contains(searchQuery, ignoreCase = true) ||
+                offer.area.contains(searchQuery, ignoreCase = true)
+
+        val matchesArea = currentFilters.area.isBlank() ||
+                offer.area.contains(currentFilters.area, ignoreCase = true)
+
+        val matchesLocation = currentFilters.location.isBlank() ||
+                offer.location.contains(currentFilters.location, ignoreCase = true)
+
+        val matchesWorkModel = currentFilters.workModel.isBlank() ||
+                offer.type.contains(currentFilters.workModel, ignoreCase = true)
+
+        val matchesDuration = currentFilters.duration.isBlank() ||
+                offer.duration.contains(currentFilters.duration, ignoreCase = true)
+
+        matchesSearch &&
+                matchesArea &&
+                matchesLocation &&
+                matchesWorkModel &&
+                matchesDuration
+    }
+
     var showFilterModal by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        offerViewModel.loadPublishedOffers()
+    }
 
     Scaffold(
         modifier = modifier,
@@ -138,7 +173,7 @@ fun OffersAlunoScreen(
                 )
                 SearchBarWithFilter(
                     query = searchQuery,
-                    onQueryChange = { discoverViewModel.updateSearchQuery(it) },
+                    onQueryChange = { searchQuery = it },
                     hasActiveFilters = hasActiveFilters,
                     onFilterClick = { showFilterModal = true },
                 )
@@ -152,11 +187,45 @@ fun OffersAlunoScreen(
                 .padding(innerPadding),
             contentPadding = PaddingValues(bottom = 16.dp),
         ) {
-            items(filteredOffers, key = { it.id }) { offer ->
-                OfferCard(
-                    offer = offer,
-                    onClick = { onOfferClick(offer.id) },
-                )
+            when (val state = offerUiState) {
+                is OfferUiState.Loading -> {
+                    item {
+                        Text(
+                            text = stringResource(R.string.offers_loading),
+                            modifier = Modifier.padding(20.dp),
+                            color = DarkGrey
+                        )
+                    }
+                }
+
+                is OfferUiState.Error -> {
+                    item {
+                        Text(
+                            text = state.message,
+                            modifier = Modifier.padding(20.dp),
+                            color = Red
+                        )
+                    }
+                }
+
+                OfferUiState.Empty -> {
+                    item {
+                        Text(
+                            text = stringResource(R.string.offers_empty),
+                            modifier = Modifier.padding(20.dp),
+                            color = DarkGrey
+                        )
+                    }
+                }
+
+                else -> {
+                    items(filteredOffers, key = { it.id }) { offer ->
+                        OfferCard(
+                            offer = offer,
+                            onClick = { onOfferClick(offer.id) },
+                        )
+                    }
+                }
             }
         }
     }
@@ -165,7 +234,7 @@ fun OffersAlunoScreen(
         FilterModal(
             currentFilters = currentFilters,
             onApply = { filters ->
-                discoverViewModel.applyFilters(filters)
+                currentFilters = filters
                 showFilterModal = false
             },
             onDismiss = { showFilterModal = false },
@@ -544,6 +613,22 @@ private fun OfferCard(
             }
         }
     }
+}
+
+private fun InternshipOfferModel.toOfferItem(): OfferItem {
+    return OfferItem(
+        id = id,
+        title = title,
+        company = institutionId,
+        type = modality.orEmpty(),
+        publishedAgo = publishDate.orEmpty(),
+        logoColor = Color(0xFF212121),
+        logoInitial = institutionId.firstOrNull()?.uppercaseChar()?.toString() ?: "?",
+        duration = "",
+        area = area,
+        location = location.orEmpty(),
+        deadline = deadline.orEmpty()
+    )
 }
 
 // endregion

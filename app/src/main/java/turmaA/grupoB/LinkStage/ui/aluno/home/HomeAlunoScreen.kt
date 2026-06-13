@@ -28,8 +28,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -43,30 +41,60 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import turmaA.grupoB.LinkStage.R
+import turmaA.grupoB.LinkStage.data.remote.model.internship.ActivityLogModel
+import turmaA.grupoB.LinkStage.data.remote.model.internship.InternshipModel
+import turmaA.grupoB.LinkStage.data.repository.application.ApplicationRepository
+import turmaA.grupoB.LinkStage.data.repository.auth.AuthRepository
+import turmaA.grupoB.LinkStage.data.repository.communication.CommunicationRepository
+import turmaA.grupoB.LinkStage.data.repository.institution.InstitutionRepository
+import turmaA.grupoB.LinkStage.data.repository.internship.InternshipRepository
+import turmaA.grupoB.LinkStage.data.repository.internship.LocalActivityRepository
+import turmaA.grupoB.LinkStage.data.room.AtDatabase
+import turmaA.grupoB.LinkStage.data.repository.offer.OfferRepository
+import turmaA.grupoB.LinkStage.data.repository.profile.ProfileRepository
+import turmaA.grupoB.LinkStage.data.repository.student.StudentRepository
 import turmaA.grupoB.LinkStage.ui.aluno.AlunoRoutes
+import turmaA.grupoB.LinkStage.ui.aluno.activity.ActiveInternship
 import turmaA.grupoB.LinkStage.ui.aluno.activity.ApplicationCard
+import turmaA.grupoB.LinkStage.ui.aluno.activity.ApplicationItem
 import turmaA.grupoB.LinkStage.ui.aluno.activity.InternshipHeader
 import turmaA.grupoB.LinkStage.ui.aluno.activity.calculateInternshipProgress
 import turmaA.grupoB.LinkStage.ui.aluno.chat.ConversationItem
+import turmaA.grupoB.LinkStage.ui.aluno.chat.Conversation
 import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
-import turmaA.grupoB.LinkStage.ui.common.EvaluationNotificationModal
-import turmaA.grupoB.LinkStage.ui.common.EvaluationPendingCard
-import turmaA.grupoB.LinkStage.ui.common.LinkStageLogo
-import turmaA.grupoB.LinkStage.ui.orientador.EvaluationState
-import turmaA.grupoB.LinkStage.ui.orientador.InternshipEvaluation
-import turmaA.grupoB.LinkStage.ui.orientador.InternshipType
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.Fade3
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
-import turmaA.grupoB.LinkStage.viewmodel.home.HomeViewModel
+import turmaA.grupoB.LinkStage.viewmodel.application.StudentApplicationDetails
+import turmaA.grupoB.LinkStage.viewmodel.application.StudentApplicationsUiState
+import turmaA.grupoB.LinkStage.viewmodel.application.StudentApplicationsViewModel
+import turmaA.grupoB.LinkStage.viewmodel.application.StudentApplicationsViewModelFactory
+import turmaA.grupoB.LinkStage.viewmodel.auth.AuthUiState
+import turmaA.grupoB.LinkStage.viewmodel.auth.AuthViewModel
+import turmaA.grupoB.LinkStage.viewmodel.auth.AuthViewModelFactory
+import turmaA.grupoB.LinkStage.viewmodel.communication.CommunicationUiState
+import turmaA.grupoB.LinkStage.viewmodel.communication.CommunicationViewModel
+import turmaA.grupoB.LinkStage.viewmodel.communication.CommunicationViewModelFactory
+import turmaA.grupoB.LinkStage.viewmodel.communication.StudentConversationDetails
+import turmaA.grupoB.LinkStage.viewmodel.internships.InternshipUiState
+import turmaA.grupoB.LinkStage.viewmodel.internships.InternshipViewModel
+import turmaA.grupoB.LinkStage.viewmodel.internships.InternshipViewModelFactory
+import turmaA.grupoB.LinkStage.viewmodel.student.StudentUiState
+import turmaA.grupoB.LinkStage.viewmodel.student.StudentViewModel
+import turmaA.grupoB.LinkStage.viewmodel.student.StudentViewModelFactory
+import turmaA.grupoB.LinkStage.data.remote.model.enums.ApplicationStatus as RemoteApplicationStatus
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 // region Data models
 
@@ -85,64 +113,89 @@ data class Entrega(
 // endregion
 
 @Composable
-fun getMockEntregas(): List<Entrega> {
-    return listOf(
-        Entrega(stringResource(R.string.time_tomorrow), stringResource(R.string.mock_delivery_cybersec), "IPVC.Inc"),
-        Entrega(stringResource(R.string.time_in_days, "2"), stringResource(R.string.mock_delivery_checkpoint), "IPVC.Inc"),
-    )
-}
-
-// endregion
-
-@Composable
 fun HomeAlunoScreen(
     navController: NavController,
-    homeViewModel: HomeViewModel = viewModel(),
-) {
-    val userName = "Tomás"
-    val hasActiveInternship by homeViewModel.hasActiveInternship.collectAsState()
-    val activeInternship by homeViewModel.activeInternship.collectAsState()
-    val recentApplications by homeViewModel.recentApplications.collectAsState()
-    val recentConversations by homeViewModel.recentConversations.collectAsState()
-    val hasSeenResult by homeViewModel.hasSeenEvaluationResult.collectAsState()
-    val hasDismissedModal by homeViewModel.hasDismissedEvaluationModal.collectAsState()
-    
-    val mockEntregas = getMockEntregas()
-
-    // Evaluation sample data for demo
-    val evaluation: InternshipEvaluation? = remember {
-        InternshipEvaluation(
-            internshipId = "int1",
-            internshipType = InternshipType.COMPANY_SCHOOL,
-            state = EvaluationState.COMPLETED,
-            companyResponsibleGrade = 16.5f,
-            companyResponsibleObservation = "Excelente desempenho técnico.",
-            companyResponsibleName = "Ana Costa",
-            companyMentorGrade = 15.0f,
-            companyMentorObservation = "Bom trabalho em equipa.",
-            companyMentorName = "Prof. Tiago Alexandre",
-            schoolMentorGrade = 16f,
-            schoolMentorObservation = "Bom desempenho global.",
-            schoolMentorName = "Prof. Carvalho",
-            hasSeenNotification = false,
+    authViewModel: AuthViewModel = viewModel(
+        factory = AuthViewModelFactory(AuthRepository())
+    ),
+    studentViewModel: StudentViewModel = viewModel(
+        factory = StudentViewModelFactory(StudentRepository())
+    ),
+    studentApplicationsViewModel: StudentApplicationsViewModel = viewModel(
+        factory = StudentApplicationsViewModelFactory(
+            ApplicationRepository(),
+            OfferRepository(),
+            InstitutionRepository(),
         )
+    ),
+    internshipViewModel: InternshipViewModel = viewModel(
+        factory = InternshipViewModelFactory(
+            InternshipRepository(),
+            LocalActivityRepository(
+                AtDatabase.getDatabase(LocalContext.current).atividadeDAO()
+            ),
+        )
+    ),
+    communicationViewModel: CommunicationViewModel = viewModel(
+        factory = CommunicationViewModelFactory(
+            CommunicationRepository(),
+            ProfileRepository(),
+        )
+    ),
+) {
+    val authUiState by authViewModel.uiState.collectAsState()
+    val studentUiState by studentViewModel.uiState.collectAsState()
+    val studentApplicationsUiState by studentApplicationsViewModel.uiState.collectAsState()
+    val internshipUiState by internshipViewModel.uiState.collectAsState()
+    val conversationsUiState by communicationViewModel.conversationsUiState.collectAsState()
+
+    val profile = (authUiState as? AuthUiState.Success)?.profile
+    
+    LaunchedEffect(Unit) {
+        authViewModel.loadCurrentUserProfile()
     }
 
-    val showEvaluationModal = evaluation?.state == EvaluationState.COMPLETED &&
-            !hasSeenResult &&
-            !hasDismissedModal
+    LaunchedEffect(authUiState) {
+        val state = authUiState
 
-    if (showEvaluationModal) {
-        EvaluationNotificationModal(
-            title = stringResource(R.string.home_eval_result_title),
-            message = stringResource(R.string.home_eval_result_message),
-            actionLabel = stringResource(R.string.home_result_action),
-            onAction = {
-                homeViewModel.setHasSeenEvaluationResult(true)
-                navController.navigate(AlunoRoutes.internshipResultRoute(evaluation.internshipId))
-            },
-            onDismiss = { homeViewModel.setHasDismissedEvaluationModal(true) },
-        )
+        if (state is AuthUiState.Success) {
+            studentViewModel.loadStudentByUserId(state.profile.id)
+            communicationViewModel.loadConversationsByUser(state.profile.id)
+        }
+    }
+
+    LaunchedEffect(studentUiState) {
+        val state = studentUiState
+
+        if (state is StudentUiState.Success) {
+            studentApplicationsViewModel.loadApplicationsByStudent(state.student.id)
+            internshipViewModel.loadActiveInternshipByStudent(state.student.id)
+        }
+    }
+
+    val recentApplications = when (val state = studentApplicationsUiState) {
+        is StudentApplicationsUiState.SuccessList -> state.applications.map {
+            it.toApplicationItem()
+        }
+
+        else -> emptyList()
+    }
+
+    val activeInternshipState = internshipUiState as? InternshipUiState.ActiveInternshipSuccess
+    val activeInternshipModel = activeInternshipState?.internship
+    val activeInternship = activeInternshipModel?.toActiveInternship()
+    val upcomingDeliveries = activeInternshipState
+        ?.activityLogs
+        ?.mapNotNull { it.toEntrega() }
+        ?.sortedBy { it.date }
+        ?.take(2)
+        ?.map { it.entrega }
+        .orEmpty()
+    val recentConversations = when (val state = conversationsUiState) {
+        is CommunicationUiState.SuccessConversationList -> state.conversations.map {
+            it.toHomeConversation()
+        }
+        else -> emptyList()
     }
 
     Column(
@@ -157,32 +210,20 @@ fun HomeAlunoScreen(
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp, vertical = 12.dp)
         ) {
-            Text(
-                stringResource(R.string.home_greeting, userName),
-                style = MaterialTheme.typography.headlineLarge.copy(
-                    fontWeight = FontWeight.Bold,
-                    color = DarkBlue,
-                ),
-            )
+            profile?.let {
+                Text(
+                    stringResource(R.string.home_greeting, it.name),
+                    style = MaterialTheme.typography.headlineLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = DarkBlue,
+                    ),
+                )
+            }
             Text(
                 stringResource(R.string.home_welcome),
                 style = MaterialTheme.typography.bodyMedium,
                 color = DarkGrey
             )
-        }
-
-        if (evaluation?.state == EvaluationState.COMPLETED && !hasSeenResult) {
-            EvaluationPendingCard(
-                title = stringResource(R.string.home_result_available),
-                message = stringResource(R.string.home_result_message),
-                actionLabel = stringResource(R.string.home_result_action),
-                isDanger = false,
-                onClick = {
-                    homeViewModel.setHasSeenEvaluationResult(true)
-                    navController.navigate(AlunoRoutes.internshipResultRoute(evaluation.internshipId))
-                },
-            )
-            Spacer(modifier = Modifier.height(8.dp))
         }
 
         Column(
@@ -192,36 +233,9 @@ fun HomeAlunoScreen(
                 .padding(start = 20.dp, end = 20.dp, bottom = 12.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // DEBUG: toggle para testar os dois estados
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color.White, RoundedCornerShape(12.dp))
-                    .border(1.dp, BorderGrey.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    stringResource(R.string.home_debug_mode),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = DarkGrey,
-                    modifier = Modifier.weight(1f),
-                )
-                Switch(
-                    checked = hasActiveInternship,
-                    onCheckedChange = { homeViewModel.toggleInternship() },
-                    colors = SwitchDefaults.colors(
-                        checkedThumbColor = Color.White,
-                        checkedTrackColor = LightBlue,
-                        uncheckedThumbColor = Color.White,
-                        uncheckedTrackColor = DarkGrey.copy(alpha = 0.3f),
-                    ),
-                )
-            }
-
-            if (hasActiveInternship && activeInternship != null) {
+            if (activeInternship != null) {
                 // State B: Active internship
-                val internship = activeInternship!!
+                val internship = activeInternship
                 val progress = calculateInternshipProgress(internship.startDate, internship.endDate)
 
                 var animationStarted by remember { mutableStateOf(false) }
@@ -243,7 +257,21 @@ fun HomeAlunoScreen(
                     )
                 }
 
-                EntregasCard(mockEntregas)
+                if (upcomingDeliveries.isNotEmpty()) {
+                    EntregasCard(upcomingDeliveries)
+                }
+            } else if (activeInternshipModel != null) {
+                HomeSectionCard(
+                    title = stringResource(R.string.home_active_internship),
+                    actionText = stringResource(R.string.home_view_details),
+                    onAction = { navController.navigate(AlunoRoutes.ACTIVITY) }
+                ) {
+                    Text(
+                        text = stringResource(R.string.home_internship_dates_unavailable),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = DarkGrey,
+                    )
+                }
             } else {
                 // State A: No internship — show recent applications
                 HomeSectionCard(
@@ -252,8 +280,31 @@ fun HomeAlunoScreen(
                     onAction = { navController.navigate(AlunoRoutes.ACTIVITY) }
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        recentApplications.take(2).forEach { application ->
-                            ApplicationCard(application = application)
+                        when (val state = studentApplicationsUiState) {
+                            StudentApplicationsUiState.Idle,
+                            StudentApplicationsUiState.Loading -> Text(
+                                text = stringResource(R.string.applications_loading),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = DarkGrey,
+                            )
+
+                            StudentApplicationsUiState.Empty -> Text(
+                                text = stringResource(R.string.applications_empty),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = DarkGrey,
+                            )
+
+                            is StudentApplicationsUiState.Error -> Text(
+                                text = state.message,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = DarkGrey,
+                            )
+
+                            is StudentApplicationsUiState.SuccessList -> {
+                                recentApplications.take(2).forEach { application ->
+                                    ApplicationCard(application = application)
+                                }
+                            }
                         }
                     }
                 }
@@ -279,13 +330,38 @@ fun HomeAlunoScreen(
                 onAction = { navController.navigate(AlunoRoutes.MESSAGES) }
             ) {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    recentConversations.take(3).forEach { conversation ->
-                        ConversationItem(
-                            conversation = conversation,
-                            onClick = {
-                                navController.navigate(AlunoRoutes.chatRoute(conversation.id))
-                            },
+                    when (val state = conversationsUiState) {
+                        CommunicationUiState.Idle,
+                        CommunicationUiState.Loading -> Text(
+                            text = "A carregar conversas...",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = DarkGrey,
                         )
+
+                        CommunicationUiState.Empty -> Text(
+                            text = "Ainda não existem conversas.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = DarkGrey,
+                        )
+
+                        is CommunicationUiState.Error -> Text(
+                            text = state.message,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = DarkGrey,
+                        )
+
+                        is CommunicationUiState.SuccessConversationList -> {
+                            recentConversations.take(3).forEach { conversation ->
+                                ConversationItem(
+                                    conversation = conversation,
+                                    onClick = {
+                                        navController.navigate(AlunoRoutes.chatRoute(conversation.id))
+                                    },
+                                )
+                            }
+                        }
+
+                        else -> Unit
                     }
                 }
             }
@@ -293,6 +369,89 @@ fun HomeAlunoScreen(
             Spacer(modifier = Modifier.height(8.dp))
         }
     }
+}
+
+private fun StudentConversationDetails.toHomeConversation(): Conversation {
+    val participantName = participant?.name ?: "Conversa"
+    val lastMessage = messages.lastOrNull()
+
+    return Conversation(
+        id = thread.id,
+        name = participantName,
+        initials = participantName.toHomeInitials(),
+        lastMessage = lastMessage?.content ?: "Sem mensagens.",
+        time = lastMessage?.createdAt.toHomeTimeLabel(),
+        unreadCount = messages.count { !it.isRead && it.senderId == participant?.id },
+        avatarColorIndex = participantName.hashCode() and Int.MAX_VALUE,
+    )
+}
+
+private fun String.toHomeInitials(): String = trim()
+    .split(Regex("\\s+"))
+    .filter { it.isNotBlank() }
+    .take(2)
+    .mapNotNull { it.firstOrNull()?.uppercase() }
+    .joinToString("")
+    .ifBlank { "?" }
+
+private fun String?.toHomeTimeLabel(): String {
+    if (this == null) return ""
+    return substringAfter('T', this).take(5)
+}
+
+private data class DatedEntrega(
+    val date: LocalDate,
+    val entrega: Entrega,
+)
+
+private fun ActivityLogModel.toEntrega(): DatedEntrega? {
+    val date = runCatching { LocalDate.parse(activityDate) }.getOrNull()
+        ?: return null
+    if (date.isBefore(LocalDate.now())) {
+        return null
+    }
+
+    return DatedEntrega(
+        date = date,
+        entrega = Entrega(
+            deadline = date.format(DateTimeFormatter.ofPattern("MMM d", Locale.getDefault())),
+            title = type?.takeIf { it.isNotBlank() } ?: description,
+            company = location.orEmpty(),
+        ),
+    )
+}
+
+private fun StudentApplicationDetails.toApplicationItem(): ApplicationItem {
+    return ApplicationItem(
+        id = application.id,
+        offerTitle = offerTitle,
+        company = institutionName,
+        appliedAgo = application.createdAt,
+        status = application.status.toUiApplicationStatus(),
+    )
+}
+
+private fun RemoteApplicationStatus.toUiApplicationStatus(): ApplicationStatus {
+    return when (this) {
+        RemoteApplicationStatus.PENDING -> ApplicationStatus.PENDING
+        RemoteApplicationStatus.ACCEPTED -> ApplicationStatus.ACCEPTED
+        RemoteApplicationStatus.REJECTED -> ApplicationStatus.REJECTED
+    }
+}
+
+private fun InternshipModel.toActiveInternship(): ActiveInternship? {
+    val parsedStartDate = startDate?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
+        ?: return null
+    val parsedEndDate = endDate?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
+        ?: return null
+
+    return ActiveInternship(
+        id = id,
+        title = title,
+        startDate = parsedStartDate,
+        endDate = parsedEndDate,
+        activityLogs = emptyList(),
+    )
 }
 
 @Composable

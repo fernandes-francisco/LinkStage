@@ -8,6 +8,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -30,9 +33,14 @@ import turmaA.grupoB.LinkStage.ui.instituicao.InstitutionPendingScreen
 import turmaA.grupoB.LinkStage.ui.orientador.OrientadorMainScreen
 import turmaA.grupoB.LinkStage.data.remote.model.enums.UserRole
 import turmaA.grupoB.LinkStage.data.repository.auth.AuthRepository
+import turmaA.grupoB.LinkStage.data.repository.student.StudentRepository
 import turmaA.grupoB.LinkStage.viewmodel.auth.AuthUiState
 import turmaA.grupoB.LinkStage.viewmodel.auth.AuthViewModel
 import turmaA.grupoB.LinkStage.viewmodel.auth.AuthViewModelFactory
+import turmaA.grupoB.LinkStage.viewmodel.auth.RegisterStudentInput
+import turmaA.grupoB.LinkStage.viewmodel.auth.RegisterStudentUiState
+import turmaA.grupoB.LinkStage.viewmodel.auth.RegisterStudentViewModel
+import turmaA.grupoB.LinkStage.viewmodel.auth.RegisterStudentViewModelFactory
 
 object Routes {
     const val SPLASH = "splash"
@@ -59,6 +67,11 @@ fun AppNavigation(
     navController: NavHostController = rememberNavController(),
     startDestination: String = Routes.SPLASH,
 ) {
+
+    var pendingStudentRegisterData by remember {
+        mutableStateOf<Map<String, String>?>(null)
+    }
+
     NavHost(
         navController = navController,
         startDestination = startDestination,
@@ -228,6 +241,7 @@ fun AppNavigation(
                 },
                 onContinueClick = { data ->
                     if (profile == UserRole.STUDENT) {
+                        pendingStudentRegisterData = data
                         navController.navigate(Routes.REGISTER_SKILLS)
                     } else {
                         navController.navigate(Routes.LOGIN) {
@@ -238,16 +252,53 @@ fun AppNavigation(
             )
         }
         composable(Routes.REGISTER_SKILLS) {
+            val registerStudentViewModel: RegisterStudentViewModel = viewModel(
+                factory = RegisterStudentViewModelFactory(
+                    authRepository = AuthRepository(),
+                    studentRepository = StudentRepository()
+                )
+            )
+
+            val registerStudentUiState by registerStudentViewModel.uiState.collectAsState()
+
             RegisterSkillsScreen(
                 onBackClick = {
                     navController.popBackStack()
                 },
                 onRegisterClick = { skills ->
-                    // Logic to be implemented by colleagues
-                    navController.navigate(Routes.LOGIN) {
-                        popUpTo(Routes.LOGIN) { inclusive = true }
+                    val registerData = pendingStudentRegisterData
+
+                    if (registerData == null) {
+                        navController.navigate(Routes.REGISTER) {
+                            popUpTo(Routes.REGISTER) { inclusive = true }
+                        }
+                        return@RegisterSkillsScreen
                     }
-                }
+
+                    registerStudentViewModel.registerStudent(
+                        RegisterStudentInput(
+                            name = registerData["name"].orEmpty(),
+                            email = registerData["email"].orEmpty(),
+                            password = registerData["password"].orEmpty(),
+                            phone = null,
+                            studentNumber = registerData["email"].orEmpty(),
+                            course = registerData["institute"].orEmpty(),
+                            academicYear = null,
+                            rgpdConsent = true
+                        )
+                    )
+                },
+                onSuccessConfirm = {
+                    pendingStudentRegisterData = null
+                    registerStudentViewModel.resetState()
+
+                    navController.navigate(Routes.LOGIN) {
+                        popUpTo(Routes.REGISTER) { inclusive = true }
+                    }
+                },
+                isLoading = registerStudentUiState is RegisterStudentUiState.Loading,
+                isSuccess = registerStudentUiState is RegisterStudentUiState.Success,
+                errorMessage = (registerStudentUiState as? RegisterStudentUiState.Error)?.message
             )
         }
         composable(Routes.ADMIN_MAIN) {
