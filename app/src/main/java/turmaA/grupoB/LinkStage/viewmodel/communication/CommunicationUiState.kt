@@ -25,6 +25,8 @@ sealed class CommunicationUiState {
     data class SuccessParticipantsThreadList(val messages: List<MessageThreadParticipantModel>) : CommunicationUiState()
     data class SuccessConversationList(val conversations: List<StudentConversationDetails>) : CommunicationUiState()
     data class SuccessConversation(val conversation: StudentConversationDetails) : CommunicationUiState()
+    data class SuccessContactList(val contacts: List<ProfileModel>) : CommunicationUiState()
+    data class ConversationCreated(val threadId: String) : CommunicationUiState()
     data object Empty: CommunicationUiState()
     data class Error(val message : String): CommunicationUiState()
 }

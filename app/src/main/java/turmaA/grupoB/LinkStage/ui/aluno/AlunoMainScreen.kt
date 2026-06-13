@@ -61,7 +61,7 @@ object AlunoRoutes {
     const val MESSAGES = "messages"
     const val SETTINGS = "settings"
     const val NOTIFICATIONS = "notifications"
-    const val CHAT = "chat/{conversationId}"
+    const val CHAT = "chat/{threadId}"
     const val OFFER_DETAIL = "offer_detail/{offerId}"
     const val APPLY = "apply/{offerId}"
     const val EDIT_SKILLS = "edit_skills"
@@ -72,7 +72,7 @@ object AlunoRoutes {
     const val REPORT_SUCCESS = "report_success"
     const val PRIVACY_POLICY = "privacy_policy"
 
-    fun chatRoute(conversationId: String) = "chat/$conversationId"
+    fun chatRoute(threadId: String) = "chat/$threadId"
     fun internshipResultRoute(internshipId: String) = "internship_result/$internshipId"
     fun offerDetailRoute(offerId: String) = "offer_detail/$offerId"
     fun applyRoute(offerId: String) = "apply/$offerId"
@@ -263,8 +263,8 @@ fun AlunoMainScreen(onLogout: () -> Unit = {}) {
             }
             composable(AlunoRoutes.MESSAGES) {
                 ChatAlunoScreen(
-                    onOpenChat = { conversationId ->
-                        navController.navigate(AlunoRoutes.chatRoute(conversationId))
+                    onOpenThread = { threadId ->
+                        navController.navigate(AlunoRoutes.chatRoute(threadId))
                     },
                 )
             }
@@ -307,12 +307,12 @@ fun AlunoMainScreen(onLogout: () -> Unit = {}) {
             }
             composable(
                 route = AlunoRoutes.CHAT,
-                arguments = listOf(navArgument("conversationId") { type = NavType.StringType }),
+                arguments = listOf(navArgument("threadId") { type = NavType.StringType }),
             ) { backStackEntry ->
-                val conversationId = backStackEntry.arguments?.getString("conversationId") ?: return@composable
+                val threadId = backStackEntry.arguments?.getString("threadId") ?: return@composable
                 
                 StudentChatScreen(
-                    threadId = conversationId,
+                    threadId = threadId,
                     onBack = { navController.popBackStack() },
                 )
             }

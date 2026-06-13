@@ -56,6 +56,7 @@ import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.data.repository.auth.AuthRepository
 import turmaA.grupoB.LinkStage.data.repository.communication.CommunicationRepository
 import turmaA.grupoB.LinkStage.data.repository.profile.ProfileRepository
+import turmaA.grupoB.LinkStage.data.remote.model.user.ProfileModel
 import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
 import turmaA.grupoB.LinkStage.ui.common.LinkStageDialog
 import turmaA.grupoB.LinkStage.ui.common.LinkStageLogo
@@ -125,7 +126,7 @@ fun getSampleContacts(): List<Contact> {
 
 @Composable
 fun ChatAlunoScreen(
-    onOpenChat: (String) -> Unit,
+    onOpenThread: (String) -> Unit,
     modifier: Modifier = Modifier,
     authViewModel: AuthViewModel = viewModel(
         factory = AuthViewModelFactory(AuthRepository())
@@ -139,6 +140,8 @@ fun ChatAlunoScreen(
 ) {
     val authUiState by authViewModel.uiState.collectAsState()
     val conversationsUiState by communicationViewModel.conversationsUiState.collectAsState()
+    val contactsUiState by communicationViewModel.contactsUiState.collectAsState()
+    val creationUiState by communicationViewModel.creationUiState.collectAsState()
 
     LaunchedEffect(Unit) {
         authViewModel.loadCurrentUserProfile()
@@ -148,12 +151,27 @@ fun ChatAlunoScreen(
         val state = authUiState
         if (state is AuthUiState.Success) {
             communicationViewModel.loadConversationsByUser(state.profile.id)
+            communicationViewModel.loadAvailableContacts(state.profile.id)
+        }
+    }
+
+    LaunchedEffect(creationUiState) {
+        val state = creationUiState
+        if (state is CommunicationUiState.ConversationCreated) {
+            onOpenThread(state.threadId)
+            communicationViewModel.resetCreationState()
         }
     }
 
     val conversations = when (val state = conversationsUiState) {
         is CommunicationUiState.SuccessConversationList -> state.conversations.map {
             it.toConversation()
+        }
+        else -> emptyList()
+    }
+    val contacts = when (val state = contactsUiState) {
+        is CommunicationUiState.SuccessContactList -> state.contacts.map {
+            it.toContact()
         }
         else -> emptyList()
     }
@@ -164,16 +182,34 @@ fun ChatAlunoScreen(
         conversationsUiState == CommunicationUiState.Empty -> "Ainda não existem conversas."
         conversationsUiState is CommunicationUiState.Error ->
             (conversationsUiState as CommunicationUiState.Error).message
+        creationUiState is CommunicationUiState.Error ->
+            (creationUiState as CommunicationUiState.Error).message
         else -> null
     }
 
     MessagesListScreen(
         conversations = conversations,
-        contacts = emptyList(),
-        onOpenChat = onOpenChat,
+        contacts = contacts,
+        onOpenThread = onOpenThread,
+        onCreateConversation = { contactId ->
+            val userId = (authUiState as? AuthUiState.Success)?.profile?.id
+            if (userId != null) {
+                communicationViewModel.createConversation(userId, contactId)
+            }
+        },
         modifier = modifier,
         statusMessage = statusMessage,
         canDeleteConversations = false,
+    )
+}
+
+private fun ProfileModel.toContact(): Contact {
+    return Contact(
+        id = id,
+        name = name,
+        role = role.name,
+        initials = name.toInitials(),
+        avatarColorIndex = name.hashCode() and Int.MAX_VALUE,
     )
 }
 
@@ -213,7 +249,8 @@ private fun String?.toTimeLabel(): String {
 private fun MessagesListScreen(
     conversations: List<Conversation>,
     contacts: List<Contact>,
-    onOpenChat: (String) -> Unit,
+    onOpenThread: (String) -> Unit,
+    onCreateConversation: (String) -> Unit,
     modifier: Modifier = Modifier,
     statusMessage: String? = null,
     canDeleteConversations: Boolean = true,
@@ -235,7 +272,7 @@ private fun MessagesListScreen(
             onDismiss = { showNewMessageModal = false },
             onContactSelected = { contactId ->
                 showNewMessageModal = false
-                onOpenChat(contactId)
+                onCreateConversation(contactId)
             }
         )
     }
@@ -313,7 +350,7 @@ private fun MessagesListScreen(
                 items(filtered, key = { it.id }) { conversation ->
                     ConversationItem(
                         conversation = conversation,
-                        onClick = { onOpenChat(conversation.id) },
+                        onClick = { onOpenThread(conversation.id) },
                         onLongClick = {
                             if (canDeleteConversations) conversationToDelete = conversation
                         }

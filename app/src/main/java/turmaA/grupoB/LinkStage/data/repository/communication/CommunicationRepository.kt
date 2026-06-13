@@ -2,6 +2,8 @@ package turmaA.grupoB.LinkStage.data.repository.communication
 
 import io.github.jan.supabase.postgrest.from
 import turmaA.grupoB.LinkStage.data.remote.model.communication.MessageModel
+import turmaA.grupoB.LinkStage.data.remote.model.communication.CreateMessageThreadInput
+import turmaA.grupoB.LinkStage.data.remote.model.communication.CreateMessageThreadParticipantInput
 import turmaA.grupoB.LinkStage.data.remote.model.communication.MessageThreadModel
 import turmaA.grupoB.LinkStage.data.remote.model.communication.MessageThreadParticipantModel
 import turmaA.grupoB.LinkStage.data.remote.model.communication.NotificationModel
@@ -120,6 +122,33 @@ class CommunicationRepository : CommunicationRepositoryInterface {
                 }
             }
             .decodeList<MessageModel>()
+    }
+
+    override suspend fun createThread(
+        input: CreateMessageThreadInput,
+        participantUserIds: List<String>,
+    ): MessageThreadModel {
+        val thread = supabase
+            .from("message_threads")
+            .insert(input) {
+                select()
+            }
+            .decodeSingle<MessageThreadModel>()
+
+        val participants = participantUserIds
+            .distinct()
+            .map { userId ->
+                CreateMessageThreadParticipantInput(
+                    threadId = thread.id,
+                    userId = userId,
+                )
+            }
+
+        supabase
+            .from("message_thread_participants")
+            .insert(participants)
+
+        return thread
     }
 
     override suspend fun sendMessage(input: SendMessageInput): MessageModel? {

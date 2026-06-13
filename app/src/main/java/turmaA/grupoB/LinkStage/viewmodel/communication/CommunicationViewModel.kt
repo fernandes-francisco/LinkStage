@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import turmaA.grupoB.LinkStage.data.remote.model.communication.SendMessageInput
+import turmaA.grupoB.LinkStage.data.remote.model.communication.CreateMessageThreadInput
 import turmaA.grupoB.LinkStage.data.repository.communication.CommunicationRepositoryInterface
 import turmaA.grupoB.LinkStage.data.repository.profile.ProfileRepositoryInterface
 
@@ -22,6 +23,71 @@ class CommunicationViewModel(
 
     private val _chatUiState = MutableStateFlow<CommunicationUiState>(CommunicationUiState.Idle)
     val chatUiState: StateFlow<CommunicationUiState> = _chatUiState.asStateFlow()
+
+    private val _contactsUiState = MutableStateFlow<CommunicationUiState>(CommunicationUiState.Idle)
+    val contactsUiState: StateFlow<CommunicationUiState> = _contactsUiState.asStateFlow()
+
+    private val _creationUiState = MutableStateFlow<CommunicationUiState>(CommunicationUiState.Idle)
+    val creationUiState: StateFlow<CommunicationUiState> = _creationUiState.asStateFlow()
+
+    fun loadAvailableContacts(userId: String) {
+        viewModelScope.launch {
+            _contactsUiState.value = CommunicationUiState.Loading
+
+            try {
+                val repository = profileRepository
+                    ?: error("Repositório de perfis indisponível.")
+                val contacts = repository.getProfiles()
+                    .filter { profile -> profile.active && profile.id != userId }
+                    .sortedBy { profile -> profile.name }
+
+                _contactsUiState.value = if (contacts.isEmpty()) {
+                    CommunicationUiState.Empty
+                } else {
+                    CommunicationUiState.SuccessContactList(contacts)
+                }
+            } catch (e: Exception) {
+                _contactsUiState.value = CommunicationUiState.Error(
+                    e.message ?: "Erro ao carregar contactos."
+                )
+            }
+        }
+    }
+
+    fun createConversation(userId: String, contactUserId: String) {
+        viewModelScope.launch {
+            _creationUiState.value = CommunicationUiState.Loading
+
+            try {
+                val expectedParticipantIds = setOf(userId, contactUserId)
+                val existingThread = messageRepository.getThreadsByUser(userId)
+                    .firstOrNull { thread ->
+                        val participantIds = messageRepository
+                            .getParticipantsByThread(thread.id)
+                            .map { participant -> participant.userId }
+                            .toSet()
+
+                        participantIds == expectedParticipantIds
+                    }
+
+                val thread = existingThread ?: messageRepository.createThread(
+                    input = CreateMessageThreadInput(),
+                    participantUserIds = listOf(userId, contactUserId),
+                )
+
+                _creationUiState.value = CommunicationUiState.ConversationCreated(thread.id)
+                loadConversationsByUser(userId)
+            } catch (e: Exception) {
+                _creationUiState.value = CommunicationUiState.Error(
+                    e.message ?: "Erro ao criar conversa."
+                )
+            }
+        }
+    }
+
+    fun resetCreationState() {
+        _creationUiState.value = CommunicationUiState.Idle
+    }
 
     fun loadConversationsByUser(userId: String) {
         viewModelScope.launch {
