@@ -353,6 +353,7 @@
     <string name="applications_applied">Candidatado</string>
     <string name="applications_empty">Nenhuma candidatura encontrada.</string>
     <string name="applications_applied_ago">• Candidatou-se %1$s</string>
+    <string name="applications_loading">A carregar candidaturas…</string>
 
     <!-- FINAL REPORT -->
     <string name="report_title">Submissão do relatório final</string>

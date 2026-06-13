@@ -22,7 +22,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -52,19 +51,16 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -78,15 +74,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
 import turmaA.grupoB.LinkStage.R
+import turmaA.grupoB.LinkStage.data.remote.model.application.ApplicationModel
+import turmaA.grupoB.LinkStage.data.repository.application.ApplicationRepository
+import turmaA.grupoB.LinkStage.data.repository.auth.AuthRepository
+import turmaA.grupoB.LinkStage.data.repository.student.StudentRepository
 import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
-import turmaA.grupoB.LinkStage.ui.common.LinkStageButton
 import turmaA.grupoB.LinkStage.ui.common.LinkStageDialog
-import turmaA.grupoB.LinkStage.ui.common.LinkStageLogo
-import turmaA.grupoB.LinkStage.ui.common.LinkStageOutlinedButton
 import turmaA.grupoB.LinkStage.ui.common.SectionLabel
 import turmaA.grupoB.LinkStage.ui.common.formatGrade
 import turmaA.grupoB.LinkStage.ui.orientador.EvaluationState
@@ -101,6 +96,16 @@ import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.ui.theme.Red
 import turmaA.grupoB.LinkStage.ui.aluno.home.ApplicationStatus
 import turmaA.grupoB.LinkStage.viewmodel.HomeViewModel
+import turmaA.grupoB.LinkStage.viewmodel.application.ApplicationUiState
+import turmaA.grupoB.LinkStage.viewmodel.application.ApplicationViewModel
+import turmaA.grupoB.LinkStage.viewmodel.application.ApplicationViewModelFactory
+import turmaA.grupoB.LinkStage.viewmodel.auth.AuthUiState
+import turmaA.grupoB.LinkStage.viewmodel.auth.AuthViewModel
+import turmaA.grupoB.LinkStage.viewmodel.auth.AuthViewModelFactory
+import turmaA.grupoB.LinkStage.viewmodel.student.StudentUiState
+import turmaA.grupoB.LinkStage.viewmodel.student.StudentViewModel
+import turmaA.grupoB.LinkStage.viewmodel.student.StudentViewModelFactory
+import turmaA.grupoB.LinkStage.data.remote.model.enums.ApplicationStatus as RemoteApplicationStatus
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
@@ -179,20 +184,68 @@ private fun formatDate(date: LocalDate): String {
 fun RecentActivityAlunoScreen(
     modifier: Modifier = Modifier,
     homeViewModel: HomeViewModel = viewModel(),
+    authViewModel: AuthViewModel = viewModel(
+        factory = AuthViewModelFactory(AuthRepository())
+    ),
+    studentViewModel: StudentViewModel = viewModel(
+        factory = StudentViewModelFactory(StudentRepository())
+    ),
+    applicationViewModel: ApplicationViewModel = viewModel(
+        factory = ApplicationViewModelFactory(ApplicationRepository())
+    ),
     onBack: (() -> Unit)? = null,
     onSubmitReport: () -> Unit = {},
     onActivityClick: (String) -> Unit = {},
     onViewResult: (String) -> Unit = {},
 ) {
+    val authUiState by authViewModel.uiState.collectAsState()
+
     val hasActiveInternship by homeViewModel.hasActiveInternship.collectAsState()
     val activeInternship by homeViewModel.activeInternship.collectAsState()
-    val activeApplications by homeViewModel.activeApplications.collectAsState()
-    val pastApplications by homeViewModel.pastApplications.collectAsState()
+
+    val studentUiState by studentViewModel.uiState.collectAsState()
+    val applicationUiState by applicationViewModel.uiState.collectAsState()
 
     var showAddActivityModal by remember { mutableStateOf(false) }
     var showFilterModal by remember { mutableStateOf(false) }
     var currentFilter by remember { mutableStateOf<ApplicationStatus?>(null) }
     var searchQuery by remember { mutableStateOf("") }
+
+    LaunchedEffect(Unit) {
+        authViewModel.loadCurrentUserProfile()
+    }
+
+    LaunchedEffect(authUiState) {
+        val state = authUiState
+
+        if (state is AuthUiState.Success) {
+            studentViewModel.loadStudentByUserId(state.profile.id)
+        }
+    }
+
+    LaunchedEffect(studentUiState) {
+        val state = studentUiState
+
+        if (state is StudentUiState.Success) {
+            applicationViewModel.loadApplicationsByStudent(state.student.id)
+        }
+    }
+
+    val realApplications: List<ApplicationItem> = when (val state = applicationUiState) {
+        is ApplicationUiState.SuccessList -> state.applications.map { application: ApplicationModel ->
+            application.toApplicationItem()
+        }
+
+        else -> emptyList()
+    }
+
+    val pastApplications = realApplications.filter {
+        it.status == ApplicationStatus.ACCEPTED || it.status == ApplicationStatus.REJECTED
+    }
+
+    val activeApplications = realApplications.filter {
+        it.status == ApplicationStatus.PENDING
+    }
 
     if (showFilterModal) {
         ActivityFilterModal(
@@ -245,6 +298,8 @@ fun RecentActivityAlunoScreen(
             }
         }
     } else {
+        val applicationsErrorMessage = (applicationUiState as? ApplicationUiState.Error)?.message
+        val isLoadingApplications = applicationUiState is ApplicationUiState.Loading
         val filteredActive = activeApplications.filter {
             (currentFilter == null || it.status == currentFilter) &&
                     (searchQuery.isBlank() || it.offerTitle.contains(searchQuery, ignoreCase = true) || it.company.contains(searchQuery, ignoreCase = true))
@@ -262,7 +317,9 @@ fun RecentActivityAlunoScreen(
             onSearchQueryChange = { searchQuery = it },
             onBack = onBack,
             modifier = modifier,
-            onFilterClick = { showFilterModal = true }
+            onFilterClick = { showFilterModal = true },
+            isLoading = isLoadingApplications,
+            errorMessage = applicationsErrorMessage
         )
     }
 }
@@ -280,6 +337,8 @@ private fun ApplicationsContent(
     onBack: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
     onFilterClick: () -> Unit = {},
+    isLoading: Boolean = false,
+    errorMessage: String? = null
 ) {
     LazyColumn(
         modifier = modifier
@@ -307,6 +366,24 @@ private fun ApplicationsContent(
                 onFilterClick = onFilterClick
             )
             Spacer(modifier = Modifier.height(12.dp))
+        }
+
+        item {
+            if (isLoading) {
+                Text(
+                    text = stringResource(R.string.applications_loading),
+                    color = DarkGrey,
+                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)
+                )
+            }
+
+            if (errorMessage != null) {
+                Text(
+                    text = errorMessage,
+                    color = Red,
+                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)
+                )
+            }
         }
 
         item {
@@ -1085,6 +1162,24 @@ private fun ApplicationSearchBar(
         ) {
             Icon(Icons.Outlined.FilterList, contentDescription = stringResource(R.string.discover_filters), tint = Color.White)
         }
+    }
+}
+
+private fun ApplicationModel.toApplicationItem(): ApplicationItem {
+    return ApplicationItem(
+        id = id,
+        offerTitle = offerId,
+        company = offerId,
+        appliedAgo = createdAt,
+        status = status.toUiApplicationStatus()
+    )
+}
+
+private fun RemoteApplicationStatus.toUiApplicationStatus(): ApplicationStatus {
+    return when (this) {
+        RemoteApplicationStatus.PENDING -> ApplicationStatus.PENDING
+        RemoteApplicationStatus.ACCEPTED -> ApplicationStatus.ACCEPTED
+        RemoteApplicationStatus.REJECTED -> ApplicationStatus.REJECTED
     }
 }
 
