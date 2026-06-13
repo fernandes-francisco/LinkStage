@@ -46,7 +46,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import turmaA.grupoB.LinkStage.R
-import turmaA.grupoB.LinkStage.data.remote.model.enums.InternshipStatus
+import turmaA.grupoB.LinkStage.data.remote.model.internship.ActivityLogModel
 import turmaA.grupoB.LinkStage.data.remote.model.internship.InternshipModel
 import turmaA.grupoB.LinkStage.data.repository.application.ApplicationRepository
 import turmaA.grupoB.LinkStage.data.repository.auth.AuthRepository
@@ -84,6 +84,8 @@ import turmaA.grupoB.LinkStage.viewmodel.student.StudentViewModel
 import turmaA.grupoB.LinkStage.viewmodel.student.StudentViewModelFactory
 import turmaA.grupoB.LinkStage.data.remote.model.enums.ApplicationStatus as RemoteApplicationStatus
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 // region Data models
 
@@ -98,16 +100,6 @@ data class Entrega(
     val title: String,
     val company: String,
 )
-
-// endregion
-
-@Composable
-fun getMockEntregas(): List<Entrega> {
-    return listOf(
-        Entrega(stringResource(R.string.time_tomorrow), stringResource(R.string.mock_delivery_cybersec), "IPVC.Inc"),
-        Entrega(stringResource(R.string.time_in_days, "2"), stringResource(R.string.mock_delivery_checkpoint), "IPVC.Inc"),
-    )
-}
 
 // endregion
 
@@ -142,8 +134,6 @@ fun HomeAlunoScreen(
     val profile = (authUiState as? AuthUiState.Success)?.profile
     val userName = profile?.name ?: "Tomás"
     
-    val mockEntregas = getMockEntregas()
-
     LaunchedEffect(Unit) {
         authViewModel.loadCurrentUserProfile()
     }
@@ -161,7 +151,7 @@ fun HomeAlunoScreen(
 
         if (state is StudentUiState.Success) {
             studentApplicationsViewModel.loadApplicationsByStudent(state.student.id)
-            internshipViewModel.getInternshipByStudent(state.student.id)
+            internshipViewModel.loadActiveInternshipByStudent(state.student.id)
         }
     }
 
@@ -173,10 +163,16 @@ fun HomeAlunoScreen(
         else -> emptyList()
     }
 
-    val activeInternshipModel = (internshipUiState as? InternshipUiState.SuccessList)
-        ?.internships
-        ?.firstOrNull { it.status == InternshipStatus.IN_PROGRESS }
+    val activeInternshipState = internshipUiState as? InternshipUiState.ActiveInternshipSuccess
+    val activeInternshipModel = activeInternshipState?.internship
     val activeInternship = activeInternshipModel?.toActiveInternship()
+    val upcomingDeliveries = activeInternshipState
+        ?.activityLogs
+        ?.mapNotNull { it.toEntrega() }
+        ?.sortedBy { it.date }
+        ?.take(2)
+        ?.map { it.entrega }
+        .orEmpty()
 
     Column(
         modifier = Modifier
@@ -235,7 +231,9 @@ fun HomeAlunoScreen(
                     )
                 }
 
-                EntregasCard(mockEntregas)
+                if (upcomingDeliveries.isNotEmpty()) {
+                    EntregasCard(upcomingDeliveries)
+                }
             } else if (activeInternshipModel != null) {
                 HomeSectionCard(
                     title = stringResource(R.string.home_active_internship),
@@ -320,6 +318,28 @@ fun HomeAlunoScreen(
             Spacer(modifier = Modifier.height(8.dp))
         }
     }
+}
+
+private data class DatedEntrega(
+    val date: LocalDate,
+    val entrega: Entrega,
+)
+
+private fun ActivityLogModel.toEntrega(): DatedEntrega? {
+    val date = runCatching { LocalDate.parse(activityDate) }.getOrNull()
+        ?: return null
+    if (date.isBefore(LocalDate.now())) {
+        return null
+    }
+
+    return DatedEntrega(
+        date = date,
+        entrega = Entrega(
+            deadline = date.format(DateTimeFormatter.ofPattern("MMM d", Locale.getDefault())),
+            title = type?.takeIf { it.isNotBlank() } ?: description,
+            company = location.orEmpty(),
+        ),
+    )
 }
 
 private fun StudentApplicationDetails.toApplicationItem(): ApplicationItem {
