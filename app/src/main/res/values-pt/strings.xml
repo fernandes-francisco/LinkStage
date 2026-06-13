@@ -292,6 +292,7 @@
     <string name="apply_step2_subtitle">Reveja os seus dados para continuar.</string>
     <string name="apply_continue">Continuar</string>
     <string name="apply_submit">Submeter</string>
+    <string name="apply_submitting">A submeter candidatura…</string>
     <string name="apply_save_draft">Guardar como rascunho</string>
     <string name="apply_cv_incomplete_title">CV incompleto.</string>
     <string name="apply_cv_incomplete_message">Adicione pelo menos uma competência ao seu CV para continuar a candidatura.</string>

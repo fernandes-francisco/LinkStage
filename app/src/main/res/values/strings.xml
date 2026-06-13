@@ -289,6 +289,7 @@
     <string name="apply_step2_subtitle">Review your data to continue.</string>
     <string name="apply_continue">Continue</string>
     <string name="apply_submit">Submit</string>
+    <string name="apply_submitting">Submitting application…</string>
     <string name="apply_save_draft">Save as draft</string>
     <string name="apply_cv_incomplete_title">Incomplete CV.</string>
     <string name="apply_cv_incomplete_message">Add at least one skill to your CV to continue the application.</string>
