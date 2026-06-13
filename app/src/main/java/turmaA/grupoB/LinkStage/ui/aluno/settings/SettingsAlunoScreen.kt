@@ -1,5 +1,6 @@
 package turmaA.grupoB.LinkStage.ui.aluno.settings
 
+import android.R.attr.text
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
@@ -73,6 +74,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import turmaA.grupoB.LinkStage.R
+import turmaA.grupoB.LinkStage.data.repository.auth.AuthRepository
 import turmaA.grupoB.LinkStage.data.repository.flags.FlagsRepository
 import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
 import turmaA.grupoB.LinkStage.ui.common.LinkStageButton
@@ -88,6 +90,9 @@ import turmaA.grupoB.LinkStage.ui.theme.Fade2
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.ui.theme.Red
 import turmaA.grupoB.LinkStage.viewmodel.SettingsViewModel
+import turmaA.grupoB.LinkStage.viewmodel.auth.AuthUiState
+import turmaA.grupoB.LinkStage.viewmodel.auth.AuthViewModel
+import turmaA.grupoB.LinkStage.viewmodel.auth.AuthViewModelFactory
 import turmaA.grupoB.LinkStage.viewmodel.flags.FlagsUIState
 import turmaA.grupoB.LinkStage.viewmodel.flags.FlagsViewModel
 import turmaA.grupoB.LinkStage.viewmodel.flags.FlagsViewModelFactory
@@ -108,17 +113,28 @@ fun SettingsAlunoScreen(
     onNotificationsClick: () -> Unit = {},
     onPrivacyPolicyClick: () -> Unit = {},
     settingsViewModel: SettingsViewModel = viewModel(),
-    flagsViewModel: FlagsViewModel = viewModel(factory = FlagsViewModelFactory(FlagsRepository()))
+    flagsViewModel: FlagsViewModel = viewModel(factory = FlagsViewModelFactory(FlagsRepository())),
+    authViewModel: AuthViewModel = viewModel(
+        factory = AuthViewModelFactory(AuthRepository())
+    )
 ) {
-
-
 
     val user by settingsViewModel.user.collectAsState()
     val currentLanguage by settingsViewModel.currentLanguage.collectAsState()
     val flagsUIState by flagsViewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val authUiState by authViewModel.uiState.collectAsState()
+    val profile = (authUiState as? AuthUiState.Success)?.profile
+
+    val displayedUser = LoggedUser(
+        name = profile?.name ?: user.name,
+        email = profile?.email ?: user.email,
+        avatarUrl = profile?.photoUrl ?: user.avatarUrl
+    )
+
     LaunchedEffect(Unit) {
         flagsViewModel.getImages(listOf("portugal", "gb"))
+        authViewModel.loadCurrentUserProfile()
     }
     var showLogoutDialog by remember { mutableStateOf(false) }
     var showPasswordDialog by remember { mutableStateOf(false) }
@@ -127,7 +143,7 @@ fun SettingsAlunoScreen(
         LogoutConfirmDialog(
             onConfirm = {
                 showLogoutDialog = false
-                settingsViewModel.logout()
+                authViewModel.signOut()
                 onLogout()
             },
             onDismiss = { showLogoutDialog = false },
@@ -181,18 +197,18 @@ fun SettingsAlunoScreen(
                     .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                UserAvatar(user = user, size = 48)
+                UserAvatar(user = displayedUser, size = 48)
                 Spacer(modifier = Modifier.width(12.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = user.name,
+                        text = displayedUser.name,
                         style = MaterialTheme.typography.bodyLarge.copy(
                             fontWeight = FontWeight.Bold,
                             color = DarkBlue,
                         ),
                     )
                     Text(
-                        text = user.email,
+                        text = displayedUser.email,
                         style = MaterialTheme.typography.bodySmall,
                         color = DarkGrey,
                     )

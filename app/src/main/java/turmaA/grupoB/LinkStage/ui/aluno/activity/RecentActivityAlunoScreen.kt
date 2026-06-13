@@ -22,7 +22,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -30,8 +29,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Upload
 import androidx.compose.material.icons.outlined.CalendarMonth
@@ -46,25 +45,21 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -74,33 +69,55 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
 import turmaA.grupoB.LinkStage.R
+import turmaA.grupoB.LinkStage.data.remote.model.internship.ActivityLogModel
+import turmaA.grupoB.LinkStage.data.remote.model.internship.CreateActivityLogInput
+import turmaA.grupoB.LinkStage.data.remote.model.enums.InternshipStatus
+import turmaA.grupoB.LinkStage.data.remote.model.enums.ReportStatus
+import turmaA.grupoB.LinkStage.data.remote.model.report.FinalReportModel
+import turmaA.grupoB.LinkStage.data.repository.application.ApplicationRepository
+import turmaA.grupoB.LinkStage.data.repository.auth.AuthRepository
+import turmaA.grupoB.LinkStage.data.repository.institution.InstitutionRepository
+import turmaA.grupoB.LinkStage.data.repository.internship.InternshipRepository
+import turmaA.grupoB.LinkStage.data.repository.internship.LocalActivityRepository
+import turmaA.grupoB.LinkStage.data.room.AtDatabase
+import turmaA.grupoB.LinkStage.data.repository.offer.OfferRepository
+import turmaA.grupoB.LinkStage.data.repository.report.ReportRepository
+import turmaA.grupoB.LinkStage.data.repository.student.StudentRepository
 import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
-import turmaA.grupoB.LinkStage.ui.common.LinkStageButton
 import turmaA.grupoB.LinkStage.ui.common.LinkStageDialog
-import turmaA.grupoB.LinkStage.ui.common.LinkStageLogo
-import turmaA.grupoB.LinkStage.ui.common.LinkStageOutlinedButton
 import turmaA.grupoB.LinkStage.ui.common.SectionLabel
-import turmaA.grupoB.LinkStage.ui.common.formatGrade
-import turmaA.grupoB.LinkStage.ui.orientador.EvaluationState
-import turmaA.grupoB.LinkStage.ui.orientador.InternshipEvaluation
-import turmaA.grupoB.LinkStage.ui.orientador.InternshipType
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
-import turmaA.grupoB.LinkStage.ui.theme.Fade2
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.ui.theme.Red
 import turmaA.grupoB.LinkStage.ui.aluno.home.ApplicationStatus
-import turmaA.grupoB.LinkStage.viewmodel.HomeViewModel
+import turmaA.grupoB.LinkStage.viewmodel.application.StudentApplicationDetails
+import turmaA.grupoB.LinkStage.viewmodel.application.StudentApplicationsUiState
+import turmaA.grupoB.LinkStage.viewmodel.application.StudentApplicationsViewModel
+import turmaA.grupoB.LinkStage.viewmodel.application.StudentApplicationsViewModelFactory
+import turmaA.grupoB.LinkStage.viewmodel.auth.AuthUiState
+import turmaA.grupoB.LinkStage.viewmodel.auth.AuthViewModel
+import turmaA.grupoB.LinkStage.viewmodel.auth.AuthViewModelFactory
+import turmaA.grupoB.LinkStage.viewmodel.internships.InternshipUiState
+import turmaA.grupoB.LinkStage.viewmodel.internships.ActivityCreationUiState
+import turmaA.grupoB.LinkStage.viewmodel.internships.InternshipViewModel
+import turmaA.grupoB.LinkStage.viewmodel.internships.InternshipViewModelFactory
+import turmaA.grupoB.LinkStage.viewmodel.report.ReportUiState
+import turmaA.grupoB.LinkStage.viewmodel.report.ReportViewModel
+import turmaA.grupoB.LinkStage.viewmodel.report.ReportViewModelFactory
+import turmaA.grupoB.LinkStage.viewmodel.student.StudentUiState
+import turmaA.grupoB.LinkStage.viewmodel.student.StudentViewModel
+import turmaA.grupoB.LinkStage.viewmodel.student.StudentViewModelFactory
+import turmaA.grupoB.LinkStage.data.remote.model.enums.ApplicationStatus as RemoteApplicationStatus
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
@@ -178,21 +195,137 @@ private fun formatDate(date: LocalDate): String {
 @Composable
 fun RecentActivityAlunoScreen(
     modifier: Modifier = Modifier,
-    homeViewModel: HomeViewModel = viewModel(),
+    authViewModel: AuthViewModel = viewModel(
+        factory = AuthViewModelFactory(AuthRepository())
+    ),
+    studentViewModel: StudentViewModel = viewModel(
+        factory = StudentViewModelFactory(StudentRepository())
+    ),
+    studentApplicationsViewModel: StudentApplicationsViewModel = viewModel(
+        factory = StudentApplicationsViewModelFactory(
+            ApplicationRepository(),
+            OfferRepository(),
+            InstitutionRepository(),
+        )
+    ),
+    internshipViewModel: InternshipViewModel = viewModel(
+        factory = InternshipViewModelFactory(
+            InternshipRepository(),
+            LocalActivityRepository(
+                AtDatabase.getDatabase(LocalContext.current).atividadeDAO()
+            ),
+        )
+    ),
+    reportViewModel: ReportViewModel = viewModel(
+        factory = ReportViewModelFactory(ReportRepository())
+    ),
     onBack: (() -> Unit)? = null,
     onSubmitReport: () -> Unit = {},
     onActivityClick: (String) -> Unit = {},
     onViewResult: (String) -> Unit = {},
 ) {
-    val hasActiveInternship by homeViewModel.hasActiveInternship.collectAsState()
-    val activeInternship by homeViewModel.activeInternship.collectAsState()
-    val activeApplications by homeViewModel.activeApplications.collectAsState()
-    val pastApplications by homeViewModel.pastApplications.collectAsState()
+    val authUiState by authViewModel.uiState.collectAsState()
+    val studentUiState by studentViewModel.uiState.collectAsState()
+    val studentApplicationsUiState by studentApplicationsViewModel.uiState.collectAsState()
+    val internshipUiState by internshipViewModel.uiState.collectAsState()
+    val activityCreationUiState by internshipViewModel.activityCreationUiState.collectAsState()
+    val reportUiState by reportViewModel.uiState.collectAsState()
 
-    var showAddActivityModal by remember { mutableStateOf(false) }
     var showFilterModal by remember { mutableStateOf(false) }
+    var reportSubmissionRequested by remember { mutableStateOf(false) }
     var currentFilter by remember { mutableStateOf<ApplicationStatus?>(null) }
     var searchQuery by remember { mutableStateOf("") }
+    var showAddActivityModal by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        authViewModel.loadCurrentUserProfile()
+    }
+
+    LaunchedEffect(authUiState) {
+        val state = authUiState
+
+        if (state is AuthUiState.Success) {
+            studentViewModel.loadStudentByUserId(state.profile.id)
+        }
+    }
+
+    LaunchedEffect(studentUiState) {
+        val state = studentUiState
+
+        if (state is StudentUiState.Success) {
+            studentApplicationsViewModel.loadApplicationsByStudent(state.student.id)
+            internshipViewModel.loadActiveInternshipByStudent(state.student.id)
+        }
+    }
+
+    val activeInternshipState = internshipUiState as? InternshipUiState.ActiveInternshipSuccess
+    val activeInternshipModel = activeInternshipState?.internship
+    val activeInternship = activeInternshipState?.toActiveInternship()
+    val currentStudent = (studentUiState as? StudentUiState.Success)?.student
+
+    if (
+        showAddActivityModal &&
+        activeInternshipModel?.status == InternshipStatus.IN_PROGRESS &&
+        currentStudent != null
+    ) {
+        AddActivityModal(
+            onSave = { title, description, _ ->
+                showAddActivityModal = false
+                internshipViewModel.createActivityLog(
+                    CreateActivityLogInput(
+                        internshipId = activeInternshipModel.id,
+                        studentId = currentStudent.id,
+                        description = description.ifBlank { title },
+                        activityDate = LocalDate.now().toString(),
+                        type = title,
+                    )
+                )
+            },
+            onDismiss = { showAddActivityModal = false },
+        )
+    }
+
+    LaunchedEffect(activityCreationUiState) {
+        if (activityCreationUiState is ActivityCreationUiState.Success) {
+            showAddActivityModal = false
+            internshipViewModel.resetActivityCreationState()
+        }
+    }
+
+    LaunchedEffect(activeInternshipModel?.id) {
+        activeInternshipModel?.let {
+            reportViewModel.loadReportByInternship(it.id)
+        }
+    }
+
+    LaunchedEffect(reportUiState, reportSubmissionRequested) {
+        val state = reportUiState
+
+        if (
+            reportSubmissionRequested &&
+            state is ReportUiState.Success &&
+            state.report.status == ReportStatus.SUBMITTED
+        ) {
+            reportSubmissionRequested = false
+            onSubmitReport()
+        }
+    }
+
+    val realApplications: List<ApplicationItem> = when (val state = studentApplicationsUiState) {
+        is StudentApplicationsUiState.SuccessList -> state.applications.map { application ->
+            application.toApplicationItem()
+        }
+
+        else -> emptyList()
+    }
+
+    val pastApplications = realApplications.filter {
+        it.status == ApplicationStatus.ACCEPTED || it.status == ApplicationStatus.REJECTED
+    }
+
+    val activeApplications = realApplications.filter {
+        it.status == ApplicationStatus.PENDING
+    }
 
     if (showFilterModal) {
         ActivityFilterModal(
@@ -205,37 +338,24 @@ fun RecentActivityAlunoScreen(
         )
     }
 
-    if (showAddActivityModal) {
-        AddActivityModal(
-            onSave = { title, desc, _ ->
-                homeViewModel.addActivityLog(title, desc)
-                showAddActivityModal = false
-            },
-            onDismiss = { showAddActivityModal = false },
-        )
-    }
-
-    if (hasActiveInternship && activeInternship != null) {
+    if (activeInternship != null) {
         Scaffold(
             modifier = modifier,
-            floatingActionButton = {
-                FloatingActionButton(
-                    onClick = { showAddActivityModal = true },
-                    containerColor = LightBlue,
-                    contentColor = Color.White,
-                    shape = RoundedCornerShape(16.dp),
-                ) {
-                    Icon(Icons.Default.Add, contentDescription = stringResource(R.string.activity_add))
-                }
-            },
             containerColor = BackgroundLight,
         ) { innerPadding ->
             Column(modifier = Modifier.fillMaxSize()) {
                 CommonTopBar()
                 
                 ActiveInternshipContent(
-                    internship = activeInternship!!,
-                    onSubmitReport = onSubmitReport,
+                    internship = activeInternship,
+                    reportUiState = reportUiState,
+                    activityCreationUiState = activityCreationUiState,
+                    canAddActivity = activeInternshipModel?.status == InternshipStatus.IN_PROGRESS,
+                    onAddActivity = { showAddActivityModal = true },
+                    onSubmitReport = { reportId ->
+                        reportSubmissionRequested = true
+                        reportViewModel.submitReport(reportId)
+                    },
                     onActivityClick = onActivityClick,
                     onViewResult = onViewResult,
                     modifier = Modifier
@@ -244,7 +364,41 @@ fun RecentActivityAlunoScreen(
                 )
             }
         }
+    } else if (activeInternshipModel != null) {
+        Column(
+            modifier = modifier
+                .fillMaxSize()
+                .background(BackgroundLight)
+        ) {
+            CommonTopBar()
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+            ) {
+                Column(modifier = Modifier.padding(20.dp)) {
+                    Text(
+                        text = activeInternshipModel.title,
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = DarkBlue,
+                        ),
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = stringResource(R.string.home_internship_dates_unavailable),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = DarkGrey,
+                    )
+                }
+            }
+        }
     } else {
+        val applicationsErrorMessage =
+            (studentApplicationsUiState as? StudentApplicationsUiState.Error)?.message
+        val isLoadingApplications = studentApplicationsUiState is StudentApplicationsUiState.Loading
         val filteredActive = activeApplications.filter {
             (currentFilter == null || it.status == currentFilter) &&
                     (searchQuery.isBlank() || it.offerTitle.contains(searchQuery, ignoreCase = true) || it.company.contains(searchQuery, ignoreCase = true))
@@ -262,7 +416,9 @@ fun RecentActivityAlunoScreen(
             onSearchQueryChange = { searchQuery = it },
             onBack = onBack,
             modifier = modifier,
-            onFilterClick = { showFilterModal = true }
+            onFilterClick = { showFilterModal = true },
+            isLoading = isLoadingApplications,
+            errorMessage = applicationsErrorMessage
         )
     }
 }
@@ -280,6 +436,8 @@ private fun ApplicationsContent(
     onBack: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
     onFilterClick: () -> Unit = {},
+    isLoading: Boolean = false,
+    errorMessage: String? = null
 ) {
     LazyColumn(
         modifier = modifier
@@ -307,6 +465,24 @@ private fun ApplicationsContent(
                 onFilterClick = onFilterClick
             )
             Spacer(modifier = Modifier.height(12.dp))
+        }
+
+        item {
+            if (isLoading) {
+                Text(
+                    text = stringResource(R.string.applications_loading),
+                    color = DarkGrey,
+                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)
+                )
+            }
+
+            if (errorMessage != null) {
+                Text(
+                    text = errorMessage,
+                    color = Red,
+                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)
+                )
+            }
         }
 
         item {
@@ -457,36 +633,25 @@ fun StatusBadge(status: ApplicationStatus) {
 @Composable
 private fun ActiveInternshipContent(
     internship: ActiveInternship,
-    onSubmitReport: () -> Unit,
+    reportUiState: ReportUiState,
+    activityCreationUiState: ActivityCreationUiState,
+    canAddActivity: Boolean,
+    onAddActivity: () -> Unit,
+    onSubmitReport: (String) -> Unit,
     onActivityClick: (String) -> Unit = {},
     onViewResult: (String) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
-    val evaluation: InternshipEvaluation? = remember {
-        InternshipEvaluation(
-            internshipId = internship.id,
-            internshipType = InternshipType.COMPANY_SCHOOL,
-            state = EvaluationState.COMPLETED,
-            companyResponsibleGrade = 16.5f,
-            companyResponsibleObservation = "Excelente desempenho técnico.",
-            companyResponsibleName = "Ana Costa",
-            companyMentorGrade = 15.0f,
-            companyMentorObservation = "Bom trabalho em equipa.",
-            companyMentorName = "Prof. Tiago Alexandre",
-            schoolMentorGrade = 16f,
-            schoolMentorObservation = "Bom desempenho global.",
-            schoolMentorName = "Prof. Carvalho",
-        )
-    }
-
     var showSubmitConfirmation by remember { mutableStateOf(false) }
+    val report = (reportUiState as? ReportUiState.Success)?.report
+    val canSubmitReport = report?.status == ReportStatus.DRAFT
 
     if (showSubmitConfirmation) {
         LinkStageDialog(
             title = stringResource(R.string.report_submit_title),
             onConfirm = {
                 showSubmitConfirmation = false
-                onSubmitReport()
+                report?.let { onSubmitReport(it.id) }
             },
             onDismiss = { showSubmitConfirmation = false },
             confirmText = stringResource(R.string.activity_submit),
@@ -528,14 +693,42 @@ private fun ActiveInternshipContent(
             contentPadding = PaddingValues(bottom = 80.dp),
         ) {
             item {
-                Text(
-                    text = stringResource(R.string.activity_recent),
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = DarkBlue,
-                    ),
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 16.dp, end = 8.dp, top = 4.dp, bottom = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Text(
+                        text = stringResource(R.string.activity_recent),
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = DarkBlue,
+                        ),
+                    )
+                    if (canAddActivity) {
+                        IconButton(
+                            onClick = onAddActivity,
+                            enabled = activityCreationUiState !is ActivityCreationUiState.Loading,
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Add,
+                                contentDescription = stringResource(R.string.activity_add),
+                                tint = LightBlue,
+                            )
+                        }
+                    }
+                }
+
+                if (activityCreationUiState is ActivityCreationUiState.Error) {
+                    Text(
+                        text = activityCreationUiState.message,
+                        color = Red,
+                        fontSize = 13.sp,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                    )
+                }
             }
 
             items(internship.activityLogs, key = { it.id }) { activityLog ->
@@ -549,69 +742,14 @@ private fun ActiveInternshipContent(
             item {
                 Spacer(modifier = Modifier.height(8.dp))
 
-                if (evaluation?.state == EvaluationState.COMPLETED && evaluation.schoolMentorGrade != null) {
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp),
-                        shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .background(Fade2)
-                                .padding(20.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                            ) {
-                                Text(
-                                    text = stringResource(R.string.report_final_grade),
-                                    color = Color.White.copy(alpha = 0.8f),
-                                    fontSize = 13.sp,
-                                )
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Text(
-                                    text = formatGrade(evaluation.schoolMentorGrade),
-                                    color = Color.White,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 48.sp,
-                                )
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Text(
-                                    text = stringResource(R.string.report_out_of_20),
-                                    color = Color.White.copy(alpha = 0.7f),
-                                    fontSize = 13.sp,
-                                )
-                            }
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Button(
-                        onClick = { onViewResult(internship.id) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp)
-                            .height(50.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = LightBlue,
-                            contentColor = Color.White,
-                        ),
-                    ) {
-                        Text(
-                            text = stringResource(R.string.report_view_result),
-                            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
-                        )
-                    }
-                } else {
-                    ReportSubmissionCard(
-                        daysRemaining = daysRemaining,
-                        onSubmit = { showSubmitConfirmation = true },
-                    )
-                }
+                ReportSubmissionCard(
+                    daysRemaining = daysRemaining,
+                    report = report,
+                    isLoading = reportUiState is ReportUiState.Loading,
+                    errorMessage = (reportUiState as? ReportUiState.Error)?.message,
+                    onSubmit = { showSubmitConfirmation = true },
+                    enabled = canSubmitReport,
+                )
             }
         }
     }
@@ -793,7 +931,11 @@ fun ActivityLogCard(
 @Composable
 private fun ReportSubmissionCard(
     daysRemaining: Long,
+    report: FinalReportModel?,
+    isLoading: Boolean,
+    errorMessage: String?,
     onSubmit: () -> Unit,
+    enabled: Boolean,
 ) {
     Column(
         modifier = Modifier
@@ -811,7 +953,14 @@ private fun ReportSubmissionCard(
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = stringResource(R.string.report_message, daysRemaining.toInt()),
+            text = when {
+                isLoading -> stringResource(R.string.report_loading)
+                errorMessage != null -> errorMessage
+                report == null -> stringResource(R.string.report_not_found)
+                report.status == ReportStatus.DRAFT ->
+                    stringResource(R.string.report_message, daysRemaining.toInt())
+                else -> stringResource(R.string.report_already_submitted)
+            },
             style = MaterialTheme.typography.bodyMedium,
             color = DarkGrey,
             lineHeight = 20.sp,
@@ -821,6 +970,7 @@ private fun ReportSubmissionCard(
 
         Button(
             onClick = onSubmit,
+            enabled = enabled,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp),
@@ -837,7 +987,12 @@ private fun ReportSubmissionCard(
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = stringResource(R.string.activity_submit),
+                text = when (report?.status) {
+                    ReportStatus.SUBMITTED,
+                    ReportStatus.REVIEWED -> stringResource(R.string.activity_submitted)
+
+                    else -> stringResource(R.string.activity_submit)
+                },
                 style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
             )
         }
@@ -1085,6 +1240,54 @@ private fun ApplicationSearchBar(
         ) {
             Icon(Icons.Outlined.FilterList, contentDescription = stringResource(R.string.discover_filters), tint = Color.White)
         }
+    }
+}
+
+private fun StudentApplicationDetails.toApplicationItem(): ApplicationItem {
+    return ApplicationItem(
+        id = application.id,
+        offerTitle = offerTitle,
+        company = institutionName,
+        appliedAgo = application.createdAt,
+        status = application.status.toUiApplicationStatus()
+    )
+}
+
+private fun InternshipUiState.ActiveInternshipSuccess.toActiveInternship(): ActiveInternship? {
+    val parsedStartDate = internship.startDate
+        ?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
+        ?: return null
+    val parsedEndDate = internship.endDate
+        ?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
+        ?: return null
+
+    return ActiveInternship(
+        id = internship.id,
+        title = internship.title,
+        startDate = parsedStartDate,
+        endDate = parsedEndDate,
+        activityLogs = activityLogs.mapNotNull { it.toActivityLog() },
+    )
+}
+
+private fun ActivityLogModel.toActivityLog(): ActivityLog? {
+    val parsedDate = runCatching { LocalDate.parse(activityDate) }.getOrNull()
+        ?: return null
+
+    return ActivityLog(
+        id = id,
+        title = type?.takeIf { it.isNotBlank() } ?: description,
+        description = description,
+        date = parsedDate,
+        status = ActivityLogStatus.COMPLETED,
+    )
+}
+
+private fun RemoteApplicationStatus.toUiApplicationStatus(): ApplicationStatus {
+    return when (this) {
+        RemoteApplicationStatus.PENDING -> ApplicationStatus.PENDING
+        RemoteApplicationStatus.ACCEPTED -> ApplicationStatus.ACCEPTED
+        RemoteApplicationStatus.REJECTED -> ApplicationStatus.REJECTED
     }
 }
 

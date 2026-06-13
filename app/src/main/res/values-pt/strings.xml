@@ -187,6 +187,7 @@
     <string name="home_welcome">Bem-vindo de volta ao LinkStage.</string>
     <string name="home_debug_mode">DEBUG — Modo de Estágio</string>
     <string name="home_active_internship">Estágio Ativo</string>
+    <string name="home_internship_dates_unavailable">As datas do estágio não estão disponíveis.</string>
     <string name="home_view_details">Ver detalhes</string>
     <string name="home_applications_title">Estado das Candidaturas</string>
     <string name="home_discover_title">Descubra Oportunidades</string>
@@ -279,6 +280,8 @@
     <string name="offer_confirm_apply_title">Confirmar Candidatura</string>
     <string name="offer_confirm_apply_message">Tem a certeza que se pretende candidatar a \"%1$s\"?</string>
     <string name="offer_deadline_info">Candidaturas terminam em %1$d dias  •  %2$d alunos candidataram-se</string>
+    <string name="offers_loading">A carregar ofertas…</string>
+    <string name="offers_empty">Não existem ofertas publicadas.</string>
 
     <!-- ==================== STUDENT — APPLICATION ==================== -->
     <string name="apply_title">Completar Candidatura</string>
@@ -290,6 +293,7 @@
     <string name="apply_step2_subtitle">Reveja os seus dados para continuar.</string>
     <string name="apply_continue">Continuar</string>
     <string name="apply_submit">Submeter</string>
+    <string name="apply_submitting">A submeter candidatura…</string>
     <string name="apply_save_draft">Guardar como rascunho</string>
     <string name="apply_cv_incomplete_title">CV incompleto.</string>
     <string name="apply_cv_incomplete_message">Adicione pelo menos uma competência ao seu CV para continuar a candidatura.</string>
@@ -317,6 +321,8 @@
     <!-- ==================== STUDENT — ACTIVITY ==================== -->
     <string name="activity_recent">Atividade Recente</string>
     <string name="activity_detail_title">Detalhes da Atividade</string>
+    <string name="activity_detail_loading">A carregar atividade…</string>
+    <string name="activity_detail_not_found">Atividade não encontrada.</string>
     <string name="activity_delivery_date">Data de Entrega</string>
     <string name="activity_description">Descrição</string>
     <string name="activity_requirements">Requisitos</string>
@@ -350,12 +356,16 @@
     <string name="applications_applied">Candidatado</string>
     <string name="applications_empty">Nenhuma candidatura encontrada.</string>
     <string name="applications_applied_ago">• Candidatou-se %1$s</string>
+    <string name="applications_loading">A carregar candidaturas…</string>
 
     <!-- FINAL REPORT -->
     <string name="report_title">Submissão do relatório final</string>
     <string name="report_message">O teu estágio termina em %1$d dias. Prepara e submete o teu relatório final para validação do orientador.</string>
     <string name="report_submit_title">Submeter Relatório</string>
     <string name="report_submit_message">Tens a certeza que pretendes submeter o relatório final? Esta ação não pode ser desfeita e marcará o teu estágio como concluído.</string>
+    <string name="report_loading">A carregar relatório final…</string>
+    <string name="report_not_found">Não foi encontrado um rascunho do relatório final.</string>
+    <string name="report_already_submitted">O relatório final já foi submetido.</string>
     <string name="report_final_grade">Nota Final</string>
     <string name="report_out_of_20">em 20 valores</string>
     <string name="report_view_result">Ver resultado completo</string>
@@ -644,6 +654,8 @@
     <string name="result_back_home">Voltar ao Início</string>
     <string name="result_observations">Observações</string>
     <string name="result_grade_values">%1$s valores</string>
+    <string name="result_loading">A carregar resultado do estágio…</string>
+    <string name="result_not_available">O resultado do estágio não está disponível.</string>
 
     <!-- ==================== PRIVACY POLICY SECTIONS ==================== -->
     <string name="privacy_section_1_title">1. Introdução</string>

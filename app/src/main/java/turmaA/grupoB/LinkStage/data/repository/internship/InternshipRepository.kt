@@ -100,6 +100,18 @@ class InternshipRepository : InternshipRepositoryInterface {
             .decodeList<ActivityLogModel>()
     }
 
+    override suspend fun getActivityLogById(activityLogId: String): ActivityLogModel? {
+        return supabase
+            .from("activity_logs")
+            .select {
+                filter {
+                    eq("id", activityLogId)
+                }
+            }
+            .decodeList<ActivityLogModel>()
+            .firstOrNull()
+    }
+
     override suspend fun createActivityLog(input: CreateActivityLogInput): ActivityLogModel {
         return supabase
             .from("activity_logs")

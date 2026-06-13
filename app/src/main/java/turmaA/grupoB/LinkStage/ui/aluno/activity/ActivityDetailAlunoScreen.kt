@@ -34,6 +34,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,12 +45,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import turmaA.grupoB.LinkStage.R
+import turmaA.grupoB.LinkStage.data.remote.model.internship.ActivityLogModel
+import turmaA.grupoB.LinkStage.data.repository.internship.InternshipRepository
+import turmaA.grupoB.LinkStage.data.repository.internship.LocalActivityRepository
+import turmaA.grupoB.LinkStage.data.room.AtDatabase
 import turmaA.grupoB.LinkStage.ui.common.CheckItem
 import turmaA.grupoB.LinkStage.ui.common.ContentSection
 import turmaA.grupoB.LinkStage.ui.common.ContentSectionColored
@@ -63,26 +71,12 @@ import turmaA.grupoB.LinkStage.ui.theme.Fade2
 import turmaA.grupoB.LinkStage.ui.theme.Fade3
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.ui.theme.MediumBlue
+import turmaA.grupoB.LinkStage.viewmodel.internships.InternshipUiState
+import turmaA.grupoB.LinkStage.viewmodel.internships.InternshipViewModel
+import turmaA.grupoB.LinkStage.viewmodel.internships.InternshipViewModelFactory
 import android.content.Context
 import androidx.compose.ui.platform.LocalContext
 import java.time.LocalDate
-
-private fun sampleActivityLog(context: Context) = ActivityLog(
-    id = "2",
-    title = context.getString(R.string.mock_checkpoint_2),
-    description = context.getString(R.string.mock_checkpoint_desc_mockups),
-    date = LocalDate.of(2026, 5, 5),
-    status = ActivityLogStatus.PENDING,
-    company = "Viana S.T.Arts",
-    companyLogoInitial = "V",
-    companyLogoColor = Color(0xFF212121),
-    requirements = listOf(
-        context.getString(R.string.mock_req_ppt),
-        context.getString(R.string.mock_req_report_updated),
-        context.getString(R.string.mock_req_additional_docs),
-    ),
-    hasSubmitted = false,
-)
 
 private fun formatDateUppercase(date: LocalDate, context: Context): String {
     val monthNames = context.resources.getStringArray(R.array.months_short)
@@ -94,20 +88,55 @@ fun ActivityDetailAlunoScreen(
     checkpointId: String,
     onBack: () -> Unit,
     activityLog: ActivityLog? = null,
+    internshipViewModel: InternshipViewModel = viewModel(
+        factory = InternshipViewModelFactory(
+            InternshipRepository(),
+            LocalActivityRepository(
+                AtDatabase.getDatabase(LocalContext.current).atividadeDAO()
+            ),
+        )
+    ),
 ) {
     val context = LocalContext.current
-    val resolvedActivityLog = activityLog ?: sampleActivityLog(context)
+    val internshipUiState by internshipViewModel.uiState.collectAsState()
+
+    LaunchedEffect(checkpointId, activityLog) {
+        if (activityLog == null) {
+            internshipViewModel.loadActivityLogById(checkpointId)
+        }
+    }
+
+    val resolvedActivityLog = activityLog ?: when (val state = internshipUiState) {
+        is InternshipUiState.SuccessActivity -> state.activityLogModel.toActivityLog()
+        else -> null
+    }
+
+    if (resolvedActivityLog == null) {
+        ActivityDetailState(
+            message = when (val state = internshipUiState) {
+                InternshipUiState.Idle,
+                InternshipUiState.Loading -> stringResource(R.string.activity_detail_loading)
+
+                is InternshipUiState.Error -> state.message
+                else -> stringResource(R.string.activity_detail_not_found)
+            },
+            onBack = onBack,
+        )
+        return
+    }
+
     var hasSubmitted by remember { mutableStateOf(resolvedActivityLog.hasSubmitted) }
     var fileUri by remember { mutableStateOf<Uri?>(null) }
     var fileName by remember { mutableStateOf<String?>(null) }
     var showConfirmDialog by remember { mutableStateOf(false) }
+    val supportsSubmission = activityLog != null
 
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         fileUri = uri
         fileName = uri?.lastPathSegment
     }
 
-    val canSubmit = !hasSubmitted
+    val canSubmit = supportsSubmission && !hasSubmitted
 
     if (showConfirmDialog) {
         LinkStageDialog(
@@ -284,7 +313,7 @@ fun ActivityDetailAlunoScreen(
                             Card(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .clickable { launcher.launch("*/*") },
+                                    .clickable(enabled = canSubmit) { launcher.launch("*/*") },
                                 shape = RoundedCornerShape(12.dp),
                                 colors = CardDefaults.cardColors(containerColor = Color.White),
                                 border = BorderStroke(1.dp, BorderGrey),
@@ -324,6 +353,44 @@ fun ActivityDetailAlunoScreen(
                 brush = if (hasSubmitted) Fade3 else Fade2
             )
     }
+}
+
+@Composable
+private fun ActivityDetailState(
+    message: String,
+    onBack: () -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(BackgroundLight),
+    ) {
+        SecondaryTopBar(title = stringResource(R.string.activity_detail_title), onBack = onBack)
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = message,
+                color = DarkGrey,
+                modifier = Modifier.padding(24.dp),
+            )
+        }
+    }
+}
+
+private fun ActivityLogModel.toActivityLog(): ActivityLog? {
+    val parsedDate = runCatching { LocalDate.parse(activityDate) }.getOrNull()
+        ?: return null
+    val activityTitle = type?.takeIf { it.isNotBlank() } ?: description
+
+    return ActivityLog(
+        id = id,
+        title = activityTitle,
+        description = description,
+        date = parsedDate,
+        status = ActivityLogStatus.COMPLETED,
+    )
 }
 
 @Preview(showSystemUi = true)

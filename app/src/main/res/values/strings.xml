@@ -186,6 +186,7 @@
     <string name="home_welcome">Welcome back to LinkStage.</string>
     <string name="home_debug_mode">DEBUG — Internship Mode</string>
     <string name="home_active_internship">Active Internship</string>
+    <string name="home_internship_dates_unavailable">The internship dates are not available.</string>
     <string name="home_view_details">View details</string>
     <string name="home_applications_title">Application Status</string>
     <string name="home_discover_title">Discover Opportunities</string>
@@ -289,6 +290,7 @@
     <string name="apply_step2_subtitle">Review your data to continue.</string>
     <string name="apply_continue">Continue</string>
     <string name="apply_submit">Submit</string>
+    <string name="apply_submitting">Submitting application…</string>
     <string name="apply_save_draft">Save as draft</string>
     <string name="apply_cv_incomplete_title">Incomplete CV.</string>
     <string name="apply_cv_incomplete_message">Add at least one skill to your CV to continue the application.</string>
@@ -316,6 +318,8 @@
     <!-- ==================== STUDENT — ACTIVITY ==================== -->
     <string name="activity_recent">Recent Activity</string>
     <string name="activity_detail_title">Activity Details</string>
+    <string name="activity_detail_loading">Loading activity…</string>
+    <string name="activity_detail_not_found">Activity not found.</string>
     <string name="activity_delivery_date">Delivery Date</string>
     <string name="activity_description">Description</string>
     <string name="activity_requirements">Requirements</string>
@@ -349,12 +353,16 @@
     <string name="applications_applied">Applied</string>
     <string name="applications_empty">No applications found.</string>
     <string name="applications_applied_ago">• Applied %1$s</string>
+    <string name="applications_loading">Loading applications…</string>
 
     <!-- FINAL REPORT -->
     <string name="report_title">Final report submission</string>
     <string name="report_message">Your internship ends in %1$d days. Prepare and upload your final report for advisor validation.</string>
     <string name="report_submit_title">Submit Report</string>
     <string name="report_submit_message">Are you sure you want to submit the final report? This action cannot be undone and will mark your internship as completed.</string>
+    <string name="report_loading">Loading final report…</string>
+    <string name="report_not_found">No final report draft was found.</string>
+    <string name="report_already_submitted">The final report has already been submitted.</string>
     <string name="report_final_grade">Final Grade</string>
     <string name="report_out_of_20">out of 20 values</string>
     <string name="report_view_result">View full result</string>
@@ -643,6 +651,8 @@
     <string name="result_back_home">Back to Home</string>
     <string name="result_observations">Observations</string>
     <string name="result_grade_values">%1$s values</string>
+    <string name="result_loading">Loading internship result…</string>
+    <string name="result_not_available">The internship result is not available.</string>
 
     <!-- ==================== PRIVACY POLICY SECTIONS ==================== -->
     <string name="privacy_section_1_title">1. Introduction</string>
@@ -963,6 +973,9 @@
     <string name="offer_filter_part_time">Part Time</string>
     <string name="offer_filter_remote">Remote</string>
     <string name="offer_filter_hybrid">Hybrid</string>
+    <string name="offers_loading">Loading offers…</string>
+    <string name="offers_empty">No published offers available.</string>
+
 
     <!-- ==================== ASSIGN MENTOR ==================== -->
     <string name="assign_mentor_confirm_title">Assign advisor?</string>

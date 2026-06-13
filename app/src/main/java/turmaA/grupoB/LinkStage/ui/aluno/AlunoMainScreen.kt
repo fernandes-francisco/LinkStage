@@ -16,7 +16,9 @@ import androidx.compose.material3.Text
 import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -35,10 +37,7 @@ import turmaA.grupoB.LinkStage.ui.common.PrivacyPolicyScreen
 import turmaA.grupoB.LinkStage.ui.aluno.activity.InternshipResultScreen
 import turmaA.grupoB.LinkStage.ui.aluno.activity.RecentActivityAlunoScreen
 import turmaA.grupoB.LinkStage.ui.aluno.chat.ChatAlunoScreen
-import turmaA.grupoB.LinkStage.ui.aluno.chat.ChatScreen
-import turmaA.grupoB.LinkStage.ui.aluno.chat.sampleConversations
-import turmaA.grupoB.LinkStage.ui.aluno.chat.getSampleContacts
-import turmaA.grupoB.LinkStage.ui.aluno.chat.Conversation
+import turmaA.grupoB.LinkStage.ui.aluno.chat.StudentChatScreen
 import turmaA.grupoB.LinkStage.ui.aluno.home.HomeAlunoScreen
 import turmaA.grupoB.LinkStage.ui.aluno.notifications.NotificationsAlunoScreen
 import turmaA.grupoB.LinkStage.ui.aluno.activity.ActivityDetailAlunoScreen
@@ -52,8 +51,8 @@ import turmaA.grupoB.LinkStage.ui.aluno.settings.SettingsAlunoScreen
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.viewmodel.ApplyViewModel
-import turmaA.grupoB.LinkStage.viewmodel.HomeViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import turmaA.grupoB.LinkStage.ui.aluno.offers.OfferDetail
 
 object AlunoRoutes {
     const val HOME = "home"
@@ -62,7 +61,7 @@ object AlunoRoutes {
     const val MESSAGES = "messages"
     const val SETTINGS = "settings"
     const val NOTIFICATIONS = "notifications"
-    const val CHAT = "chat/{conversationId}"
+    const val CHAT = "chat/{threadId}"
     const val OFFER_DETAIL = "offer_detail/{offerId}"
     const val APPLY = "apply/{offerId}"
     const val EDIT_SKILLS = "edit_skills"
@@ -73,7 +72,7 @@ object AlunoRoutes {
     const val REPORT_SUCCESS = "report_success"
     const val PRIVACY_POLICY = "privacy_policy"
 
-    fun chatRoute(conversationId: String) = "chat/$conversationId"
+    fun chatRoute(threadId: String) = "chat/$threadId"
     fun internshipResultRoute(internshipId: String) = "internship_result/$internshipId"
     fun offerDetailRoute(offerId: String) = "offer_detail/$offerId"
     fun applyRoute(offerId: String) = "apply/$offerId"
@@ -98,9 +97,12 @@ private val alunoTabs = listOf(
 @Composable
 fun AlunoMainScreen(onLogout: () -> Unit = {}) {
     val navController = rememberNavController()
-    val homeViewModel: HomeViewModel = viewModel()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
+
+    var pendingApplyOffer by remember {
+        mutableStateOf<OfferDetail?>(null)
+    }
 
     val showBottomBar = alunoTabs.any { tab ->
         currentDestination?.hierarchy?.any { it.route == tab.route } == true
@@ -149,7 +151,7 @@ fun AlunoMainScreen(onLogout: () -> Unit = {}) {
             modifier = Modifier.padding(innerPadding),
         ) {
             composable(AlunoRoutes.HOME) {
-                HomeAlunoScreen(navController = navController, homeViewModel = homeViewModel)
+                HomeAlunoScreen(navController = navController)
             }
             composable(AlunoRoutes.DISCOVER) {
                 OffersAlunoScreen(
@@ -166,7 +168,10 @@ fun AlunoMainScreen(onLogout: () -> Unit = {}) {
                 OfferDetailAlunoScreen(
                     offerId = offerId,
                     onBack = { navController.popBackStack() },
-                    onApply = { id -> navController.navigate(AlunoRoutes.applyRoute(id)) },
+                    onApply = { offer ->
+                        pendingApplyOffer = offer
+                        navController.navigate(AlunoRoutes.applyRoute(offer.id))
+                    },
                 )
             }
             composable(
@@ -175,8 +180,13 @@ fun AlunoMainScreen(onLogout: () -> Unit = {}) {
             ) { backStackEntry ->
                 val offerId = backStackEntry.arguments?.getString("offerId") ?: return@composable
                 val applyViewModel: ApplyViewModel = viewModel(backStackEntry)
+                val selectedOffer = pendingApplyOffer
                 ApplyScreen(
                     offerId = offerId,
+                    offerTitle = selectedOffer?.title ?: "",
+                    offerCompany = selectedOffer?.company ?: "",
+                    offerLogoInitial = selectedOffer?.logoInitial ?: "?",
+                    offerLogoColor = selectedOffer?.logoColor ?: Color(0xFF212121),
                     viewModel = applyViewModel,
                     onBack = { navController.popBackStack() },
                     onNavigateToEditSkills = { navController.navigate(AlunoRoutes.EDIT_SKILLS) },
@@ -202,9 +212,16 @@ fun AlunoMainScreen(onLogout: () -> Unit = {}) {
                 arguments = listOf(navArgument("offerId") { type = NavType.StringType }),
             ) { backStackEntry ->
                 val offerId = backStackEntry.arguments?.getString("offerId") ?: return@composable
+                val selectedOffer = pendingApplyOffer
                 ApplySuccessScreen(
                     offerId = offerId,
+                    offerTitle = selectedOffer?.title ?: "",
+                    offerCompany = selectedOffer?.company ?: "",
+                    offerLogoInitial = selectedOffer?.logoInitial ?: "?",
+                    offerLogoColor = selectedOffer?.logoColor ?: Color(0xFF212121),
                     onNavigateBack = {
+                        pendingApplyOffer = null
+
                         navController.navigate(AlunoRoutes.DISCOVER) {
                             popUpTo(AlunoRoutes.HOME) { inclusive = false }
                         }
@@ -213,7 +230,6 @@ fun AlunoMainScreen(onLogout: () -> Unit = {}) {
             }
             composable(AlunoRoutes.ACTIVITY) {
                 RecentActivityAlunoScreen(
-                    homeViewModel = homeViewModel,
                     onBack = { navController.popBackStack() },
                     onActivityClick = { checkpointId ->
                         navController.navigate(AlunoRoutes.activityDetailRoute(checkpointId))
@@ -247,8 +263,8 @@ fun AlunoMainScreen(onLogout: () -> Unit = {}) {
             }
             composable(AlunoRoutes.MESSAGES) {
                 ChatAlunoScreen(
-                    onOpenChat = { conversationId ->
-                        navController.navigate(AlunoRoutes.chatRoute(conversationId))
+                    onOpenThread = { threadId ->
+                        navController.navigate(AlunoRoutes.chatRoute(threadId))
                     },
                 )
             }
@@ -291,28 +307,12 @@ fun AlunoMainScreen(onLogout: () -> Unit = {}) {
             }
             composable(
                 route = AlunoRoutes.CHAT,
-                arguments = listOf(navArgument("conversationId") { type = NavType.StringType }),
+                arguments = listOf(navArgument("threadId") { type = NavType.StringType }),
             ) { backStackEntry ->
-                val conversationId = backStackEntry.arguments?.getString("conversationId") ?: return@composable
+                val threadId = backStackEntry.arguments?.getString("threadId") ?: return@composable
                 
-                // Primeiro procura nas conversas existentes
-                val existingConversation = sampleConversations.find { it.id == conversationId }
-                
-                // Se não existir, procura nos contactos para criar uma nova conversa
-                val contacts = getSampleContacts()
-                val conversation = existingConversation ?: contacts.find { it.id == conversationId }?.let { contact ->
-                    Conversation(
-                        id = contact.id,
-                        name = contact.name,
-                        initials = contact.initials,
-                        lastMessage = "Inicia uma nova conversa.",
-                        time = "Agora",
-                        avatarColorIndex = contact.avatarColorIndex
-                    )
-                } ?: return@composable
-
-                ChatScreen(
-                    conversation = conversation,
+                StudentChatScreen(
+                    threadId = threadId,
                     onBack = { navController.popBackStack() },
                 )
             }

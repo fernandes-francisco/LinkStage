@@ -9,9 +9,11 @@ import kotlinx.coroutines.launch
 import turmaA.grupoB.LinkStage.data.remote.model.offer.CreateOfferInput
 import turmaA.grupoB.LinkStage.data.remote.model.offer.UpdateOfferInput
 import turmaA.grupoB.LinkStage.data.repository.offer.OfferRepositoryInterface
+import turmaA.grupoB.LinkStage.data.repository.institution.InstitutionRepositoryInterface
 
 class OfferViewModel(
-    private val offerRepository: OfferRepositoryInterface
+    private val offerRepository: OfferRepositoryInterface,
+    private val institutionRepository: InstitutionRepositoryInterface? = null,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<OfferUiState>(OfferUiState.Idle)
@@ -74,6 +76,33 @@ class OfferViewModel(
             } catch (e: Exception) {
                 _uiState.value = OfferUiState.Error(
                     e.message ?: "Erro ao carregar oferta."
+                )
+            }
+        }
+    }
+
+    fun loadOfferDetailsById(offerId: String) {
+        viewModelScope.launch {
+            _uiState.value = OfferUiState.Loading
+
+            try {
+                val offer = offerRepository.getOfferById(offerId)
+
+                if (offer == null) {
+                    _uiState.value = OfferUiState.Empty
+                    return@launch
+                }
+
+                val institution = institutionRepository?.let { repository ->
+                    runCatching {
+                        repository.getInstitutionById(offer.institutionId)
+                    }.getOrNull()
+                }
+
+                _uiState.value = OfferUiState.SuccessDetails(offer, institution)
+            } catch (e: Exception) {
+                _uiState.value = OfferUiState.Error(
+                    e.message ?: "Erro ao carregar detalhes da oferta."
                 )
             }
         }
