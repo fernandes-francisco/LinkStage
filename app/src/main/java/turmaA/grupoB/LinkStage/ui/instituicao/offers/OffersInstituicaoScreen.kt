@@ -54,9 +54,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.aluno.offers.OfferItem
 import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
 import turmaA.grupoB.LinkStage.ui.common.LinkStageDialog
@@ -133,32 +135,27 @@ fun OffersInstituicaoScreen(
                 contentColor = Color.White,
                 shape = RoundedCornerShape(16.dp),
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Criar oferta")
+                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.offers_create))
             }
         },
         containerColor = BackgroundLight,
-    ) { paddingValues ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues),
-            contentPadding = PaddingValues(bottom = 16.dp),
-        ) {
-            item { CommonTopBar() }
-
-            item {
-                Text(
-                    text = "Gestão de Ofertas",
-                    style = MaterialTheme.typography.headlineSmall.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = DarkBlue,
-                    ),
-                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp),
-                )
-            }
-
-            item {
-                Spacer(modifier = Modifier.height(12.dp))
+        topBar = {
+            Column(modifier = Modifier.background(BackgroundLight)) {
+                CommonTopBar()
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp, vertical = 8.dp),
+                    horizontalAlignment = Alignment.Start,
+                ) {
+                    Text(
+                        text = stringResource(R.string.offers_manage_title),
+                        style = MaterialTheme.typography.headlineSmall.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = DarkBlue,
+                        ),
+                    )
+                }
                 SearchBarWithFilter(
                     query = searchQuery,
                     onQueryChange = { searchQuery = it },
@@ -166,7 +163,14 @@ fun OffersInstituicaoScreen(
                 )
                 Spacer(modifier = Modifier.height(12.dp))
             }
-
+        }
+    ) { paddingValues ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues),
+            contentPadding = PaddingValues(bottom = 16.dp),
+        ) {
             items(filteredOffers, key = { it.id }) { offer ->
                 InstitutionOfferCard(
                     offer = offer,
@@ -196,7 +200,7 @@ private fun SearchBarWithFilter(
             value = query,
             onValueChange = onQueryChange,
             modifier = Modifier.weight(1f),
-            placeholder = { Text("Pesquisar...", color = DarkGrey) },
+            placeholder = { Text(stringResource(R.string.common_search_placeholder), color = DarkGrey) },
             leadingIcon = {
                 Icon(Icons.Outlined.Search, contentDescription = null, tint = DarkGrey)
             },
@@ -220,7 +224,7 @@ private fun SearchBarWithFilter(
         ) {
             Icon(
                 Icons.Outlined.FilterList,
-                contentDescription = "Filtros",
+                contentDescription = stringResource(R.string.discover_filters),
                 tint = Color.White,
                 modifier = Modifier.size(22.dp),
             )
@@ -242,30 +246,31 @@ private fun OfferFilterDialog(
     var location by remember { mutableStateOf(currentLocation) }
     var typeExpanded by remember { mutableStateOf(false) }
 
-    val typeOptions = listOf("Todos", "Tempo Inteiro", "Tempo Parcial", "Remoto", "Híbrido")
+    val allLabel = stringResource(R.string.filter_all)
+    val typeOptions = listOf(allLabel, stringResource(R.string.offer_filter_full_time), stringResource(R.string.offer_filter_part_time), stringResource(R.string.offer_filter_remote), stringResource(R.string.offer_filter_hybrid))
 
     LinkStageDialog(
-        title = "Filtros",
+        title = stringResource(R.string.filter_title),
         onConfirm = {
             onApply(
-                if (type == "Todos") "" else type,
+                if (type == allLabel || type.isEmpty()) "" else type,
                 area,
                 location,
             )
         },
         onDismiss = onDismiss,
-        confirmText = "Filtrar",
-        dismissText = "Cancelar",
+        confirmText = stringResource(R.string.filter_apply),
+        dismissText = stringResource(R.string.dialog_cancel),
         content = {
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    SectionLabel("Modelo de trabalho")
+                    SectionLabel(stringResource(R.string.offers_filter_work_model))
                     ExposedDropdownMenuBox(
                         expanded = typeExpanded,
                         onExpandedChange = { typeExpanded = it },
                     ) {
                         OutlinedTextField(
-                            value = type.ifEmpty { "Todos" },
+                            value = type.ifEmpty { allLabel },
                             onValueChange = {},
                             readOnly = true,
                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = typeExpanded) },
@@ -289,7 +294,7 @@ private fun OfferFilterDialog(
                                 DropdownMenuItem(
                                     text = { Text(option) },
                                     onClick = {
-                                        type = if (option == "Todos") "" else option
+                                        type = if (option == allLabel) "" else option
                                         typeExpanded = false
                                     },
                                 )
@@ -299,11 +304,11 @@ private fun OfferFilterDialog(
                 }
 
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    SectionLabel("Área")
+                    SectionLabel(stringResource(R.string.offers_filter_area))
                     OutlinedTextField(
                         value = area,
                         onValueChange = { area = it },
-                        placeholder = { Text("Escreva aqui.", color = DarkGrey, fontSize = 14.sp) },
+                        placeholder = { Text(stringResource(R.string.common_write_here), color = DarkGrey, fontSize = 14.sp) },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(10.dp),
                         colors = OutlinedTextFieldDefaults.colors(
@@ -317,11 +322,11 @@ private fun OfferFilterDialog(
                 }
 
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    SectionLabel("Localização")
+                    SectionLabel(stringResource(R.string.offers_filter_location))
                     OutlinedTextField(
                         value = location,
                         onValueChange = { location = it },
-                        placeholder = { Text("Escreva aqui.", color = DarkGrey, fontSize = 14.sp) },
+                        placeholder = { Text(stringResource(R.string.common_write_here), color = DarkGrey, fontSize = 14.sp) },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(10.dp),
                         colors = OutlinedTextFieldDefaults.colors(
@@ -393,7 +398,7 @@ private fun InstitutionOfferCard(
                     ) {
                         Icon(
                             imageVector = Icons.Outlined.Edit,
-                            contentDescription = "Editar",
+                            contentDescription = stringResource(R.string.common_edit),
                             tint = LightBlue,
                             modifier = Modifier.size(18.dp),
                         )
@@ -404,7 +409,7 @@ private fun InstitutionOfferCard(
                     ) {
                         Icon(
                             imageVector = Icons.Outlined.Delete,
-                            contentDescription = "Apagar",
+                            contentDescription = stringResource(R.string.common_delete_label),
                             tint = Red,
                             modifier = Modifier.size(18.dp),
                         )
@@ -429,7 +434,7 @@ private fun InstitutionOfferCard(
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
-                    text = "Publicada ${offer.publishedAgo}",
+                    text = stringResource(R.string.offers_published, offer.publishedAgo),
                     color = DarkGrey,
                     fontSize = 12.sp,
                 )
@@ -445,14 +450,14 @@ private fun DeleteOfferDialog(
     onDismiss: () -> Unit,
 ) {
     LinkStageDialog(
-        title = "Apagar Oferta?",
+        title = stringResource(R.string.offers_delete_title),
         onConfirm = onConfirm,
         onDismiss = onDismiss,
-        confirmText = "Apagar",
-        dismissText = "Cancelar",
+        confirmText = stringResource(R.string.offers_delete_confirm),
+        dismissText = stringResource(R.string.dialog_cancel),
     ) {
         Text(
-            text = "Tem a certeza que pretende apagar a oferta \"$offerTitle\"? Esta ação não pode ser desfeita.",
+            text = stringResource(R.string.offers_delete_body, offerTitle),
             color = DarkGrey,
             fontSize = 14.sp,
         )

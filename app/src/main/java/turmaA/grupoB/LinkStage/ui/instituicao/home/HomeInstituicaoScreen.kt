@@ -18,7 +18,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.automirrored.outlined.ArrowForward
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.ChevronRight
@@ -30,7 +29,6 @@ import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.Work
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -39,6 +37,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -48,26 +47,36 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.rememberNavController
+import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.aluno.chat.Conversation
 import turmaA.grupoB.LinkStage.ui.aluno.chat.avatarColors
 import turmaA.grupoB.LinkStage.ui.aluno.chat.sampleConversations
 import turmaA.grupoB.LinkStage.ui.aluno.offers.OfferItem
-import turmaA.grupoB.LinkStage.ui.common.LinkStageLogo
+import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
+import turmaA.grupoB.LinkStage.ui.common.EvaluationNotificationModal
+import turmaA.grupoB.LinkStage.ui.common.EvaluationPendingCard
 import turmaA.grupoB.LinkStage.ui.instituicao.InstituicaoRoutes
+import turmaA.grupoB.LinkStage.ui.orientador.EvaluationState
+import turmaA.grupoB.LinkStage.ui.orientador.InternshipEvaluation
+import turmaA.grupoB.LinkStage.ui.orientador.InternshipType
+import androidx.compose.ui.platform.LocalContext
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.ui.theme.Red
+import turmaA.grupoB.LinkStage.viewmodel.InstitutionHomeViewModel
 
 private val sampleInstitutionOffers = listOf(
     OfferItem("1", "Designer de Produto", "ESTG-IPVC", "Tempo Inteiro", "5h atras", Color(0xFF1565C0), "E", duration = "6 Meses", area = "Design", location = "Porto"),
@@ -78,8 +87,10 @@ private val sampleInstitutionOffers = listOf(
 fun HomeInstituicaoScreen(
     navController: NavController,
     modifier: Modifier = Modifier,
+    institutionHomeViewModel: InstitutionHomeViewModel = viewModel(),
 ) {
-    val internships = turmaA.grupoB.LinkStage.ui.instituicao.sampleInstitutionInternships
+    val context = LocalContext.current
+    val internships = turmaA.grupoB.LinkStage.ui.instituicao.sampleInstitutionInternships(context)
     val activeOffersCount = 5
     val applicationsCount = 12
     val activeInternships = internships.count {
@@ -92,19 +103,66 @@ fun HomeInstituicaoScreen(
         it.status == turmaA.grupoB.LinkStage.ui.instituicao.InternshipStatus.NO_MENTOR || !it.hasMentor
     }
 
+    val evaluation: InternshipEvaluation? = remember {
+        InternshipEvaluation(
+            internshipId = "int3",
+            internshipType = InternshipType.SCHOOL_ONLY,
+            state = EvaluationState.PENDING,
+            institutionName = "ESTG-IPVC",
+            schoolMentorName = "Prof. Tiago Alex.",
+            hasSeenNotification = false,
+        )
+    }
+
+    val hasSeenResult by institutionHomeViewModel.hasSeenEvaluations.collectAsState()
+    val hasDismissedModal by institutionHomeViewModel.hasDismissedEvaluationModal.collectAsState()
+
+    val showEvaluationModal = evaluation?.state == EvaluationState.PENDING && 
+            !hasSeenResult && 
+            !hasDismissedModal
+
+    if (showEvaluationModal) {
+        EvaluationNotificationModal(
+            title = stringResource(R.string.institution_home_completed_title),
+            message = stringResource(R.string.institution_home_completed_message),
+            actionLabel = stringResource(R.string.institution_eval_submit_grade),
+            onAction = {
+                institutionHomeViewModel.setHasSeenEvaluations(true)
+                navController.navigate(
+                    InstituicaoRoutes.internshipDetailRoute(evaluation.internshipId)
+                )
+            },
+            onDismiss = { institutionHomeViewModel.setHasDismissedEvaluationModal(true) },
+        )
+    }
+
     Scaffold(
         modifier = modifier,
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { navController.navigate(InstituicaoRoutes.offerFormRoute("new")) },
-                containerColor = LightBlue,
-                contentColor = Color.White,
-                shape = RoundedCornerShape(16.dp),
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Criar oferta")
-            }
-        },
         containerColor = BackgroundLight,
+        topBar = {
+            Column(modifier = Modifier.background(BackgroundLight)) {
+                CommonTopBar()
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp, vertical = 8.dp),
+                    horizontalAlignment = Alignment.Start,
+                ) {
+                    Text(
+                        text = stringResource(R.string.institution_home_greeting, "ESTG-IPVC"),
+                        style = MaterialTheme.typography.headlineMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = DarkBlue,
+                        ),
+                    )
+                    Text(
+                        text = stringResource(R.string.institution_home_welcome),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = DarkGrey,
+                    )
+                }
+            }
+        }
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -112,27 +170,24 @@ fun HomeInstituicaoScreen(
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState()),
         ) {
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                LinkStageLogo()
+            if (evaluation?.state == EvaluationState.PENDING && !hasSeenResult) {
+                EvaluationPendingCard(
+                    title = stringResource(R.string.institution_home_eval_pending),
+                    message = stringResource(R.string.institution_home_eval_pending_message),
+                    actionLabel = stringResource(R.string.institution_eval_submit_grade),
+                    isDanger = false,
+                    onClick = {
+                        institutionHomeViewModel.setHasSeenEvaluations(true)
+                        navController.navigate(
+                            InstituicaoRoutes.internshipDetailRoute(evaluation.internshipId)
+                        )
+                    },
+                )
+                Spacer(modifier = Modifier.height(8.dp))
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                text = "Olá, ESTG-IPVC.",
-                fontSize = 28.sp,
-                fontWeight = FontWeight.Bold,
-                color = DarkBlue,
-                modifier = Modifier.padding(horizontal = 20.dp),
-                maxLines = 2,
-            )
-
-            Spacer(modifier = Modifier.height(20.dp))
-
             // Section 1 — Resumo (stat cards 2x2)
-            SectionTitle("Resumo")
+            SectionTitle(stringResource(R.string.institution_home_summary))
             Spacer(modifier = Modifier.height(8.dp))
 
             Row(
@@ -143,7 +198,7 @@ fun HomeInstituicaoScreen(
             ) {
                 StatCard(
                     icon = Icons.Outlined.Work,
-                    label = "Ofertas ativas",
+                    label = stringResource(R.string.institution_home_active_offers),
                     count = activeOffersCount,
                     color = LightBlue,
                     modifier = Modifier.weight(1f),
@@ -156,7 +211,7 @@ fun HomeInstituicaoScreen(
                 )
                 StatCard(
                     icon = Icons.Outlined.People,
-                    label = "Candidaturas",
+                    label = stringResource(R.string.institution_home_applications),
                     count = applicationsCount,
                     color = DarkBlue,
                     modifier = Modifier.weight(1f),
@@ -179,7 +234,7 @@ fun HomeInstituicaoScreen(
             ) {
                 StatCard(
                     icon = Icons.Outlined.CalendarMonth,
-                    label = "Estágios ativos",
+                    label = stringResource(R.string.institution_home_active_internships),
                     count = activeInternships,
                     color = LightBlue,
                     modifier = Modifier.weight(1f),
@@ -192,7 +247,7 @@ fun HomeInstituicaoScreen(
                 )
                 StatCard(
                     icon = Icons.Outlined.RateReview,
-                    label = "Por avaliar",
+                    label = stringResource(R.string.institution_home_pending_eval),
                     count = pendingEvaluations,
                     color = Red,
                     modifier = Modifier.weight(1f),
@@ -208,7 +263,7 @@ fun HomeInstituicaoScreen(
             Spacer(modifier = Modifier.height(20.dp))
 
             // Section 2 — Ações pendentes
-            SectionTitle("Ações pendentes")
+            SectionTitle(stringResource(R.string.institution_home_pending_actions))
             Spacer(modifier = Modifier.height(8.dp))
 
             if (applicationsCount > 0 || noMentorCount > 0) {
@@ -217,8 +272,8 @@ fun HomeInstituicaoScreen(
                         icon = Icons.Outlined.People,
                         iconBg = LightBlue.copy(alpha = 0.15f),
                         iconTint = LightBlue,
-                        title = "$applicationsCount candidaturas aguardam decisão",
-                        subtitle = "Reveja e tome uma decisão sobre as candidaturas recentes.",
+                        title = stringResource(R.string.institution_home_applications_waiting, applicationsCount),
+                        subtitle = stringResource(R.string.institution_home_applications_waiting_sub),
                         onClick = {
                             navController.navigate(InstituicaoRoutes.OFFERS) {
                                 popUpTo(navController.graph.findStartDestination().id) {
@@ -237,8 +292,8 @@ fun HomeInstituicaoScreen(
                         icon = Icons.Outlined.PersonOff,
                         iconBg = Red.copy(alpha = 0.12f),
                         iconTint = Red,
-                        title = "$noMentorCount estágios necessitam de orientador",
-                        subtitle = "Atribua um orientador para acompanhamento académico.",
+                        title = stringResource(R.string.institution_home_no_mentor, noMentorCount),
+                        subtitle = stringResource(R.string.institution_home_no_mentor_sub),
                         onClick = {
                             navController.navigate(InstituicaoRoutes.ACTIVITY) {
                                 popUpTo(navController.graph.findStartDestination().id) {
@@ -251,14 +306,14 @@ fun HomeInstituicaoScreen(
                     )
                 }
             } else {
-                EmptyStateCard("Sem ações pendentes. Tudo em ordem.")
+                EmptyStateCard(stringResource(R.string.institution_home_no_pending))
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
             // Section 3 — Ofertas Recentes
             SectionHeader(
-                title = "Ofertas Recentes",
+                title = stringResource(R.string.institution_home_recent_offers),
                 onViewAll = {
                     navController.navigate(InstituicaoRoutes.OFFERS) {
                         popUpTo(navController.graph.findStartDestination().id) {
@@ -277,14 +332,14 @@ fun HomeInstituicaoScreen(
                     Spacer(modifier = Modifier.height(8.dp))
                 }
             } else {
-                EmptyStateCard("Ainda não foi criada nenhuma oferta.")
+                EmptyStateCard(stringResource(R.string.institution_home_no_offers))
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
             // Section 4 — Mensagens Recentes
             SectionHeader(
-                title = "Mensagens Recentes",
+                title = stringResource(R.string.institution_home_recent_messages),
                 onViewAll = {
                     navController.navigate(InstituicaoRoutes.MESSAGES) {
                         popUpTo(navController.graph.findStartDestination().id) {
@@ -322,7 +377,7 @@ fun HomeInstituicaoScreen(
                     }
                 }
             } else {
-                EmptyStateCard("Sem mensagens de momento.")
+                EmptyStateCard(stringResource(R.string.institution_home_no_messages))
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -361,7 +416,7 @@ private fun SectionHeader(
         )
         TextButton(onClick = onViewAll) {
             Text(
-                text = "Ver todos →",
+                text = stringResource(R.string.common_view_all),
                 color = LightBlue,
                 fontSize = 13.sp,
             )
@@ -529,7 +584,7 @@ private fun SimpleOfferCard(offer: OfferItem) {
                 IconButton(onClick = { isFav = !isFav }) {
                     Icon(
                         imageVector = Icons.Outlined.FavoriteBorder,
-                        contentDescription = "Favorito",
+                        contentDescription = stringResource(R.string.institution_home_favorite),
                         tint = if (isFav) LightBlue else DarkGrey,
                     )
                 }
@@ -552,7 +607,7 @@ private fun SimpleOfferCard(offer: OfferItem) {
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
-                    text = "Publicada ${offer.publishedAgo}",
+                    text = stringResource(R.string.offers_published, offer.publishedAgo),
                     color = DarkGrey,
                     fontSize = 12.sp,
                 )

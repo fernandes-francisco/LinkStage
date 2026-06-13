@@ -1,5 +1,7 @@
 package turmaA.grupoB.LinkStage.ui.aluno.settings
 
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -9,6 +11,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -43,6 +46,7 @@ import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -55,8 +59,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -64,7 +69,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
+import turmaA.grupoB.LinkStage.R
+import turmaA.grupoB.LinkStage.data.repository.flags.FlagsRepository
 import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
 import turmaA.grupoB.LinkStage.ui.common.LinkStageButton
 import turmaA.grupoB.LinkStage.ui.common.LinkStageDialog
@@ -79,6 +88,9 @@ import turmaA.grupoB.LinkStage.ui.theme.Fade2
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.ui.theme.Red
 import turmaA.grupoB.LinkStage.viewmodel.SettingsViewModel
+import turmaA.grupoB.LinkStage.viewmodel.flags.FlagsUIState
+import turmaA.grupoB.LinkStage.viewmodel.flags.FlagsViewModel
+import turmaA.grupoB.LinkStage.viewmodel.flags.FlagsViewModelFactory
 
 // region Data models
 
@@ -94,14 +106,22 @@ data class LoggedUser(
 fun SettingsAlunoScreen(
     onLogout: () -> Unit = {},
     onNotificationsClick: () -> Unit = {},
+    onPrivacyPolicyClick: () -> Unit = {},
     settingsViewModel: SettingsViewModel = viewModel(),
+    flagsViewModel: FlagsViewModel = viewModel(factory = FlagsViewModelFactory(FlagsRepository()))
 ) {
+
+
+
     val user by settingsViewModel.user.collectAsState()
     val currentLanguage by settingsViewModel.currentLanguage.collectAsState()
-
+    val flagsUIState by flagsViewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    LaunchedEffect(Unit) {
+        flagsViewModel.getImages(listOf("portugal", "gb"))
+    }
     var showLogoutDialog by remember { mutableStateOf(false) }
     var showPasswordDialog by remember { mutableStateOf(false) }
-    val uriHandler = LocalUriHandler.current
 
     if (showLogoutDialog) {
         LogoutConfirmDialog(
@@ -118,7 +138,6 @@ fun SettingsAlunoScreen(
         ChangePasswordDialog(
             onDismiss = { showPasswordDialog = false },
             onConfirm = { newPassword ->
-                // Lógica de update
                 showPasswordDialog = false
             }
         )
@@ -138,7 +157,7 @@ fun SettingsAlunoScreen(
             horizontalAlignment = Alignment.Start,
         ) {
             Text(
-                text = "Definições",
+                text = stringResource(R.string.settings_title),
                 style = MaterialTheme.typography.headlineSmall.copy(
                     fontWeight = FontWeight.Bold,
                     color = DarkBlue,
@@ -183,22 +202,20 @@ fun SettingsAlunoScreen(
             HorizontalDivider(color = BorderGrey)
 
             SettingsRowItem(
-                label = "Políticas de Privacidade",
-                onClick = {
-                    uriHandler.openUri("https://www.google.com") // Substituir pelo link real
-                },
+                label = stringResource(R.string.settings_privacy_policy),
+                onClick = onPrivacyPolicyClick,
             )
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
         // Settings section
-        SettingsSectionHeader(title = "Configurações")
+        SettingsSectionHeader(title = stringResource(R.string.settings_section_config))
 
         SettingsCard(modifier = Modifier.padding(horizontal = 20.dp)) {
             SettingsRowItem(
                 icon = Icons.Outlined.Settings,
-                label = "Alterar Palavra-Passe",
+                label = stringResource(R.string.settings_change_password),
                 onClick = { showPasswordDialog = true },
             )
 
@@ -209,7 +226,7 @@ fun SettingsAlunoScreen(
 
             SettingsRowItem(
                 icon = Icons.Outlined.Settings,
-                label = "Notificações",
+                label = stringResource(R.string.settings_notifications),
                 onClick = onNotificationsClick,
             )
 
@@ -233,7 +250,7 @@ fun SettingsAlunoScreen(
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(
-                    text = "Idioma",
+                    text = stringResource(R.string.settings_language),
                     style = MaterialTheme.typography.bodyLarge,
                     color = DarkBlue,
                     modifier = Modifier.weight(1f),
@@ -241,6 +258,7 @@ fun SettingsAlunoScreen(
                 LanguageToggle(
                     selectedLang = currentLanguage,
                     onSelect = { settingsViewModel.changeLanguage(it) },
+                    uiState = flagsUIState
                 )
             }
         }
@@ -248,7 +266,7 @@ fun SettingsAlunoScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         // App version section
-        SettingsSectionHeader(title = "Versão da APP")
+        SettingsSectionHeader(title = stringResource(R.string.settings_section_version))
 
         SettingsCard(modifier = Modifier.padding(horizontal = 20.dp)) {
             Row(
@@ -265,7 +283,7 @@ fun SettingsAlunoScreen(
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(
-                    text = "V1.0.0 - Android 36 / Kotlin / Supabase",
+                    text = stringResource(R.string.settings_version),
                     style = MaterialTheme.typography.bodySmall,
                     color = DarkGrey,
                 )
@@ -276,7 +294,7 @@ fun SettingsAlunoScreen(
 
         // Logout button
         LinkStageButton(
-            text = "Terminar Sessão",
+            text = stringResource(R.string.settings_logout),
             onClick = { showLogoutDialog = true },
             modifier = Modifier.padding(horizontal = 20.dp),
             height = 52.dp,
@@ -390,14 +408,19 @@ private fun SettingsRowItem(
 private fun LanguageToggle(
     selectedLang: String,
     onSelect: (String) -> Unit,
+    uiState: FlagsUIState
 ) {
     Row(
         modifier = Modifier
             .clip(RoundedCornerShape(8.dp))
             .border(1.dp, BorderGrey, RoundedCornerShape(8.dp)),
     ) {
-        listOf("PT", "EN").forEach { lang ->
-            val isSelected = lang == selectedLang
+        listOf("portugal", "gb").forEach { lang ->
+            val isSelected = when (selectedLang) {
+                "PT", "portugal" -> lang == "portugal"
+                "EN", "gb" -> lang == "gb"
+                else -> lang == selectedLang
+            }
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(7.dp))
@@ -405,14 +428,28 @@ private fun LanguageToggle(
                     .clickable { onSelect(lang) }
                     .padding(horizontal = 16.dp, vertical = 6.dp),
                 contentAlignment = Alignment.Center,
-            ) {
-                Text(
-                    text = lang,
+            ) { when (uiState){
+                is FlagsUIState.Error ->  Text(
+                    text = if(lang == "portugal") "PT" else "EN",
                     style = MaterialTheme.typography.labelMedium.copy(
                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
                     ),
                     color = if (isSelected) Color.White else DarkGrey,
                 )
+                is FlagsUIState.Success -> {
+                    val index = listOf("portugal", "gb").indexOf(lang)
+                    AsyncImage(
+                        model = uiState.imgs.getOrNull(index)?.png,
+                        contentDescription = lang,
+                        modifier = Modifier
+                            .size(24.dp)
+                            .clip(RoundedCornerShape(4.dp))
+                    )
+                }
+
+                else -> {}
+            }
+
             }
         }
     }
@@ -424,14 +461,14 @@ private fun LogoutConfirmDialog(
     onDismiss: () -> Unit,
 ) {
     LinkStageDialog(
-        title = "Terminar Sessão",
+        title = stringResource(R.string.settings_logout),
         onConfirm = onConfirm,
         onDismiss = onDismiss,
-        confirmText = "Terminar",
-        dismissText = "Cancelar",
+        confirmText = stringResource(R.string.settings_logout_button),
+        dismissText = stringResource(R.string.common_cancel),
         content = {
             Text(
-                text = "Tens a certeza que queres terminar sessão?",
+                text = stringResource(R.string.settings_logout_confirm),
                 color = DarkGrey,
             )
         }
@@ -462,15 +499,15 @@ fun ChangePasswordDialog(
 
     LinkStageDialog(
         onDismiss = onDismiss,
-        title = "Alterar Palavra-passe",
+        title = stringResource(R.string.settings_change_password_title),
         onConfirm = { onConfirm(password) },
-        confirmText = "Atualizar",
-        dismissText = "Cancelar",
+        confirmText = stringResource(R.string.settings_update_button),
+        dismissText = stringResource(R.string.common_cancel),
         confirmEnabled = isEnabled,
         content = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Column {
-                    Text("Nova Palavra-passe", style = MaterialTheme.typography.labelMedium, color = DarkGrey)
+                    Text(stringResource(R.string.settings_new_password), style = MaterialTheme.typography.labelMedium, color = DarkGrey)
                     Spacer(modifier = Modifier.height(4.dp))
                     OutlinedTextField(
                         value = password,
@@ -488,7 +525,7 @@ fun ChangePasswordDialog(
                 }
 
                 Column {
-                    Text("Confirmar Palavra-passe", style = MaterialTheme.typography.labelMedium, color = DarkGrey)
+                    Text(stringResource(R.string.settings_confirm_password), style = MaterialTheme.typography.labelMedium, color = DarkGrey)
                     Spacer(modifier = Modifier.height(4.dp))
                     OutlinedTextField(
                         value = confirmPassword,
@@ -508,9 +545,9 @@ fun ChangePasswordDialog(
 
                 if (password.isNotEmpty()) {
                     Column {
-                        ValidationItem(text = "Incluir um número", isValid = hasNumber)
-                        ValidationItem(text = "Incluir maiúsculas e minúsculas", isValid = hasUpperAndLower)
-                        ValidationItem(text = "Mínimo 8 caracteres", isValid = hasMinLength)
+                        ValidationItem(text = stringResource(R.string.validation_number), isValid = hasNumber)
+                        ValidationItem(text = stringResource(R.string.validation_case), isValid = hasUpperAndLower)
+                        ValidationItem(text = stringResource(R.string.validation_length), isValid = hasMinLength)
                     }
                 }
             }

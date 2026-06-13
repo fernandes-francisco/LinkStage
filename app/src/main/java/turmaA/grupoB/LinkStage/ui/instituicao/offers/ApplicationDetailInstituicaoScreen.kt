@@ -40,10 +40,13 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -66,13 +69,19 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import androidx.compose.ui.res.stringResource
+import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.aluno.chat.avatarColors
 import turmaA.grupoB.LinkStage.ui.aluno.home.ApplicationStatus
+import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
 import turmaA.grupoB.LinkStage.ui.common.ConfirmationDialog
+import turmaA.grupoB.LinkStage.ui.common.LinkStageButton
+import turmaA.grupoB.LinkStage.ui.common.LinkStageOutlinedButton
 import turmaA.grupoB.LinkStage.ui.common.LinkStageTabRow
 import turmaA.grupoB.LinkStage.ui.common.SectionLabel
 import turmaA.grupoB.LinkStage.ui.instituicao.InstitutionApplication
 import turmaA.grupoB.LinkStage.ui.instituicao.sampleInstitutionApplications
+import androidx.compose.ui.platform.LocalContext
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
@@ -88,57 +97,74 @@ fun ApplicationDetailInstituicaoScreen(
     navController: NavController,
     modifier: Modifier = Modifier,
 ) {
-    val application = sampleInstitutionApplications.find { it.id == applicationId }
-        ?: sampleInstitutionApplications.first()
+    val context = LocalContext.current
+    val application = sampleInstitutionApplications(context).find { it.id == applicationId }
+        ?: sampleInstitutionApplications(context).first()
 
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .background(BackgroundLight),
-    ) {
-        // Fixed header
-        Column(modifier = Modifier.background(Color.White)) {
-            Row(
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                IconButton(onClick = { navController.popBackStack() }, modifier = Modifier.size(40.dp)) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar", tint = DarkBlue)
-                }
-                Spacer(modifier = Modifier.width(4.dp))
-                Text("Candidaturas", color = DarkBlue, fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
-            }
-
-            Row(
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Box(
+    Scaffold(
+        modifier = modifier.fillMaxSize(),
+        containerColor = BackgroundLight,
+        topBar = {
+            Column(modifier = Modifier.background(Color.White)) {
+                // Top Row: Back + Title
+                Row(
                     modifier = Modifier
-                        .size(52.dp)
-                        .clip(CircleShape)
-                        .background(Fade1),
-                    contentAlignment = Alignment.Center,
+                        .fillMaxWidth()
+                        .padding(start = 8.dp, end = 20.dp, top = 8.dp, bottom = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(application.studentAvatarInitials, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.common_back_content_desc),
+                            tint = DarkBlue
+                        )
+                    }
+                    Text(
+                        text = stringResource(R.string.app_detail_title),
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = DarkBlue,
+                            fontSize = 20.sp
+                        )
+                    )
                 }
-                Spacer(modifier = Modifier.width(12.dp))
-                Column {
-                    Text(application.studentName, color = DarkBlue, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                    Text(application.institution, color = LightBlue, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+
+                Row(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(52.dp)
+                            .clip(CircleShape)
+                            .background(Fade1),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(application.studentAvatarInitials, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                    }
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column {
+                        Text(application.studentName, color = DarkBlue, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                        Text(application.institution, color = LightBlue, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                    }
                 }
+
+                LinkStageTabRow(
+                    tabs = listOf(stringResource(R.string.common_details), stringResource(R.string.common_skills), stringResource(R.string.common_manage)),
+                    selectedIndex = selectedTab,
+                    onTabSelected = { selectedTab = it },
+                )
             }
         }
-
-        LinkStageTabRow(
-            tabs = listOf("Detalhes", "Competências", "Gerir"),
-            selectedIndex = selectedTab,
-            onTabSelected = { selectedTab = it },
-        )
-
-        Box(modifier = Modifier.weight(1f)) {
+    ) { paddingValues ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        ) {
             when (selectedTab) {
                 0 -> ApplicationDetailsTab(application)
                 1 -> ApplicationSkillsTab(application)
@@ -159,27 +185,27 @@ private fun ApplicationDetailsTab(application: InstitutionApplication) {
             .padding(vertical = 8.dp),
     ) {
         InfoField(
-            label = "Instituição",
+            label = stringResource(R.string.advisor_institution),
             value = application.institution,
             trailingBadge = "ipvc",
         )
         InfoFieldWithIcon(
-            label = "Curso",
+            label = stringResource(R.string.admin_detail_course),
             value = application.course,
             icon = Icons.AutoMirrored.Outlined.MenuBook,
         )
         InfoFieldWithIcon(
-            label = "Média atual (0-20)",
+            label = stringResource(R.string.app_detail_gpa),
             value = application.gpa,
             icon = Icons.Outlined.Grade,
         )
         InfoFieldWithIcon(
-            label = "Email",
+            label = stringResource(R.string.admin_detail_email),
             value = application.email,
             icon = Icons.Outlined.Email,
         )
         InfoFieldWithIcon(
-            label = "Telemóvel",
+            label = stringResource(R.string.admin_detail_phone),
             value = application.phone,
             icon = Icons.Outlined.Phone,
         )
@@ -264,10 +290,10 @@ private fun ApplicationSkillsTab(application: InstitutionApplication) {
     ) {
         // Personal statement
         Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-            SectionLabel("Declaração Pessoal")
+            SectionLabel(stringResource(R.string.app_detail_personal_statement))
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "Breve apresentação do candidato e a sua motivação para o cargo.",
+                text = stringResource(R.string.app_detail_personal_statement_desc),
                 color = DarkGrey, fontSize = 12.sp,
             )
         }
@@ -291,7 +317,7 @@ private fun ApplicationSkillsTab(application: InstitutionApplication) {
 
         // Technical skills
         Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-            SectionLabel("Competências técnicas")
+            SectionLabel(stringResource(R.string.app_detail_technical_skills))
         }
         Spacer(modifier = Modifier.height(8.dp))
         FlowRow(
@@ -316,7 +342,7 @@ private fun ApplicationSkillsTab(application: InstitutionApplication) {
 
         // Motivation letter
         Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-            SectionLabel("Carta de motivação")
+            SectionLabel(stringResource(R.string.app_detail_motivation_letter))
         }
         Spacer(modifier = Modifier.height(8.dp))
         if (application.hasMotivationLetter) {
@@ -336,7 +362,7 @@ private fun ApplicationSkillsTab(application: InstitutionApplication) {
                     Icon(Icons.Outlined.Description, contentDescription = null, tint = LightBlue, modifier = Modifier.size(20.dp))
                     Spacer(modifier = Modifier.width(10.dp))
                     Text(
-                        text = "Carta de motivação",
+                        text = stringResource(R.string.app_detail_motivation_letter),
                         color = DarkBlue, fontWeight = FontWeight.SemiBold, fontSize = 14.sp,
                         modifier = Modifier.weight(1f),
                     )
@@ -353,7 +379,7 @@ private fun ApplicationSkillsTab(application: InstitutionApplication) {
                 elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
             ) {
                 Text(
-                    text = "Sem carta de motivacao anexada.",
+                    text = stringResource(R.string.app_detail_no_motivation_letter),
                     color = DarkGrey, fontSize = 14.sp,
                     modifier = Modifier.padding(14.dp),
                 )
@@ -390,12 +416,12 @@ private fun MotivationLetterDialog(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        text = "Carta de motivação",
+                        text = stringResource(R.string.app_detail_motivation_letter),
                         color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp,
                         modifier = Modifier.weight(1f),
                     )
                     IconButton(onClick = onDismiss) {
-                        Icon(Icons.Default.Close, contentDescription = "Fechar", tint = Color.White)
+                        Icon(Icons.Default.Close, contentDescription = stringResource(R.string.common_close_label), tint = Color.White)
                     }
                 }
 
@@ -416,24 +442,18 @@ private fun MotivationLetterDialog(
                         .padding(horizontal = 16.dp, vertical = 12.dp),
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
-                    OutlinedButton(
+                    LinkStageOutlinedButton(
+                        text = stringResource(R.string.common_back),
                         onClick = onDismiss,
-                        modifier = Modifier.weight(1f).height(44.dp),
-                        shape = RoundedCornerShape(10.dp),
-                        border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(
-                            brush = androidx.compose.ui.graphics.SolidColor(DarkBlue),
-                        ),
-                    ) {
-                        Text("Voltar", color = DarkBlue, fontWeight = FontWeight.SemiBold)
-                    }
-                    Button(
+                        modifier = Modifier.weight(1f),
+                        height = 44.dp
+                    )
+                    LinkStageButton(
+                        text = stringResource(R.string.common_download),
                         onClick = { },
-                        modifier = Modifier.weight(1f).height(44.dp),
-                        shape = RoundedCornerShape(10.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = DarkBlue),
-                    ) {
-                        Text("Descarregar", fontWeight = FontWeight.SemiBold)
-                    }
+                        modifier = Modifier.weight(1f),
+                        height = 44.dp
+                    )
                 }
             }
         }
@@ -450,16 +470,16 @@ private fun ApplicationManageTab(application: InstitutionApplication) {
     var showConfirmDialog by remember { mutableStateOf(false) }
 
     val statusLabel = when (selectedStatus) {
-        ApplicationStatus.ACCEPTED -> "aceite"
-        ApplicationStatus.REJECTED -> "rejeitada"
-        ApplicationStatus.PENDING -> "pendente"
+        ApplicationStatus.ACCEPTED -> stringResource(R.string.app_detail_status_label_accepted)
+        ApplicationStatus.REJECTED -> stringResource(R.string.app_detail_status_label_rejected)
+        ApplicationStatus.PENDING -> stringResource(R.string.app_detail_status_label_pending)
     }
 
     if (showConfirmDialog) {
         ConfirmationDialog(
-            title = "Atualizar candidatura?",
-            body = "Tem a certeza que pretende marcar esta candidatura como $statusLabel?",
-            confirmLabel = "Confirmar",
+            title = stringResource(R.string.app_detail_update_title),
+            body = stringResource(R.string.app_detail_update_body, statusLabel),
+            confirmLabel = stringResource(R.string.common_confirm),
             onConfirm = { showConfirmDialog = false },
             onDismiss = { showConfirmDialog = false },
         )
@@ -486,12 +506,12 @@ private fun ApplicationManageTab(application: InstitutionApplication) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Outlined.Info, contentDescription = null, tint = LightBlue, modifier = Modifier.size(20.dp))
                     Spacer(modifier = Modifier.width(10.dp))
-                    Text("Estado atual:", color = DarkBlue, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                    Text(stringResource(R.string.app_detail_current_status), color = DarkBlue, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
                     Spacer(modifier = Modifier.weight(1f))
                     StatusBadgeDynamic(selectedStatus)
                 }
                 Text(
-                    text = "Selecione uma decisão para esta candidatura.",
+                    text = stringResource(R.string.app_detail_select_decision),
                     color = DarkGrey, fontSize = 12.sp,
                     modifier = Modifier.padding(start = 30.dp, top = 4.dp),
                 )
@@ -530,8 +550,8 @@ private fun ApplicationManageTab(application: InstitutionApplication) {
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 Column {
-                    Text("Aceite", color = DarkBlue, fontWeight = FontWeight.Bold, fontSize = 15.sp)
-                    Text("Marcar esta candidatura a oferta como aceite.", color = DarkGrey, fontSize = 12.sp)
+                    Text(stringResource(R.string.app_detail_accepted), color = DarkBlue, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                    Text(stringResource(R.string.app_detail_accepted_desc), color = DarkGrey, fontSize = 12.sp)
                 }
             }
         }
@@ -567,8 +587,8 @@ private fun ApplicationManageTab(application: InstitutionApplication) {
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 Column {
-                    Text("Rejeitado", color = DarkBlue, fontWeight = FontWeight.Bold, fontSize = 15.sp)
-                    Text("Marcar esta candidatura a oferta como rejeitada.", color = DarkGrey, fontSize = 12.sp)
+                    Text(stringResource(R.string.app_detail_rejected), color = DarkBlue, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                    Text(stringResource(R.string.app_detail_rejected_desc), color = DarkGrey, fontSize = 12.sp)
                 }
             }
         }
@@ -593,7 +613,7 @@ private fun ApplicationManageTab(application: InstitutionApplication) {
                 Icon(Icons.Outlined.Info, contentDescription = null, tint = LightBlue, modifier = Modifier.size(18.dp))
                 Spacer(modifier = Modifier.width(10.dp))
                 Text(
-                    text = "A decisão apenas será registada no momento de fecho da candidatura.",
+                    text = stringResource(R.string.app_detail_info_notice),
                     color = DarkGrey, fontSize = 12.sp, lineHeight = 18.sp,
                 )
             }
@@ -606,17 +626,14 @@ private fun ApplicationManageTab(application: InstitutionApplication) {
             visible = selectedStatus != application.status,
             enter = fadeIn() + slideInVertically { it },
         ) {
-            Button(
+            LinkStageButton(
+                text = stringResource(R.string.app_detail_update_button),
                 onClick = { showConfirmDialog = true },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-                    .height(50.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = DarkBlue),
-            ) {
-                Text("Atualizar estado", fontWeight = FontWeight.SemiBold)
-            }
+                    .padding(horizontal = 16.dp),
+                height = 50.dp
+            )
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -626,9 +643,9 @@ private fun ApplicationManageTab(application: InstitutionApplication) {
 @Composable
 private fun StatusBadgeDynamic(status: ApplicationStatus) {
     val (label, color) = when (status) {
-        ApplicationStatus.ACCEPTED -> "Aceite" to Color(0xFF4CAF50)
-        ApplicationStatus.REJECTED -> "Recusado" to Red
-        ApplicationStatus.PENDING -> "Pendente" to Color(0xFFF5C518)
+        ApplicationStatus.ACCEPTED -> stringResource(R.string.app_detail_status_accepted) to Color(0xFF4CAF50)
+        ApplicationStatus.REJECTED -> stringResource(R.string.app_detail_status_rejected) to Red
+        ApplicationStatus.PENDING -> stringResource(R.string.app_detail_status_pending) to Color(0xFFF5C518)
     }
     Box(
         modifier = Modifier

@@ -35,9 +35,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import turmaA.grupoB.LinkStage.R
+import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
 import turmaA.grupoB.LinkStage.ui.common.LinkStageButton
 import turmaA.grupoB.LinkStage.ui.instituicao.InstituicaoRoutes
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
@@ -67,12 +70,19 @@ fun OfferSuccessInstituicaoScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundLight)
-            .padding(horizontal = 24.dp),
-        verticalArrangement = Arrangement.Center,
+            .background(BackgroundLight),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        // Mini card da oferta
+        CommonTopBar()
+
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .padding(horizontal = 24.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            // Mini card da oferta
         Row(
             modifier = Modifier
                 .clip(RoundedCornerShape(12.dp))
@@ -127,7 +137,7 @@ fun OfferSuccessInstituicaoScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "Oferta de estágio\ncriada com sucesso!",
+            text = if (offerId == "new") stringResource(R.string.offer_success_created) else stringResource(R.string.offer_success_updated),
             color = DarkBlue,
             fontWeight = FontWeight.Bold,
             fontSize = 20.sp,
@@ -137,18 +147,19 @@ fun OfferSuccessInstituicaoScreen(
 
         Spacer(modifier = Modifier.height(48.dp))
 
-        LinkStageButton(
-            text = "Voltar",
-            onClick = {
-                navController.navigate(InstituicaoRoutes.OFFERS) {
-                    popUpTo(InstituicaoRoutes.HOME) { inclusive = false }
-                }
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp),
-            height = 50.dp,
-        )
+            LinkStageButton(
+                text = stringResource(R.string.offer_success_back),
+                onClick = {
+                    navController.navigate(InstituicaoRoutes.OFFERS) {
+                        popUpTo(InstituicaoRoutes.HOME) { inclusive = false }
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp),
+                height = 50.dp,
+            )
+        }
     }
 }
 

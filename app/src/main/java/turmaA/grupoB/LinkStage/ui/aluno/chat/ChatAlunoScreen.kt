@@ -44,10 +44,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
 import turmaA.grupoB.LinkStage.ui.common.LinkStageDialog
 import turmaA.grupoB.LinkStage.ui.common.LinkStageLogo
@@ -86,20 +88,23 @@ val avatarColors = listOf(LightBlue, DarkBlue, MediumBlue)
 
 val sampleConversations = listOf(
     Conversation("1", "FR | Francisco Fernandes", "FF", "Boa pergunta.", "22:42AM", unreadCount = 1, avatarColorIndex = 0),
-    Conversation("2", "Tiago Alexandre", "TA", "Como assim?", "Ontem", unreadCount = 0, avatarColorIndex = 1),
-    Conversation("3", "MA | Miguel Azevedo", "MA", "Nota-se.", "2d Atrás", unreadCount = 0, avatarColorIndex = 2),
+    Conversation("2", "Tiago Alexandre", "TA", "Como assim?", "Yesterday", unreadCount = 0, avatarColorIndex = 1),
+    Conversation("3", "MA | Miguel Azevedo", "MA", "Nota-se.", "2d", unreadCount = 0, avatarColorIndex = 2),
     Conversation("4", "VS | Viana S.T.Arts", "VS", "Altera a dashboard", "22:42AM", unreadCount = 0, avatarColorIndex = 0),
 )
 
-val sampleContacts = listOf(
-    Contact("s1", "Tiago Rodrigues", "Estudante", "TR", 0),
-    Contact("s2", "Francisco Fernandes", "Estudante", "FF", 1),
-    Contact("13", "Ana Silva", "Gestora de Projeto", "AS", 0),
-    Contact("10", "Francisco Fernandes", "Orientador Instituição", "FF", 0),
-    Contact("14", "José Santos", "Tutor Técnico", "JS", 1),
-    Contact("12", "Miguel Azevedo", "Responsável RH", "MA", 2),
-    Contact("11", "Tiago Alexandre", "Orientador Empresa", "TA", 1),
-).sortedBy { it.name }
+@Composable
+fun getSampleContacts(): List<Contact> {
+    return listOf(
+        Contact("s1", "Tiago Rodrigues", stringResource(R.string.chat_role_student), "TR", 0),
+        Contact("s2", "Francisco Fernandes", stringResource(R.string.chat_role_student), "FF", 1),
+        Contact("13", "Ana Silva", stringResource(R.string.chat_role_project_manager), "AS", 0),
+        Contact("10", "Francisco Fernandes", stringResource(R.string.chat_role_institution_advisor), "FF", 0),
+        Contact("14", "José Santos", stringResource(R.string.chat_role_technical_tutor), "JS", 1),
+        Contact("12", "Miguel Azevedo", stringResource(R.string.chat_role_hr_responsible), "MA", 2),
+        Contact("11", "Tiago Alexandre", stringResource(R.string.chat_role_company_advisor), "TA", 1),
+    ).sortedBy { it.name }
+}
 
 // endregion
 
@@ -110,8 +115,21 @@ fun ChatAlunoScreen(
     onOpenChat: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val contacts = getSampleContacts()
+    
+    // Update sample conversations time format if needed
+    val processedConversations = sampleConversations.map { conv ->
+        val timeLabel = when (conv.time) {
+            "Yesterday" -> stringResource(R.string.time_yesterday)
+            "2d" -> stringResource(R.string.time_days_ago, "2")
+            else -> conv.time
+        }
+        conv.copy(time = timeLabel)
+    }
+
     MessagesListScreen(
-        conversations = sampleConversations,
+        conversations = processedConversations,
+        contacts = contacts,
         onOpenChat = onOpenChat,
         modifier = modifier,
     )
@@ -124,6 +142,7 @@ fun ChatAlunoScreen(
 @Composable
 private fun MessagesListScreen(
     conversations: List<Conversation>,
+    contacts: List<Contact>,
     onOpenChat: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -140,6 +159,7 @@ private fun MessagesListScreen(
 
     if (showNewMessageModal) {
         NewMessageModal(
+            contacts = contacts,
             onDismiss = { showNewMessageModal = false },
             onContactSelected = { contactId ->
                 showNewMessageModal = false
@@ -150,17 +170,17 @@ private fun MessagesListScreen(
 
     if (conversationToDelete != null) {
         LinkStageDialog(
-            title = "Apagar Conversa",
+            title = stringResource(R.string.chat_delete_title),
             onConfirm = {
                 currentConversations = currentConversations.filter { it.id != conversationToDelete!!.id }
                 conversationToDelete = null
             },
             onDismiss = { conversationToDelete = null },
-            confirmText = "Apagar",
-            dismissText = "Cancelar",
+            confirmText = stringResource(R.string.chat_delete_button),
+            dismissText = stringResource(R.string.dialog_cancel),
             content = {
                 Text(
-                    text = "Tens a certeza que pretendes apagar a conversa com ${conversationToDelete!!.name}?",
+                    text = stringResource(R.string.chat_delete_confirm, conversationToDelete!!.name),
                     color = DarkGrey,
                     lineHeight = 22.sp,
                 )
@@ -177,14 +197,14 @@ private fun MessagesListScreen(
                 contentColor = Color.White,
                 shape = RoundedCornerShape(16.dp),
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Nova mensagem")
+                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.chat_new_message))
             }
         },
         topBar = {
             Column(modifier = Modifier.background(BackgroundLight)) {
                 CommonTopBar()
                 Text(
-                    text = "Mensagens",
+                    text = stringResource(R.string.tab_messages),
                     style = MaterialTheme.typography.headlineSmall.copy(
                         fontWeight = FontWeight.Bold,
                         color = DarkBlue,
@@ -308,11 +328,12 @@ fun ConversationItem(
 
 @Composable
 private fun NewMessageModal(
+    contacts: List<Contact>,
     onDismiss: () -> Unit,
     onContactSelected: (String) -> Unit,
 ) {
     var query by rememberSaveable { mutableStateOf("") }
-    val filteredContacts = sampleContacts.filter {
+    val filteredContacts = contacts.filter {
         it.name.contains(query, ignoreCase = true) || it.role.contains(query, ignoreCase = true)
     }
 
@@ -338,14 +359,14 @@ private fun NewMessageModal(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Nova Mensagem",
+                        text = stringResource(R.string.chat_new_message),
                         style = MaterialTheme.typography.titleLarge.copy(
                             fontWeight = FontWeight.Bold,
                             color = DarkBlue
                         )
                     )
                     IconButton(onClick = onDismiss) {
-                        Icon(Icons.Default.Close, contentDescription = "Fechar", tint = DarkGrey)
+                        Icon(Icons.Default.Close, contentDescription = stringResource(R.string.common_close), tint = DarkGrey)
                     }
                 }
 
@@ -356,7 +377,7 @@ private fun NewMessageModal(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 20.dp),
-                    placeholder = { Text("Pesquisar contactos...", color = DarkGrey, fontSize = 14.sp) },
+                    placeholder = { Text(stringResource(R.string.chat_search_contacts), color = DarkGrey, fontSize = 14.sp) },
                     leadingIcon = { Icon(Icons.Outlined.Search, null, tint = DarkGrey) },
                     shape = RoundedCornerShape(12.dp),
                     colors = OutlinedTextFieldDefaults.colors(
@@ -445,9 +466,9 @@ private fun MessagesSearchBar(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp),
-        placeholder = { Text("Pesquisar...", color = DarkGrey) },
+        placeholder = { Text(stringResource(R.string.common_search), color = DarkGrey) },
         leadingIcon = {
-            Icon(Icons.Outlined.Search, contentDescription = "Pesquisar", tint = DarkGrey)
+            Icon(Icons.Outlined.Search, contentDescription = stringResource(R.string.common_search), tint = DarkGrey)
         },
         shape = RoundedCornerShape(12.dp),
         colors = OutlinedTextFieldDefaults.colors(

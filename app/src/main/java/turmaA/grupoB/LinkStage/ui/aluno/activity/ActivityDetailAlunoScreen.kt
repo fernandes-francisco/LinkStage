@@ -42,11 +42,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.common.CheckItem
 import turmaA.grupoB.LinkStage.ui.common.ContentSection
 import turmaA.grupoB.LinkStage.ui.common.ContentSectionColored
@@ -61,37 +63,41 @@ import turmaA.grupoB.LinkStage.ui.theme.Fade2
 import turmaA.grupoB.LinkStage.ui.theme.Fade3
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.ui.theme.MediumBlue
+import android.content.Context
+import androidx.compose.ui.platform.LocalContext
 import java.time.LocalDate
 
-private val sampleActivityLog = ActivityLog(
+private fun sampleActivityLog(context: Context) = ActivityLog(
     id = "2",
-    title = "Ponto de Controlo 2",
-    description = "Foquei-me em desenhar as primeiras mockups.",
+    title = context.getString(R.string.mock_checkpoint_2),
+    description = context.getString(R.string.mock_checkpoint_desc_mockups),
     date = LocalDate.of(2026, 5, 5),
     status = ActivityLogStatus.PENDING,
     company = "Viana S.T.Arts",
     companyLogoInitial = "V",
     companyLogoColor = Color(0xFF212121),
     requirements = listOf(
-        "PPT com o trabalho realizado.",
-        "Relatório atualizado até ao ponto atual.",
-        "Documentação adicional relevante.",
+        context.getString(R.string.mock_req_ppt),
+        context.getString(R.string.mock_req_report_updated),
+        context.getString(R.string.mock_req_additional_docs),
     ),
     hasSubmitted = false,
 )
 
-private fun formatDateUppercase(date: LocalDate): String {
-    val monthNames = listOf("JAN", "FEV", "MAR", "ABR", "MAI", "JUN", "JUL", "AGO", "SET", "OUT", "NOV", "DEZ")
-    return "${monthNames[date.monthValue - 1]},${date.dayOfMonth}"
+private fun formatDateUppercase(date: LocalDate, context: Context): String {
+    val monthNames = context.resources.getStringArray(R.array.months_short)
+    return "${monthNames[date.monthValue - 1].uppercase()},${date.dayOfMonth}"
 }
 
 @Composable
 fun ActivityDetailAlunoScreen(
     checkpointId: String,
     onBack: () -> Unit,
-    activityLog: ActivityLog = sampleActivityLog,
+    activityLog: ActivityLog? = null,
 ) {
-    var hasSubmitted by remember { mutableStateOf(activityLog.hasSubmitted) }
+    val context = LocalContext.current
+    val resolvedActivityLog = activityLog ?: sampleActivityLog(context)
+    var hasSubmitted by remember { mutableStateOf(resolvedActivityLog.hasSubmitted) }
     var fileUri by remember { mutableStateOf<Uri?>(null) }
     var fileName by remember { mutableStateOf<String?>(null) }
     var showConfirmDialog by remember { mutableStateOf(false) }
@@ -105,17 +111,17 @@ fun ActivityDetailAlunoScreen(
 
     if (showConfirmDialog) {
         LinkStageDialog(
-            title = "Submeter Atividade?",
+            title = stringResource(R.string.activity_submit_title),
             onConfirm = {
                 hasSubmitted = true
                 showConfirmDialog = false
             },
             onDismiss = { showConfirmDialog = false },
-            confirmText = "Submeter",
-            dismissText = "Cancelar",
+            confirmText = stringResource(R.string.activity_submit),
+            dismissText = stringResource(R.string.dialog_cancel),
             content = {
                 Text(
-                    "Tens a certeza que queres submeter esta atividade? Esta ação não pode ser desfeita.",
+                    stringResource(R.string.activity_submit_message),
                     color = DarkGrey,
                     lineHeight = 22.sp,
                 )
@@ -128,7 +134,7 @@ fun ActivityDetailAlunoScreen(
             .fillMaxSize()
             .background(BackgroundLight),
     ) {
-        SecondaryTopBar(title = "Detalhes da Atividade", onBack = onBack)
+        SecondaryTopBar(title = stringResource(R.string.activity_detail_title), onBack = onBack)
 
         Column(
             modifier = Modifier
@@ -155,11 +161,11 @@ fun ActivityDetailAlunoScreen(
                         modifier = Modifier
                             .size(44.dp)
                             .clip(RoundedCornerShape(10.dp))
-                            .background(activityLog.companyLogoColor),
+                            .background(resolvedActivityLog.companyLogoColor),
                         contentAlignment = Alignment.Center,
                     ) {
                         Text(
-                            activityLog.companyLogoInitial,
+                            resolvedActivityLog.companyLogoInitial,
                             color = Color.White,
                             fontWeight = FontWeight.Bold,
                             fontSize = 18.sp,
@@ -168,13 +174,13 @@ fun ActivityDetailAlunoScreen(
                     Spacer(modifier = Modifier.width(12.dp))
                     Column {
                         Text(
-                            activityLog.title,
+                            resolvedActivityLog.title,
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Bold,
                             color = DarkBlue
                         )
                         Text(
-                            activityLog.company,
+                            resolvedActivityLog.company,
                             fontSize = 13.sp,
                             color = LightBlue
                         )
@@ -191,10 +197,10 @@ fun ActivityDetailAlunoScreen(
                 ) {
                     Icon(Icons.Outlined.Schedule, contentDescription = null, tint = LightBlue, modifier = Modifier.size(16.dp))
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text("Prazo de Entrega", fontSize = 13.sp, color = DarkGrey)
+                    Text(stringResource(R.string.activity_delivery_date), fontSize = 13.sp, color = DarkGrey)
                     Spacer(modifier = Modifier.weight(1f))
                     Text(
-                        formatDateUppercase(activityLog.date),
+                        formatDateUppercase(resolvedActivityLog.date, context),
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,
                         color = DarkBlue,
@@ -204,9 +210,9 @@ fun ActivityDetailAlunoScreen(
                 Spacer(modifier = Modifier.height(4.dp))
 
                 // Descrição
-                ContentSection(title = "Descrição") {
+                ContentSection(title = stringResource(R.string.activity_description)) {
                     Text(
-                        text = activityLog.description,
+                        text = resolvedActivityLog.description,
                         fontSize = 14.sp,
                         color = DarkGrey,
                         lineHeight = 22.sp,
@@ -217,9 +223,9 @@ fun ActivityDetailAlunoScreen(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 // Requisitos
-                if (activityLog.requirements.isNotEmpty()) {
-                    ContentSectionColored(title = "Requisitos") {
-                        activityLog.requirements.forEach { req ->
+                if (resolvedActivityLog.requirements.isNotEmpty()) {
+                    ContentSectionColored(title = stringResource(R.string.activity_requirements)) {
+                        resolvedActivityLog.requirements.forEach { req ->
                             CheckItem(text = req)
                         }
                     }
@@ -227,7 +233,7 @@ fun ActivityDetailAlunoScreen(
                 }
 
                 // Anexos
-                ContentSection(title = "Anexos") {
+                ContentSection(title = stringResource(R.string.activity_attachments)) {
                     Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
                         if (hasSubmitted) {
                             Row(
@@ -241,8 +247,8 @@ fun ActivityDetailAlunoScreen(
                             ) {
                                 Icon(Icons.Outlined.Description, contentDescription = null, tint = LightBlue)
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Text("Documento submetido", fontSize = 13.sp, color = DarkBlue, modifier = Modifier.weight(1f))
-                                Text("Submetido", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = LightBlue)
+                                Text(stringResource(R.string.activity_doc_submitted), fontSize = 13.sp, color = DarkBlue, modifier = Modifier.weight(1f))
+                                Text(stringResource(R.string.activity_doc_status), fontSize = 12.sp, fontWeight = FontWeight.Bold, color = LightBlue)
                             }
                         } else if (fileUri != null) {
                             Row(
@@ -262,7 +268,7 @@ fun ActivityDetailAlunoScreen(
                                     Icon(Icons.Outlined.Description, contentDescription = null, tint = LightBlue)
                                     Spacer(modifier = Modifier.width(8.dp))
                                     Text(
-                                        fileName ?: "ficheiro",
+                                        fileName ?: stringResource(R.string.common_file),
                                         fontSize = 13.sp,
                                         color = DarkBlue,
                                         fontWeight = FontWeight.Medium,
@@ -271,7 +277,7 @@ fun ActivityDetailAlunoScreen(
                                     )
                                 }
                                 IconButton(onClick = { fileUri = null; fileName = null }) {
-                                    Icon(Icons.Default.Close, contentDescription = "Remover", tint = DarkGrey)
+                                    Icon(Icons.Default.Close, contentDescription = stringResource(R.string.common_remove), tint = DarkGrey)
                                 }
                             }
                         } else {
@@ -296,8 +302,8 @@ fun ActivityDetailAlunoScreen(
                                         tint = DarkGrey,
                                         modifier = Modifier.size(40.dp),
                                     )
-                                    Text("Selecionar Ficheiros", fontWeight = FontWeight.Bold, color = DarkBlue, fontSize = 14.sp)
-                                    Text("PDF, DOCX até 10MB", color = DarkGrey, fontSize = 12.sp)
+                                    Text(stringResource(R.string.activity_select_files), fontWeight = FontWeight.Bold, color = DarkBlue, fontSize = 14.sp)
+                                    Text(stringResource(R.string.apply_file_format), color = DarkGrey, fontSize = 12.sp)
                                 }
                             }
                         }
@@ -309,7 +315,7 @@ fun ActivityDetailAlunoScreen(
 
             // Submit button
             LinkStageButton(
-                text = if (hasSubmitted) "Atividade Submetida ✓" else "Submeter",
+                text = if (hasSubmitted) stringResource(R.string.activity_submitted) else stringResource(R.string.activity_submit),
                 onClick = { if (canSubmit) showConfirmDialog = true },
                 modifier = Modifier
                     .fillMaxWidth()

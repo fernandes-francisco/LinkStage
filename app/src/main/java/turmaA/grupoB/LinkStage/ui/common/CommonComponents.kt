@@ -43,6 +43,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -139,7 +140,7 @@ fun SuccessDialog(
 ) {
     if (show) {
         LinkStageDialog(
-            title = "Sucesso!",
+            title = stringResource(R.string.register_data_success_title),
             onConfirm = onConfirm,
             onDismiss = { },
             content = {
@@ -269,7 +270,7 @@ fun CommonTopBar(modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .padding(vertical = 12.dp),
+            .padding(top = 4.dp, bottom = 12.dp),
         contentAlignment = Alignment.Center,
     ) {
         LinkStageLogo()
@@ -296,7 +297,7 @@ fun SecondaryTopBar(
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Voltar",
+                    contentDescription = stringResource(R.string.common_back_content_desc),
                     tint = DarkBlue,
                 )
             }
@@ -460,9 +461,9 @@ fun UnderDevelopmentScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         CommonTopBar()
-        
+
         Spacer(modifier = Modifier.weight(1f))
-        
+
         Text(
             text = screenName,
             style = MaterialTheme.typography.titleLarge.copy(
@@ -472,11 +473,11 @@ fun UnderDevelopmentScreen(
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = "Em desenvolvimento",
+            text = stringResource(R.string.common_in_development),
             style = MaterialTheme.typography.bodyMedium,
             color = DarkGrey,
         )
-        
+
         Spacer(modifier = Modifier.weight(1.2f))
     }
 }

@@ -1,12 +1,23 @@
 package turmaA.grupoB.LinkStage.ui.orientador
 
+import android.content.Context
 import androidx.compose.ui.graphics.Color
+import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.admin.AdminStudent
 import turmaA.grupoB.LinkStage.ui.aluno.activity.ActiveInternship
 import turmaA.grupoB.LinkStage.ui.aluno.activity.ActivityLog
 import turmaA.grupoB.LinkStage.ui.aluno.activity.ActivityLogStatus
 import turmaA.grupoB.LinkStage.ui.aluno.activity.CheckpointFile
 import java.time.LocalDate
+
+enum class CheckpointCreatedBy { STUDENT, MENTOR }
+
+data class CheckpointViewer(
+    val viewerId: String,
+    val viewerName: String,
+    val viewerRole: String,
+    val viewedAt: String,
+)
 
 data class MentorInternship(
     val id: String,
@@ -18,9 +29,9 @@ data class MentorInternship(
     val endDate: LocalDate,
     val studentName: String,
     val studentId: String,
-    val location: String = "Viana do Castelo, PT",
-    val duration: String = "6 Meses",
-    val type: String = "Remoto",
+    val location: String = "",
+    val duration: String = "",
+    val type: String = "",
     val aboutCompany: String = "",
     val responsibilities: List<String> = emptyList(),
     val requirements: List<String> = emptyList(),
@@ -28,21 +39,60 @@ data class MentorInternship(
     val isBusinessInternship: Boolean = true,
 )
 
+enum class InternshipType { COMPANY_SCHOOL, SCHOOL_ONLY }
+
+enum class EvaluationState {
+    PENDING,
+    PARTIAL,
+    READY_FOR_FINAL,
+    COMPLETED,
+}
+
 data class InternshipEvaluation(
     val internshipId: String,
-    val schoolMentorName: String,
-    val schoolMentorObservation: String = "",
-    val schoolMentorGrade: String = "",
+    val internshipType: InternshipType = InternshipType.COMPANY_SCHOOL,
+    val state: EvaluationState = EvaluationState.PENDING,
+
+    val companyResponsibleGrade: Float? = null,
+    val companyResponsibleObservation: String? = null,
+    val companyResponsibleName: String = "",
+
+    val companyMentorGrade: Float? = null,
+    val companyMentorObservation: String? = null,
     val companyMentorName: String = "",
-    val companyMentorObservation: String = "",
-    val companyMentorGrade: String = "",
-    val finalGrade: Float? = null,
-    val isCompleted: Boolean = false,
+
+    val institutionGrade: Float? = null,
+    val institutionObservation: String? = null,
+    val institutionName: String = "",
+
+    val schoolMentorGrade: Float? = null,
+    val schoolMentorObservation: String? = null,
+    val schoolMentorName: String = "",
+
+    val hasSeenNotification: Boolean = false,
 )
+
+fun calculateEvaluationState(eval: InternshipEvaluation): EvaluationState {
+    return when (eval.internshipType) {
+        InternshipType.COMPANY_SCHOOL -> when {
+            eval.schoolMentorGrade != null -> EvaluationState.COMPLETED
+            eval.companyResponsibleGrade != null && eval.companyMentorGrade != null
+                -> EvaluationState.READY_FOR_FINAL
+            eval.companyResponsibleGrade != null || eval.companyMentorGrade != null
+                -> EvaluationState.PARTIAL
+            else -> EvaluationState.PENDING
+        }
+        InternshipType.SCHOOL_ONLY -> when {
+            eval.schoolMentorGrade != null -> EvaluationState.COMPLETED
+            eval.institutionGrade != null -> EvaluationState.READY_FOR_FINAL
+            else -> EvaluationState.PENDING
+        }
+    }
+}
 
 // region Sample data
 
-val sampleMentorInternships = listOf(
+val sampleMentorInternshipsList = listOf(
     MentorInternship(
         id = "i1",
         offerTitle = "UI/UX Designer",
@@ -54,25 +104,29 @@ val sampleMentorInternships = listOf(
         studentName = "Tiago Rodrigues",
         studentId = "s1",
         location = "Viana do Castelo, PT",
-        duration = "6 Meses",
+        duration = "6 meses",
         type = "Remoto",
-        aboutCompany = "Lojinha de compras para os ricos e afortunados, queremos estagiário para servir de escravo.",
+        aboutCompany = "Líder nacional no retalho alimentar.",
         responsibilities = listOf(
-            "Realizar a prototipagem da app web.",
-            "Colaborar com a equipa, com o objetivo cruzar habilidades.",
-            "Desenvolver o nosso sistema de criação de dashboards.",
+            "Prototipar fluxos digitais e validar ideias com utilizadores.",
+            "Colaborar com equipas de produto e marketing.",
+            "Criar dashboards e materiais de comunicação.",
         ),
         requirements = listOf(
-            "Experiência com Figma e prototipagem interativa.",
-            "Portfólio do UI para demonstração.",
-            "Comunicação excelente escrita e verbal em Inglês.",
+            "Experiência com Figma ou ferramentas de prototipagem.",
+            "Portfólio com projetos de UI/UX.",
+            "Inglês funcional.",
         ),
-        benefits = listOf("Passe de Transporte Público", "Programa de Mentoria", "Mercado Competitivo"),
+        benefits = listOf(
+            "Apoio de transporte.",
+            "Mentoria com equipa sénior.",
+            "Remuneração competitiva.",
+        ),
         isBusinessInternship = true
     ),
     MentorInternship(
         id = "i2",
-        offerTitle = "Designer de Produto",
+        offerTitle = "Product Designer",
         businessInstitutionName = "Viana S.T.Arts",
         schoolInstitutionName = "Uni. de Aveiro",
         logoInitial = "V",
@@ -81,94 +135,127 @@ val sampleMentorInternships = listOf(
         studentName = "Francisco Fernandes",
         studentId = "s2",
         location = "Aveiro, PT",
-        duration = "4 Meses",
+        duration = "4 meses",
         type = "Presencial",
-        aboutCompany = "A Universidade de Aveiro é uma instituição de ensino superior público que se destaca pela qualidade da investigação e inovação.",
+        aboutCompany = "Empresa criativa focada em experiências digitais.",
         responsibilities = listOf(
-            "Desenvolver interfaces para plataforma de e-learning.",
-            "Participar em sessões de design thinking.",
+            "Desenhar experiências de e-learning.",
+            "Aplicar design thinking em workshops.",
         ),
         requirements = listOf(
-            "Conhecimentos de design centrado no utilizador.",
-            "Experiência com ferramentas de prototipagem.",
+            "Abordagem centrada no utilizador.",
+            "Ferramentas de prototipagem.",
         ),
-        benefits = listOf("Certificado de Estágio", "Acesso a Laboratórios"),
+        benefits = listOf(
+            "Certificado de estágio.",
+            "Acesso a laboratórios.",
+        ),
         isBusinessInternship = false
     ),
 )
 
-val sampleMentorStudents = listOf(
+val sampleMentorStudentsList = listOf(
     AdminStudent(
         "s1", "Tiago Rodrigues", "tiago@estg.ipvc.pt", "912000001",
-        "ESTG-IPVC", "ESTG-IPVC", "Eng. Informática", 14.5f,
-        "2h atrás", true, "Continente", 2, "TR", 0,
+        "ESTG-IPVC", "ESTG-IPVC", "Ciências Informáticas", 14.5f,
+        "há 2 horas", true, "Continente", 2, "TR", 0,
         skills = listOf("Kotlin", "Jetpack Compose", "UI/UX Design", "Figma"),
     ),
     AdminStudent(
         "s2", "Francisco Fernandes", "francisco@ese.ipvc.pt", "912000002",
-        "ESE-IPVC", "ESE-IPVC", "Educação", 13.0f,
-        "3h atrás", false, "", 1, "FF", 1,
-        skills = listOf("Pedagogia", "Gestão de Sala", "Comunicação"),
+        "ESE-IPVC", "ESE-IPVC", "Educação Básica", 13.0f,
+        "há 3 horas", false, "", 1, "FF", 1,
+        skills = listOf("Pedagogia", "Gestão de sala de aula", "Comunicação"),
     ),
 )
 
-val sampleMentorActivityLogs = listOf(
+val sampleMentorActivityLogsList = listOf(
     ActivityLog(
-        "1", "Ponto de Controlo 1", "Foquei-me em desenhar as primeiras mockups.",
+        "1", "Mockups e validação inicial", "Primeira entrega de mockups para validação com a equipa.",
         LocalDate.of(2026, 1, 31), ActivityLogStatus.COMPLETED,
         "Viana S.T.Arts", "V", Color(0xFF212121),
-        requirements = listOf("PPT com o trabalho realizado.", "Relatório atualizado.", "Documentação adicional."),
+        requirements = listOf(
+            "PPT com mockups principais.",
+            "Relatório atualizado.",
+            "Documentos adicionais.",
+        ),
         hasSubmitted = true,
         submittedAt = LocalDate.of(2026, 1, 31),
         submittedFiles = listOf(
-            CheckpointFile("f1", "PPT ponto de controlo"),
-            CheckpointFile("f2", "relatório atualizado"),
+            CheckpointFile("f1", "mockups.pptx"),
+            CheckpointFile("f2", "relatorio_atualizado.pdf"),
+        ),
+        createdBy = "STUDENT",
+        viewers = listOf(
+            CheckpointViewer("m1", "Prof. Carvalho", "Orientador", "Hoje às 14:32"),
+            CheckpointViewer("i1", "Viana S.T.Arts", "Instituição", "Ontem às 09:15"),
         ),
     ),
     ActivityLog(
-        "2", "Ponto de Controlo 2", "Foquei-me em desenhar as primeiras mockups.",
-        LocalDate.of(2026, 5, 5), ActivityLogStatus.PENDING,
+        "2", "Relatório intercalar", "Preparação do relatório intercalar com evidências do trabalho realizado.",
+        LocalDate.of(2026, 3, 15), ActivityLogStatus.PENDING,
         "Viana S.T.Arts", "V", Color(0xFF212121),
-        requirements = listOf("PPT com o trabalho realizado.", "Relatório atualizado.", "Documentação adicional."),
+        requirements = listOf(
+            "PPT com mockups principais.",
+            "Relatório atualizado.",
+            "Documentos adicionais.",
+        ),
         hasSubmitted = false,
         submittedFiles = emptyList(),
+        createdBy = "MENTOR",
+        createdByName = "Prof. Carvalho",
+        viewers = emptyList(),
     ),
 )
 
-val sampleStudentInternship = ActiveInternship(
+val sampleStudentInternshipInstance = ActiveInternship(
     id = "int1",
-    title = "Designer de Produto",
+    title = "Product Designer",
     startDate = LocalDate.of(2025, 10, 1),
     endDate = LocalDate.of(2026, 6, 1),
-    activityLogs = sampleMentorActivityLogs,
+    activityLogs = sampleMentorActivityLogsList,
 )
 
-val sampleEvaluation = InternshipEvaluation(
+val sampleEvaluationInstance = InternshipEvaluation(
     internshipId = "int1",
+    internshipType = InternshipType.COMPANY_SCHOOL,
+    state = EvaluationState.READY_FOR_FINAL,
+    companyResponsibleGrade = 16.5f,
+    companyResponsibleObservation = "Excelente colaboração e entrega.",
+    companyResponsibleName = "Ana Costa",
+    companyMentorGrade = 15.0f,
+    companyMentorObservation = "Bom trabalho em equipa.",
+    companyMentorName = "Prof. Tiago Alexandre",
     schoolMentorName = "Prof. Carvalho",
-    companyMentorName = "Ana Costa",
-    isCompleted = false,
+    hasSeenNotification = false,
 )
+
+fun sampleMentorInternships(context: Context) = sampleMentorInternshipsList
+
+fun sampleMentorStudents(context: Context) = sampleMentorStudentsList
+
+fun sampleMentorActivityLogs(context: Context) = sampleMentorActivityLogsList
+
+fun sampleStudentInternship(context: Context) = sampleStudentInternshipInstance
+
+fun sampleEvaluation(context: Context) = sampleEvaluationInstance
 
 // endregion
 
 // region Formatting
 
-fun formatInternshipDate(date: LocalDate): String {
-    val months = listOf(
-        "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-        "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
-    )
-    return "${date.dayOfMonth} de ${months[date.monthValue - 1]} de ${date.year}"
+fun formatInternshipDate(date: LocalDate, context: Context): String {
+    val months = context.resources.getStringArray(R.array.months_full)
+    return context.getString(R.string.date_format_full, date.dayOfMonth, months[date.monthValue - 1], date.year)
 }
 
-fun formatCheckpointDate(date: LocalDate): String {
-    val months = listOf("Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez")
+fun formatCheckpointDate(date: LocalDate, context: Context): String {
+    val months = context.resources.getStringArray(R.array.months_short)
     return "${months[date.monthValue - 1]} ${String.format("%02d", date.dayOfMonth)}, ${date.year}"
 }
 
-fun formatCheckpointDateLong(date: LocalDate): String {
-    val months = listOf("Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez")
+fun formatCheckpointDateLong(date: LocalDate, context: Context): String {
+    val months = context.resources.getStringArray(R.array.months_short)
     return "${date.dayOfMonth} ${months[date.monthValue - 1]} ${date.year}"
 }
 

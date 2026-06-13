@@ -23,26 +23,37 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.rememberNavController
+import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.admin.AdminInstitution
 import turmaA.grupoB.LinkStage.ui.admin.AdminMentor
 import turmaA.grupoB.LinkStage.ui.admin.AdminRoutes
 import turmaA.grupoB.LinkStage.ui.admin.AdminStudent
+import turmaA.grupoB.LinkStage.ui.admin.InstitutionStatus
 import turmaA.grupoB.LinkStage.ui.admin.avatarColors
-import turmaA.grupoB.LinkStage.ui.admin.sampleInstitutions
-import turmaA.grupoB.LinkStage.ui.admin.sampleMentors
-import turmaA.grupoB.LinkStage.ui.admin.sampleStudents
+import turmaA.grupoB.LinkStage.viewmodel.admin.AdminDashboardUiState
+import turmaA.grupoB.LinkStage.viewmodel.admin.AdminDashboardViewModel
+import turmaA.grupoB.LinkStage.viewmodel.admin.AdminDashboardViewModelFactory
 import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
+import turmaA.grupoB.LinkStage.ui.common.EvaluationNotificationModal
+import turmaA.grupoB.LinkStage.ui.common.EvaluationPendingCard
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
@@ -53,6 +64,34 @@ fun HomeAdminScreen(
     navController: NavController,
     modifier: Modifier = Modifier,
 ) {
+    val dashboardViewModel: AdminDashboardViewModel = viewModel(factory = AdminDashboardViewModelFactory())
+    val dashboardUiState by dashboardViewModel.uiState.collectAsState()
+    val pendingInstitutions = when (val state = dashboardUiState) {
+        is AdminDashboardUiState.Success -> state.data.pendingInstitutions
+        else -> emptyList()
+    }
+    var showPendingModal by remember { mutableStateOf(false) }
+
+    dashboardViewModel.loadDashboard()
+
+    if (showPendingModal) {
+        EvaluationNotificationModal(
+            title = stringResource(R.string.admin_home_pending_title),
+            message = stringResource(R.string.admin_home_pending_message, pendingInstitutions.size),
+            actionLabel = stringResource(R.string.admin_home_review_requests),
+            onAction = {
+                navController.navigate(AdminRoutes.INSTITUTIONS) {
+                    popUpTo(navController.graph.findStartDestination().id) {
+                        saveState = true
+                    }
+                    launchSingleTop = true
+                    restoreState = true
+                }
+            },
+            onDismiss = { showPendingModal = false },
+        )
+    }
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -66,14 +105,14 @@ fun HomeAdminScreen(
                 .padding(horizontal = 20.dp, vertical = 12.dp)
         ) {
             Text(
-                "Olá, Admin",
+                text = stringResource(R.string.admin_home_greeting),
                 style = MaterialTheme.typography.headlineLarge.copy(
                     fontWeight = FontWeight.Bold,
                     color = DarkBlue,
                 ),
             )
             Text(
-                "Bem-vindo ao painel de administração.",
+                text = stringResource(R.string.admin_home_welcome),
                 style = MaterialTheme.typography.bodyMedium,
                 color = DarkGrey
             )
@@ -85,11 +124,28 @@ fun HomeAdminScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp),
         ) {
-            Spacer(modifier = Modifier.height(8.dp))
+            if (pendingInstitutions.isNotEmpty()) {
+                EvaluationPendingCard(
+                    title = stringResource(R.string.admin_home_pending_approvals),
+                    message = stringResource(R.string.admin_home_pending_approvals_message, pendingInstitutions.size),
+                    actionLabel = stringResource(R.string.admin_home_review_requests),
+                    isDanger = false,
+                    onClick = {
+                        navController.navigate(AdminRoutes.INSTITUTIONS) {
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+            }
 
             // Novos alunos
             SectionHeader(
-                title = "Novos alunos",
+                title = stringResource(R.string.admin_new_students),
                 onViewAll = {
                     navController.navigate(AdminRoutes.STUDENTS) {
                         popUpTo(navController.graph.findStartDestination().id) {
@@ -102,7 +158,11 @@ fun HomeAdminScreen(
             )
             Spacer(modifier = Modifier.height(8.dp))
 
-            sampleStudents.take(2).forEach { student ->
+            val recentStudents = when (val state = dashboardUiState) {
+                is AdminDashboardUiState.Success -> state.data.recentStudents
+                else -> emptyList()
+            }
+            recentStudents.take(2).forEach { student ->
                 AdminUserRow(
                     student = student,
                     onClick = { navController.navigate(AdminRoutes.studentDetail(student.id)) },
@@ -114,7 +174,7 @@ fun HomeAdminScreen(
 
             // Novos orientadores
             SectionHeader(
-                title = "Novos orientadores",
+                title = stringResource(R.string.admin_new_mentors),
                 onViewAll = {
                     navController.navigate(AdminRoutes.STUDENTS) {
                         popUpTo(navController.graph.findStartDestination().id) {
@@ -127,7 +187,11 @@ fun HomeAdminScreen(
             )
             Spacer(modifier = Modifier.height(8.dp))
 
-            sampleMentors.take(2).forEach { mentor ->
+            val recentMentors = when (val state = dashboardUiState) {
+                is AdminDashboardUiState.Success -> state.data.recentMentors
+                else -> emptyList()
+            }
+            recentMentors.take(2).forEach { mentor ->
                 AdminMentorRow(
                     mentor = mentor,
                     onClick = { navController.navigate(AdminRoutes.mentorDetail(mentor.id)) },
@@ -139,7 +203,7 @@ fun HomeAdminScreen(
 
             // Novas instituições
             SectionHeader(
-                title = "Novas instituições",
+                title = stringResource(R.string.admin_new_institutions),
                 onViewAll = {
                     navController.navigate(AdminRoutes.INSTITUTIONS) {
                         popUpTo(navController.graph.findStartDestination().id) {
@@ -152,7 +216,11 @@ fun HomeAdminScreen(
             )
             Spacer(modifier = Modifier.height(8.dp))
 
-            sampleInstitutions.take(2).forEach { institution ->
+            val recentInstitutions = when (val state = dashboardUiState) {
+                is AdminDashboardUiState.Success -> state.data.recentInstitutions
+                else -> emptyList()
+            }
+            recentInstitutions.take(2).forEach { institution ->
                 AdminInstitutionRow(
                     institution = institution,
                     onClick = { navController.navigate(AdminRoutes.institutionDetail(institution.id)) },
@@ -183,7 +251,7 @@ private fun SectionHeader(
         )
         TextButton(onClick = onViewAll) {
             Text(
-                text = "Ver todos →",
+                text = stringResource(R.string.common_view_all),
                 color = LightBlue,
                 fontSize = 13.sp,
             )
@@ -231,7 +299,7 @@ private fun AdminUserRow(
                     fontSize = 14.sp,
                 )
                 Text(
-                    text = "Registou-se há ${student.registeredAgo}",
+                    text = stringResource(R.string.admin_home_registered_ago, student.registeredAgo),
                     color = DarkGrey,
                     fontSize = 12.sp,
                 )
@@ -294,7 +362,7 @@ private fun AdminMentorRow(
                     fontSize = 14.sp,
                 )
                 Text(
-                    text = "Registou-se há ${mentor.registeredAgo}",
+                    text = stringResource(R.string.admin_home_registered_ago, mentor.registeredAgo),
                     color = DarkGrey,
                     fontSize = 12.sp,
                 )
@@ -356,7 +424,7 @@ private fun AdminInstitutionRow(
                     fontSize = 14.sp,
                 )
                 Text(
-                    text = "Registou-se há ${institution.registeredAgo}",
+                    text = stringResource(R.string.admin_home_registered_ago, institution.registeredAgo),
                     color = DarkGrey,
                     fontSize = 12.sp,
                 )

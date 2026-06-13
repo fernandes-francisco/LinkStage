@@ -13,12 +13,15 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
+import turmaA.grupoB.LinkStage.R
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
@@ -28,12 +31,13 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import turmaA.grupoB.LinkStage.ui.auth.updatepassword.UpdatePasswordScreen
+import turmaA.grupoB.LinkStage.ui.common.PrivacyPolicyScreen
 import turmaA.grupoB.LinkStage.ui.aluno.activity.InternshipResultScreen
 import turmaA.grupoB.LinkStage.ui.aluno.activity.RecentActivityAlunoScreen
 import turmaA.grupoB.LinkStage.ui.aluno.chat.ChatAlunoScreen
 import turmaA.grupoB.LinkStage.ui.aluno.chat.ChatScreen
 import turmaA.grupoB.LinkStage.ui.aluno.chat.sampleConversations
-import turmaA.grupoB.LinkStage.ui.aluno.chat.sampleContacts
+import turmaA.grupoB.LinkStage.ui.aluno.chat.getSampleContacts
 import turmaA.grupoB.LinkStage.ui.aluno.chat.Conversation
 import turmaA.grupoB.LinkStage.ui.aluno.home.HomeAlunoScreen
 import turmaA.grupoB.LinkStage.ui.aluno.notifications.NotificationsAlunoScreen
@@ -41,7 +45,7 @@ import turmaA.grupoB.LinkStage.ui.aluno.activity.ActivityDetailAlunoScreen
 import turmaA.grupoB.LinkStage.ui.aluno.activity.ReportSuccessScreen
 import turmaA.grupoB.LinkStage.ui.aluno.apply.ApplyScreen
 import turmaA.grupoB.LinkStage.ui.aluno.apply.ApplySuccessScreen
-import turmaA.grupoB.LinkStage.ui.aluno.apply.EditCvScreen
+import turmaA.grupoB.LinkStage.ui.aluno.apply.EditSkillsScreen
 import turmaA.grupoB.LinkStage.ui.aluno.offers.OfferDetailAlunoScreen
 import turmaA.grupoB.LinkStage.ui.aluno.offers.OffersAlunoScreen
 import turmaA.grupoB.LinkStage.ui.aluno.settings.SettingsAlunoScreen
@@ -61,12 +65,13 @@ object AlunoRoutes {
     const val CHAT = "chat/{conversationId}"
     const val OFFER_DETAIL = "offer_detail/{offerId}"
     const val APPLY = "apply/{offerId}"
-    const val EDIT_CV = "edit_cv"
+    const val EDIT_SKILLS = "edit_skills"
     const val APPLY_SUCCESS = "apply_success/{offerId}"
     const val ACTIVITY_DETAIL = "activity_detail/{checkpointId}"
     const val UPDATE_PASSWORD = "update_password"
     const val INTERNSHIP_RESULT = "internship_result/{internshipId}"
     const val REPORT_SUCCESS = "report_success"
+    const val PRIVACY_POLICY = "privacy_policy"
 
     fun chatRoute(conversationId: String) = "chat/$conversationId"
     fun internshipResultRoute(internshipId: String) = "internship_result/$internshipId"
@@ -77,17 +82,17 @@ object AlunoRoutes {
 }
 
 private data class AlunoTab(
-    val title: String,
+    @StringRes val titleResId: Int,
     val icon: ImageVector,
     val route: String,
 )
 
 private val alunoTabs = listOf(
-    AlunoTab("Ínicio", Icons.Outlined.Home, AlunoRoutes.HOME),
-    AlunoTab("Estágios", Icons.Outlined.Work, AlunoRoutes.DISCOVER),
-    AlunoTab("Atividade", Icons.Outlined.History, AlunoRoutes.ACTIVITY),
-    AlunoTab("Mensagens", Icons.AutoMirrored.Outlined.Chat, AlunoRoutes.MESSAGES),
-    AlunoTab("Definições", Icons.Outlined.Settings, AlunoRoutes.SETTINGS),
+    AlunoTab(R.string.tab_home, Icons.Outlined.Home, AlunoRoutes.HOME),
+    AlunoTab(R.string.tab_internships, Icons.Outlined.Work, AlunoRoutes.DISCOVER),
+    AlunoTab(R.string.tab_activity, Icons.Outlined.History, AlunoRoutes.ACTIVITY),
+    AlunoTab(R.string.tab_messages, Icons.AutoMirrored.Outlined.Chat, AlunoRoutes.MESSAGES),
+    AlunoTab(R.string.tab_settings, Icons.Outlined.Settings, AlunoRoutes.SETTINGS),
 )
 
 @Composable
@@ -123,8 +128,8 @@ fun AlunoMainScreen(onLogout: () -> Unit = {}) {
                                     }
                                 }
                             },
-                            icon = { Icon(tab.icon, contentDescription = tab.title) },
-                            label = { Text(tab.title) },
+                            icon = { Icon(tab.icon, contentDescription = stringResource(tab.titleResId)) },
+                            label = { Text(stringResource(tab.titleResId)) },
                             colors = NavigationBarItemDefaults.colors(
                                 selectedIconColor = LightBlue,
                                 selectedTextColor = LightBlue,
@@ -174,7 +179,7 @@ fun AlunoMainScreen(onLogout: () -> Unit = {}) {
                     offerId = offerId,
                     viewModel = applyViewModel,
                     onBack = { navController.popBackStack() },
-                    onNavigateToEditCv = { navController.navigate(AlunoRoutes.EDIT_CV) },
+                    onNavigateToEditSkills = { navController.navigate(AlunoRoutes.EDIT_SKILLS) },
                     onSubmitSuccess = {
                         navController.navigate(AlunoRoutes.applySuccessRoute(offerId)) {
                             popUpTo(AlunoRoutes.applyRoute(offerId)) { inclusive = true }
@@ -182,12 +187,12 @@ fun AlunoMainScreen(onLogout: () -> Unit = {}) {
                     },
                 )
             }
-            composable(AlunoRoutes.EDIT_CV) {
+            composable(AlunoRoutes.EDIT_SKILLS) {
                 val applyEntry = remember(it) {
                     navController.getBackStackEntry(AlunoRoutes.APPLY)
                 }
                 val applyViewModel: ApplyViewModel = viewModel(applyEntry)
-                EditCvScreen(
+                EditSkillsScreen(
                     viewModel = applyViewModel,
                     onBack = { navController.popBackStack() },
                 )
@@ -252,7 +257,15 @@ fun AlunoMainScreen(onLogout: () -> Unit = {}) {
                     onLogout = onLogout,
                     onNotificationsClick = {
                         navController.navigate(AlunoRoutes.NOTIFICATIONS)
+                    },
+                    onPrivacyPolicyClick = {
+                        navController.navigate(AlunoRoutes.PRIVACY_POLICY)
                     }
+                )
+            }
+            composable(AlunoRoutes.PRIVACY_POLICY) {
+                PrivacyPolicyScreen(
+                    onBack = { navController.popBackStack() }
                 )
             }
             composable(AlunoRoutes.NOTIFICATIONS) {
@@ -286,7 +299,8 @@ fun AlunoMainScreen(onLogout: () -> Unit = {}) {
                 val existingConversation = sampleConversations.find { it.id == conversationId }
                 
                 // Se não existir, procura nos contactos para criar uma nova conversa
-                val conversation = existingConversation ?: sampleContacts.find { it.id == conversationId }?.let { contact ->
+                val contacts = getSampleContacts()
+                val conversation = existingConversation ?: contacts.find { it.id == conversationId }?.let { contact ->
                     Conversation(
                         id = contact.id,
                         name = contact.name,

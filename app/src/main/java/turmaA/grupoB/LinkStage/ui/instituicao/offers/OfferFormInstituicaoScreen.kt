@@ -7,7 +7,6 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,20 +29,19 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.LocationOn
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -54,12 +52,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.OffsetMapping
-import androidx.compose.ui.text.input.TransformedText
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -67,13 +62,15 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
-import turmaA.grupoB.LinkStage.ui.admin.AdminMentor
+import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.admin.sampleMentors
-import turmaA.grupoB.LinkStage.ui.aluno.apply.skillCategories
+import androidx.compose.ui.platform.LocalContext
+import turmaA.grupoB.LinkStage.ui.aluno.apply.getSkillCategories
+import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
 import turmaA.grupoB.LinkStage.ui.common.ConfirmationDialog
 import turmaA.grupoB.LinkStage.ui.common.LinkStageButton
+import turmaA.grupoB.LinkStage.ui.common.LinkStageOutlinedButton
+import turmaA.grupoB.LinkStage.ui.common.LinkStageTabRow
 import turmaA.grupoB.LinkStage.ui.common.SectionLabel
 import turmaA.grupoB.LinkStage.ui.instituicao.InstituicaoRoutes
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
@@ -84,8 +81,6 @@ import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.ui.theme.Red
 import turmaA.grupoB.LinkStage.viewmodel.OfferFormViewModel
 
-private val categoryOptions = skillCategories.keys.sorted()
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OfferFormInstituicaoScreen(
@@ -94,6 +89,7 @@ fun OfferFormInstituicaoScreen(
     modifier: Modifier = Modifier,
     viewModel: OfferFormViewModel = viewModel(),
 ) {
+    val context = LocalContext.current
     val currentStep = viewModel.currentStep
 
     // Validation errors
@@ -107,9 +103,11 @@ fun OfferFormInstituicaoScreen(
 
     if (showPublishDialog) {
         ConfirmationDialog(
-            title = "Publicar oferta?",
-            body = "A oferta ficará visível para os estudantes da comunidade LinkStage.",
-            confirmLabel = "Publicar",
+            title = if (offerId == "new") stringResource(R.string.offer_form_publish_title) else stringResource(R.string.offer_form_save_title),
+            body = if (offerId == "new")
+                stringResource(R.string.offer_form_publish_body)
+            else stringResource(R.string.offer_form_edit_body),
+            confirmLabel = if (offerId == "new") stringResource(R.string.offer_form_publish_button) else stringResource(R.string.common_save),
             onConfirm = {
                 showPublishDialog = false
                 viewModel.createOffer()
@@ -121,180 +119,139 @@ fun OfferFormInstituicaoScreen(
         )
     }
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .background(BackgroundLight),
-    ) {
-        // Header
-        OfferFormHeader(onBack = { navController.popBackStack() })
+    Scaffold(
+        modifier = modifier.fillMaxSize(),
+        containerColor = BackgroundLight,
+        topBar = {
+            Column(modifier = Modifier.background(Color.White)) {
+                // Top Row: Back + Title
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 8.dp, end = 20.dp, top = 8.dp, bottom = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.common_back_content_desc),
+                            tint = DarkBlue
+                        )
+                    }
+                    Text(
+                        text = if (offerId == "new") stringResource(R.string.offer_form_create_title) else stringResource(R.string.offer_form_edit_title),
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = DarkBlue,
+                            fontSize = 20.sp
+                        )
+                    )
+                }
 
-        // Stepper
-        OfferFormStepper(currentStep = currentStep)
-
-        Spacer(modifier = Modifier.height(4.dp))
-
-        // Step title + subtitle
-        val (stepTitle, stepSubtitle) = when (currentStep) {
-            0 -> "Detalhes" to "Preencha os detalhes da oferta de estágio."
-            1 -> "Requisitos e Logística" to "Indique os requisitos que o candidato deve cumprir."
-            else -> "Rever Oferta" to "Reveja os dados antes de publicar."
-        }
-        Column(modifier = Modifier.padding(horizontal = 20.dp)) {
-            Text(text = stepTitle, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = DarkBlue)
-            Text(text = stepSubtitle, fontSize = 13.sp, color = DarkGrey)
-        }
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        // Step content
-        AnimatedContent(
-            targetState = currentStep,
-            modifier = Modifier.weight(1f),
-            transitionSpec = {
-                (slideInHorizontally { if (targetState > initialState) it else -it } + fadeIn())
-                    .togetherWith(slideOutHorizontally { if (targetState > initialState) -it else it } + fadeOut())
-            },
-            label = "offer_step",
-        ) { step ->
-            when (step) {
-                0 -> StepDetails(
-                    viewModel = viewModel,
-                    titleError = titleError,
-                    categoryError = categoryError,
-                    descriptionError = descriptionError,
-                )
-                1 -> StepRequirements(
-                    viewModel = viewModel,
-                    locationError = locationError,
-                    deadlineError = deadlineError,
-                )
-                2 -> StepReview(viewModel = viewModel)
+                // Stepper
+                OfferFormStepper(currentStep = currentStep)
+                Spacer(modifier = Modifier.height(8.dp))
             }
         }
-
-        // Bottom bar
+    ) { paddingValues ->
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .background(Color.White)
-                .padding(horizontal = 20.dp, vertical = 12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
+                .fillMaxSize()
+                .padding(paddingValues),
         ) {
-            LinkStageButton(
-                text = if (currentStep == 2) "Publicar oferta" else "Seguinte",
-                onClick = {
-                    when (currentStep) {
-                        0 -> {
-                            titleError = viewModel.title.isBlank()
-                            categoryError = viewModel.category.isBlank()
-                            descriptionError = viewModel.description.isBlank()
-                            if (!titleError && !categoryError && !descriptionError) {
-                                viewModel.currentStep = 1
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Step title + subtitle
+            val (stepTitle, stepSubtitle) = when (currentStep) {
+                0 -> stringResource(R.string.offer_form_step0_title) to stringResource(R.string.offer_form_step0_subtitle)
+                1 -> stringResource(R.string.offer_form_step1_title) to stringResource(R.string.offer_form_step1_subtitle)
+                else -> stringResource(R.string.offer_form_step2_title) to stringResource(R.string.offer_form_step2_subtitle)
+            }
+            Column(modifier = Modifier.padding(horizontal = 20.dp)) {
+                Text(text = stepTitle, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = DarkBlue)
+                Text(text = stepSubtitle, fontSize = 13.sp, color = DarkGrey)
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Step content
+            AnimatedContent(
+                targetState = currentStep,
+                modifier = Modifier.weight(1f),
+                transitionSpec = {
+                    (slideInHorizontally { if (targetState > initialState) it else -it } + fadeIn())
+                        .togetherWith(slideOutHorizontally { if (targetState > initialState) -it else it } + fadeOut())
+                },
+                label = "offer_step",
+            ) { step ->
+                when (step) {
+                    0 -> StepDetails(
+                        viewModel = viewModel,
+                        titleError = titleError,
+                        categoryError = categoryError,
+                        descriptionError = descriptionError,
+                    )
+                    1 -> StepRequirements(
+                        viewModel = viewModel,
+                        locationError = locationError,
+                        deadlineError = deadlineError,
+                    )
+                    2 -> StepReview(viewModel = viewModel)
+                }
+            }
+
+            // Bottom bar
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.White)
+                    .padding(horizontal = 20.dp, vertical = 12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                LinkStageButton(
+                    text = if (currentStep == 2) stringResource(R.string.offer_form_publish_offer) else stringResource(R.string.offer_form_next),
+                    onClick = {
+                        when (currentStep) {
+                            0 -> {
+                                titleError = viewModel.title.isBlank()
+                                categoryError = viewModel.category.isBlank()
+                                descriptionError = viewModel.description.isBlank()
+                                if (!titleError && !categoryError && !descriptionError) {
+                                    viewModel.currentStep = 1
+                                }
+                            }
+                            1 -> {
+                                locationError = viewModel.location.isBlank()
+                                deadlineError = viewModel.deadline.isBlank() || !viewModel.isValidDate(viewModel.deadline)
+                                if (!locationError && !deadlineError) {
+                                    viewModel.currentStep = 2
+                                }
+                            }
+                            2 -> {
+                                showPublishDialog = true
                             }
                         }
-                        1 -> {
-                            locationError = viewModel.location.isBlank()
-                            deadlineError = viewModel.deadline.isBlank() || !viewModel.isValidDate(viewModel.deadline)
-                            if (!locationError && !deadlineError) {
-                                viewModel.currentStep = 2
-                            }
+                    },
+                    height = 50.dp,
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                LinkStageOutlinedButton(
+                    text = stringResource(R.string.common_back),
+                    onClick = {
+                        if (currentStep == 0) {
+                            navController.popBackStack()
+                        } else {
+                            viewModel.currentStep = currentStep - 1
                         }
-                        2 -> {
-                            showPublishDialog = true
-                        }
-                    }
-                },
-                height = 50.dp,
-            )
-
-            TextButton(
-                onClick = {
-                    if (currentStep == 0) {
-                        navController.popBackStack()
-                    } else {
-                        viewModel.currentStep = currentStep - 1
-                    }
-                },
-            ) {
-                Text("Voltar", color = DarkGrey, fontSize = 13.sp)
-            }
-        }
-    }
-}
-
-// region Header
-
-@Composable
-private fun OfferFormHeader(onBack: () -> Unit) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Color.White)
-            .padding(bottom = 4.dp),
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 10.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            IconButton(
-                onClick = onBack,
-                modifier = Modifier.size(40.dp),
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Voltar",
-                    tint = DarkBlue,
-                )
-            }
-            Spacer(modifier = Modifier.width(4.dp))
-            Text(
-                text = "Ofertas",
-                color = DarkBlue,
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 15.sp,
-            )
-        }
-
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            shape = RoundedCornerShape(10.dp),
-            colors = CardDefaults.cardColors(containerColor = DarkBlue.copy(alpha = 0.06f)),
-            border = androidx.compose.foundation.BorderStroke(1.dp, BorderGrey),
-        ) {
-            Column(modifier = Modifier.padding(12.dp)) {
-                Text(
-                    text = "RECRUITMENT SUITE",
-                    color = LightBlue,
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 11.sp,
-                    letterSpacing = 1.sp,
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "Cria uma nova oferta de estágio",
-                    color = DarkBlue,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp,
-                    lineHeight = 26.sp,
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "Atraia talento académico de topo definindo uma função clara e impactante. A sua oferta será visível para os estudantes da comunidade LinkStage.",
-                    color = DarkGrey,
-                    fontSize = 12.sp,
-                    lineHeight = 18.sp,
+                    },
+                    height = 50.dp,
                 )
             }
         }
     }
 }
-
-// endregion
 
 // region Stepper
 
@@ -320,7 +277,7 @@ private fun OfferFormStepper(currentStep: Int) {
                         when {
                             isCompleted -> LightBlue
                             isActive -> DarkBlue
-                            else -> BorderGrey
+                            else -> Color(0xFFE0E0E0)
                         },
                     ),
                 contentAlignment = Alignment.Center,
@@ -346,8 +303,8 @@ private fun OfferFormStepper(currentStep: Int) {
                 Box(
                     modifier = Modifier
                         .weight(1f)
-                        .height(3.dp)
-                        .background(if (isCompleted) LightBlue else BorderGrey),
+                        .height(2.dp)
+                        .background(if (isCompleted) LightBlue else Color(0xFFE0E0E0)),
                 )
             }
         }
@@ -366,6 +323,8 @@ private fun StepDetails(
     categoryError: Boolean,
     descriptionError: Boolean,
 ) {
+    val context = LocalContext.current
+    val categoryOptions = getSkillCategories().keys.sorted()
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -375,72 +334,57 @@ private fun StepDetails(
     ) {
         // Tipo de estágio (escola vs empresa)
         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            SectionLabel("Tipo de estágio")
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                Text(
-                    text = if (viewModel.isCompanyOffer) "Estágio em empresa" else "Estágio escolar",
-                    color = DarkBlue, fontSize = 14.sp, fontWeight = FontWeight.SemiBold,
-                )
-                Switch(
-                    checked = viewModel.isCompanyOffer,
-                    onCheckedChange = { viewModel.isCompanyOffer = it },
-                    colors = SwitchDefaults.colors(
-                        checkedThumbColor = Color.White,
-                        checkedTrackColor = LightBlue,
-                        uncheckedThumbColor = Color.White,
-                        uncheckedTrackColor = BorderGrey,
-                    ),
-                )
-            }
+            SectionLabel(stringResource(R.string.offer_form_internship_type))
+            LinkStageTabRow(
+                tabs = listOf(stringResource(R.string.offer_form_type_school), stringResource(R.string.offer_form_type_company)),
+                selectedIndex = if (viewModel.isCompanyOffer) 1 else 0,
+                onTabSelected = { viewModel.isCompanyOffer = it == 1 }
+            )
             Text(
                 text = if (viewModel.isCompanyOffer)
-                    "Estágios em empresa requerem um orientador escolar e um orientador da empresa."
+                    stringResource(R.string.offer_form_company_hint)
                 else
-                    "Estágios escolares requerem apenas um orientador da instituição de ensino.",
+                    stringResource(R.string.offer_form_school_hint),
                 color = DarkGrey, fontSize = 12.sp,
             )
         }
 
         // Orientador escolar
         OfferDropdown(
-            label = "Orientador escolar",
+            label = stringResource(R.string.offer_form_school_mentor),
             value = viewModel.schoolMentorName,
-            placeholder = "Escolha o orientador da instituição",
-            options = sampleMentors.map { it.name },
+            placeholder = stringResource(R.string.offer_form_school_mentor_placeholder),
+            options = sampleMentors(context).map { it.name },
             onOptionSelected = { name ->
                 viewModel.schoolMentorName = name
-                viewModel.schoolMentorId = sampleMentors.find { it.name == name }?.id ?: ""
+                viewModel.schoolMentorId = sampleMentors(context).find { it.name == name }?.id ?: ""
             },
         )
 
         // Orientador da empresa (só visível se for estágio empresa)
         if (viewModel.isCompanyOffer) {
             OfferTextField(
-                label = "Orientador da empresa",
+                label = stringResource(R.string.offer_form_company_mentor),
                 value = viewModel.companyMentorName,
                 onValueChange = { viewModel.companyMentorName = it },
-                placeholder = "Nome do orientador designado pela empresa",
+                placeholder = stringResource(R.string.offer_form_company_mentor_placeholder),
             )
         }
 
         // Título
         OfferTextField(
-            label = "Título",
+            label = stringResource(R.string.offer_form_title_label),
             value = viewModel.title,
             onValueChange = { viewModel.title = it },
-            placeholder = "Ex: Estágio de Engenheiro de Software",
+            placeholder = stringResource(R.string.offer_form_title_placeholder),
             isError = titleError,
         )
 
         // Categoria
         OfferDropdown(
-            label = "Categoria",
+            label = stringResource(R.string.offer_form_category),
             value = viewModel.category,
-            placeholder = "Escolha uma categoria",
+            placeholder = stringResource(R.string.offer_form_category_placeholder),
             options = categoryOptions,
             onOptionSelected = { viewModel.category = it },
             isError = categoryError,
@@ -448,10 +392,10 @@ private fun StepDetails(
 
         // Descrição
         OfferTextField(
-            label = "Descrição",
+            label = stringResource(R.string.offer_form_description),
             value = viewModel.description,
             onValueChange = { viewModel.description = it },
-            placeholder = "Descreva a missão, a equipa e o que o estagiário irá aprender...",
+            placeholder = stringResource(R.string.offer_form_description_placeholder),
             singleLine = false,
             minLines = 4,
             maxLines = 8,
@@ -481,10 +425,10 @@ private fun StepRequirements(
     ) {
         // Requisitos
         OfferTextField(
-            label = "Requisitos da candidatura",
+            label = stringResource(R.string.offer_form_requirements),
             value = viewModel.requirements,
             onValueChange = { viewModel.requirements = it },
-            placeholder = "Indique competências, ferramentas ou formação académica necessária...",
+            placeholder = stringResource(R.string.offer_form_requirements_placeholder),
             singleLine = false,
             minLines = 4,
             maxLines = 8,
@@ -492,7 +436,7 @@ private fun StepRequirements(
 
         // Local
         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            SectionLabel("Local")
+            SectionLabel(stringResource(R.string.offer_form_location))
             OutlinedTextField(
                 value = viewModel.location,
                 onValueChange = { viewModel.location = it },
@@ -505,7 +449,7 @@ private fun StepRequirements(
                         modifier = Modifier.size(18.dp),
                     )
                 },
-                placeholder = { Text("Remoto ou nome da cidade", color = DarkGrey, fontSize = 14.sp) },
+                placeholder = { Text(stringResource(R.string.offer_form_location_placeholder), color = DarkGrey, fontSize = 14.sp) },
                 shape = RoundedCornerShape(10.dp),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = if (locationError) Red else LightBlue,
@@ -519,13 +463,13 @@ private fun StepRequirements(
                 isError = locationError,
             )
             if (locationError) {
-                Text("Este campo é obrigatório", color = Red, fontSize = 12.sp)
+                Text(stringResource(R.string.common_required_field), color = Red, fontSize = 12.sp)
             }
         }
 
         // Data de fecho
         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            SectionLabel("Data de fecho de candidaturas")
+            SectionLabel(stringResource(R.string.offer_form_deadline))
             OutlinedTextField(
                 value = viewModel.deadline,
                 onValueChange = { newValue ->
@@ -551,7 +495,7 @@ private fun StepRequirements(
                         modifier = Modifier.size(18.dp),
                     )
                 },
-                placeholder = { Text("dd/mm/aaaa", color = DarkGrey, fontSize = 14.sp) },
+                placeholder = { Text(stringResource(R.string.checkpoint_deadline_placeholder), color = DarkGrey, fontSize = 14.sp) },
                 shape = RoundedCornerShape(10.dp),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = if (deadlineError) Red else LightBlue,
@@ -566,7 +510,7 @@ private fun StepRequirements(
                 isError = deadlineError,
             )
             if (deadlineError) {
-                Text("Formato de data inválido (dd/mm/aaaa)", color = Red, fontSize = 12.sp)
+                Text(stringResource(R.string.offer_form_deadline_error), color = Red, fontSize = 12.sp)
             }
         }
 
@@ -586,34 +530,34 @@ private fun StepReview(viewModel: OfferFormViewModel) {
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 20.dp),
     ) {
-        ReviewRow(label = "Título", value = viewModel.title)
+        ReviewRow(label = stringResource(R.string.offer_form_title_label), value = viewModel.title)
         ReviewRow(
-            label = "Tipo",
-            value = if (viewModel.isCompanyOffer) "Empresa" else "Escolar",
+            label = stringResource(R.string.offer_form_review_type),
+            value = if (viewModel.isCompanyOffer) stringResource(R.string.offer_form_type_company) else stringResource(R.string.offer_form_type_school),
         )
         ReviewRow(
-            label = "Orientador escolar",
-            value = viewModel.schoolMentorName.ifBlank { "Não atribuído" },
+            label = stringResource(R.string.offer_form_school_mentor),
+            value = viewModel.schoolMentorName.ifBlank { stringResource(R.string.offer_form_not_assigned) },
             valueColor = if (viewModel.schoolMentorName.isBlank()) DarkGrey else DarkBlue,
         )
         if (viewModel.isCompanyOffer) {
             ReviewRow(
-                label = "Orientador empresa",
-                value = viewModel.companyMentorName.ifBlank { "Não atribuído" },
+                label = stringResource(R.string.offer_form_company_mentor_short),
+                value = viewModel.companyMentorName.ifBlank { stringResource(R.string.offer_form_not_assigned) },
                 valueColor = if (viewModel.companyMentorName.isBlank()) DarkGrey else DarkBlue,
             )
         }
-        ReviewRow(label = "Categoria", value = viewModel.category)
-        ReviewRow(label = "Local", value = viewModel.location)
-        ReviewRow(label = "Data de fecho", value = viewModel.deadline)
+        ReviewRow(label = stringResource(R.string.offer_form_category), value = viewModel.category)
+        ReviewRow(label = stringResource(R.string.offer_form_location), value = viewModel.location)
+        ReviewRow(label = stringResource(R.string.offer_form_review_deadline), value = viewModel.deadline)
         ReviewRow(
-            label = "Requisitos",
-            value = if (viewModel.requirements.isNotBlank()) "Completo" else "Sem informação",
+            label = stringResource(R.string.offer_form_review_requirements),
+            value = if (viewModel.requirements.isNotBlank()) stringResource(R.string.common_complete) else stringResource(R.string.offer_form_no_info),
             valueColor = if (viewModel.requirements.isNotBlank()) LightBlue else DarkGrey,
         )
         ReviewRow(
-            label = "Descrição",
-            value = "Completo",
+            label = stringResource(R.string.offer_form_description),
+            value = stringResource(R.string.common_complete),
             valueColor = LightBlue,
         )
 
@@ -649,7 +593,7 @@ private fun ReviewRow(
                 modifier = Modifier.weight(0.6f),
             )
         }
-        HorizontalDivider(color = BorderGrey)
+        androidx.compose.material3.HorizontalDivider(color = BorderGrey)
     }
 }
 
@@ -690,7 +634,7 @@ private fun OfferTextField(
             isError = isError,
         )
         if (isError) {
-            Text("Este campo é obrigatório", color = Red, fontSize = 12.sp)
+            Text(stringResource(R.string.common_required_field), color = Red, fontSize = 12.sp)
         }
     }
 }
@@ -752,7 +696,7 @@ private fun OfferDropdown(
             }
         }
         if (isError) {
-            Text("Este campo é obrigatório", color = Red, fontSize = 12.sp)
+            Text(stringResource(R.string.common_required_field), color = Red, fontSize = 12.sp)
         }
     }
 }

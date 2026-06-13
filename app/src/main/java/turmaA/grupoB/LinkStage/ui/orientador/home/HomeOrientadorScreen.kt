@@ -31,6 +31,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,21 +41,31 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.rememberNavController
+import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.admin.AdminStudent
 import turmaA.grupoB.LinkStage.ui.aluno.chat.Conversation
 import turmaA.grupoB.LinkStage.ui.aluno.chat.avatarColors
 import turmaA.grupoB.LinkStage.ui.aluno.chat.sampleConversations
 import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
+import turmaA.grupoB.LinkStage.ui.common.EvaluationNotificationModal
+import turmaA.grupoB.LinkStage.ui.common.EvaluationPendingCard
+import turmaA.grupoB.LinkStage.ui.orientador.EvaluationState
+import turmaA.grupoB.LinkStage.ui.orientador.InternshipEvaluation
+import turmaA.grupoB.LinkStage.ui.orientador.InternshipType
 import turmaA.grupoB.LinkStage.ui.orientador.MentorInternship
 import turmaA.grupoB.LinkStage.ui.orientador.OrientadorRoutes
+import turmaA.grupoB.LinkStage.ui.orientador.sampleEvaluation
 import turmaA.grupoB.LinkStage.ui.orientador.sampleMentorInternships
 import turmaA.grupoB.LinkStage.ui.orientador.sampleMentorStudents
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
@@ -63,12 +75,58 @@ import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.Fade3
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.ui.theme.MediumBlue
+import turmaA.grupoB.LinkStage.viewmodel.AdvisorHomeViewModel
+import turmaA.grupoB.LinkStage.viewmodel.orientador.OrientadorDashboardData
+import turmaA.grupoB.LinkStage.viewmodel.orientador.OrientadorDashboardUiState
+import turmaA.grupoB.LinkStage.viewmodel.orientador.OrientadorDashboardViewModel
+import turmaA.grupoB.LinkStage.viewmodel.orientador.OrientadorDashboardViewModelFactory
 
 @Composable
 fun HomeOrientadorScreen(
     navController: NavController,
     modifier: Modifier = Modifier,
+    advisorHomeViewModel: AdvisorHomeViewModel = viewModel(),
+    orientadorDashboardViewModel: OrientadorDashboardViewModel = viewModel(factory = OrientadorDashboardViewModelFactory()),
 ) {
+    val context = LocalContext.current
+    val dashboardUiState by orientadorDashboardViewModel.uiState.collectAsState()
+    val dashboardData = dashboardUiState.dashboardData(context)
+    val evaluation = dashboardData.evaluation ?: sampleEvaluation(context)
+    val hasSeenResult by advisorHomeViewModel.hasSeenEvaluations.collectAsState()
+    val hasDismissedModal by advisorHomeViewModel.hasDismissedEvaluationModal.collectAsState()
+
+    LaunchedEffect(orientadorDashboardViewModel) {
+        orientadorDashboardViewModel.loadDashboard()
+    }
+
+    val showEvaluationModal = evaluation.state == EvaluationState.READY_FOR_FINAL && 
+            !evaluation.hasSeenNotification && 
+            !hasSeenResult && 
+            !hasDismissedModal
+
+    if (showEvaluationModal) {
+        val (modalTitle, modalMessage) = when (evaluation.internshipType) {
+            InternshipType.COMPANY_SCHOOL -> Pair(
+                stringResource(R.string.advisor_home_evals_submitted_title),
+                stringResource(R.string.advisor_home_evals_submitted_company)
+            )
+            InternshipType.SCHOOL_ONLY -> Pair(
+                stringResource(R.string.institution_eval_submitted),
+                stringResource(R.string.advisor_home_eval_submitted_school)
+            )
+        }
+        EvaluationNotificationModal(
+            title = modalTitle,
+            message = modalMessage,
+            actionLabel = stringResource(R.string.advisor_home_view_evaluations),
+            onAction = {
+                advisorHomeViewModel.setHasSeenEvaluations(true)
+                navController.navigate(OrientadorRoutes.mentorStudentDetail("s1"))
+            },
+            onDismiss = { advisorHomeViewModel.setHasDismissedEvaluationModal(true) },
+        )
+    }
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -82,17 +140,31 @@ fun HomeOrientadorScreen(
                 .padding(horizontal = 20.dp, vertical = 8.dp)
         ) {
             Text(
-                "Olá, JJ",
+                stringResource(R.string.home_greeting, "JJ"),
                 style = MaterialTheme.typography.headlineLarge.copy(
                     fontWeight = FontWeight.Bold,
                     color = DarkBlue,
                 ),
             )
             Text(
-                "Bem-vindo de volta ao LinkStage.",
+                stringResource(R.string.home_welcome),
                 style = MaterialTheme.typography.bodyMedium,
                 color = DarkGrey
             )
+        }
+
+        if (evaluation.state == EvaluationState.READY_FOR_FINAL && !hasSeenResult) {
+            EvaluationPendingCard(
+                title = stringResource(R.string.advisor_home_final_grade_pending),
+                message = stringResource(R.string.advisor_eval_ready_message),
+                actionLabel = stringResource(R.string.advisor_eval_assign_grade),
+                isDanger = true,
+                onClick = {
+                    advisorHomeViewModel.setHasSeenEvaluations(true)
+                    navController.navigate(OrientadorRoutes.mentorStudentDetail("s1"))
+                },
+            )
+            Spacer(modifier = Modifier.height(4.dp))
         }
 
         Column(
@@ -104,7 +176,7 @@ fun HomeOrientadorScreen(
 
             // Section 1 — Os seus estágios
             SectionHeader(
-                title = "Os seus estágios",
+                title = stringResource(R.string.advisor_home_your_internships),
                 onViewAll = {
                     navController.navigate(OrientadorRoutes.INTERNSHIPS) {
                         popUpTo(navController.graph.findStartDestination().id) {
@@ -117,20 +189,20 @@ fun HomeOrientadorScreen(
             )
             Spacer(modifier = Modifier.height(8.dp))
 
-            if (sampleMentorInternships.isNotEmpty()) {
-                sampleMentorInternships.take(2).forEach { internship ->
+            if (dashboardData.internships.isNotEmpty()) {
+                dashboardData.internships.take(2).forEach { internship ->
                     MentorInternshipCard(internship = internship)
                     Spacer(modifier = Modifier.height(8.dp))
                 }
             } else {
-                EmptyStateCard("Não estás envolvido em nenhum estágio.")
+                EmptyStateCard(stringResource(R.string.advisor_no_internships))
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
             // Section 2 — Alunos orientados
             SectionHeader(
-                title = "Alunos orientados",
+                title = stringResource(R.string.advisor_home_supervised_students),
                 onViewAll = {
                     navController.navigate(OrientadorRoutes.STUDENTS) {
                         popUpTo(navController.graph.findStartDestination().id) {
@@ -143,7 +215,7 @@ fun HomeOrientadorScreen(
             )
             Spacer(modifier = Modifier.height(8.dp))
 
-            if (sampleMentorStudents.isNotEmpty()) {
+            if (dashboardData.students.isNotEmpty()) {
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -157,9 +229,9 @@ fun HomeOrientadorScreen(
                             .fillMaxWidth()
                             .background(Fade3, RoundedCornerShape(12.dp)),
                     ) {
-                        sampleMentorStudents.take(2).forEachIndexed { index, student ->
+                        dashboardData.students.take(2).forEachIndexed { index, student ->
                             MentorStudentRow(student = student)
-                            if (index < sampleMentorStudents.take(2).size - 1) {
+                            if (index < dashboardData.students.take(2).size - 1) {
                                 HorizontalDivider(
                                     color = Color.White.copy(alpha = 0.2f),
                                     modifier = Modifier.padding(horizontal = 16.dp),
@@ -169,14 +241,14 @@ fun HomeOrientadorScreen(
                     }
                 }
             } else {
-                EmptyStateCard("Não estás a orientar nenhum aluno.")
+                EmptyStateCard(stringResource(R.string.advisor_no_students))
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
             // Section 3 — Mensagens Recentes
             SectionHeader(
-                title = "Mensagens Recentes",
+                title = stringResource(R.string.institution_home_recent_messages),
                 onViewAll = {
                     navController.navigate(OrientadorRoutes.MESSAGES) {
                         popUpTo(navController.graph.findStartDestination().id) {
@@ -214,7 +286,7 @@ fun HomeOrientadorScreen(
                     }
                 }
             } else {
-                EmptyStateCard("Nenhuma mensagem ainda.")
+                EmptyStateCard(stringResource(R.string.advisor_home_no_messages))
             }
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -242,7 +314,7 @@ private fun SectionHeader(
         )
         TextButton(onClick = onViewAll) {
             Text(
-                text = "Ver todos →",
+                text = stringResource(R.string.common_view_all),
                 color = LightBlue,
                 fontSize = 13.sp,
             )
@@ -304,7 +376,7 @@ private fun MentorInternshipCard(internship: MentorInternship) {
                 IconButton(onClick = { isFav = !isFav }) {
                     Icon(
                         imageVector = Icons.Outlined.FavoriteBorder,
-                        contentDescription = "Favorito",
+                        contentDescription = stringResource(R.string.institution_home_favorite),
                         tint = if (isFav) LightBlue else DarkGrey,
                     )
                 }
@@ -327,7 +399,7 @@ private fun MentorInternshipCard(internship: MentorInternship) {
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
-                    text = "Publicada 5h atrás",
+                    text = stringResource(R.string.advisor_published_ago),
                     color = DarkGrey,
                     fontSize = 12.sp,
                 )
@@ -440,6 +512,21 @@ private fun EmptyStateCard(message: String) {
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(20.dp),
+        )
+    }
+}
+
+private fun OrientadorDashboardUiState.dashboardData(context: android.content.Context): OrientadorDashboardData {
+    return when (this) {
+        is OrientadorDashboardUiState.Success -> data
+        OrientadorDashboardUiState.Idle,
+        OrientadorDashboardUiState.Loading,
+        OrientadorDashboardUiState.Empty,
+        is OrientadorDashboardUiState.Error -> OrientadorDashboardData(
+            internships = sampleMentorInternships(context),
+            students = sampleMentorStudents(context),
+            activityLogs = emptyList(),
+            evaluation = sampleEvaluation(context),
         )
     }
 }

@@ -53,11 +53,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.common.CheckItem
 import turmaA.grupoB.LinkStage.ui.common.ContentSection
 import turmaA.grupoB.LinkStage.ui.common.ContentSectionColored
@@ -150,7 +152,7 @@ fun OfferDetailAlunoScreen(
     }
 
     Scaffold(
-        topBar = { SecondaryTopBar(title = "Detalhes da Oferta", onBack = onBack) },
+        topBar = { SecondaryTopBar(title = stringResource(R.string.offer_detail_title), onBack = onBack) },
         bottomBar = {
             OfferDetailBottomBar(
                 hasApplied = hasApplied,
@@ -181,7 +183,7 @@ fun OfferDetailAlunoScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            ContentSection(title = "Sobre a empresa") {
+            ContentSection(title = stringResource(R.string.offer_about_company)) {
                 Text(
                     text = offer.aboutCompany,
                     fontSize = 14.sp,
@@ -193,7 +195,7 @@ fun OfferDetailAlunoScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            ContentSection(title = "Responsabilidades") {
+            ContentSection(title = stringResource(R.string.offer_responsibilities)) {
                 offer.responsibilities.forEach { item ->
                     ResponsibilityItem(text = item)
                 }
@@ -202,7 +204,7 @@ fun OfferDetailAlunoScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            ContentSectionColored(title = "Requisitos") {
+            ContentSectionColored(title = stringResource(R.string.offer_requirements)) {
                 offer.requirements.forEach { item ->
                     CheckItem(text = item)
                 }
@@ -210,7 +212,7 @@ fun OfferDetailAlunoScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            ContentSection(title = "Benefícios") {
+            ContentSection(title = stringResource(R.string.offer_benefits)) {
                 FlowRow(
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -294,19 +296,19 @@ private fun OfferMetaChips(offer: OfferDetail) {
     ) {
         MetaChip(
             icon = Icons.Outlined.LocationOn,
-            label = "Localização",
+            label = stringResource(R.string.filter_location),
             value = offer.location,
             modifier = Modifier.weight(1f).fillMaxHeight(),
         )
         MetaChip(
             icon = Icons.Outlined.Schedule,
-            label = "Duração",
+            label = stringResource(R.string.filter_duration),
             value = offer.duration,
             modifier = Modifier.weight(1f).fillMaxHeight(),
         )
         MetaChip(
             icon = Icons.Outlined.Work,
-            label = "Tipo",
+            label = stringResource(R.string.offer_form_review_type),
             value = offer.type,
             modifier = Modifier.weight(1f).fillMaxHeight(),
         )
@@ -433,7 +435,7 @@ private fun OfferDetailBottomBar(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 LinkStageButton(
-                    text = if (hasApplied) "Candidatura Enviada ✓" else "Candidatar",
+                    text = if (hasApplied) stringResource(R.string.offer_applied) else stringResource(R.string.offer_apply),
                     onClick = { if (!hasApplied) onApply() },
                     enabled = !hasApplied,
                     modifier = Modifier.weight(1f),
@@ -452,7 +454,7 @@ private fun OfferDetailBottomBar(
                     IconButton(onClick = onFavouriteToggle) {
                         Icon(
                             imageVector = Icons.Outlined.FavoriteBorder,
-                            contentDescription = "Favorito",
+                            contentDescription = if (isFavourite) stringResource(R.string.offer_remove_favorite) else stringResource(R.string.offer_add_favorite),
                             tint = if (isFavourite) LightBlue else DarkGrey,
                         )
                     }
@@ -467,7 +469,7 @@ private fun OfferDetailBottomBar(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    text = "Candidaturas terminam em $deadlineDays dias  •  $applicantsCount alunos candidataram-se",
+                    text = stringResource(R.string.offer_deadline_info, deadlineDays, applicantsCount),
                     fontSize = 12.sp,
                     color = DarkGrey,
                     textAlign = TextAlign.Center,
@@ -484,14 +486,14 @@ private fun ApplyConfirmDialog(
     onDismiss: () -> Unit,
 ) {
     LinkStageDialog(
-        title = "Confirmar Candidatura",
+        title = stringResource(R.string.offer_confirm_apply_title),
         onConfirm = onConfirm,
         onDismiss = onDismiss,
-        confirmText = "Candidatar",
-        dismissText = "Cancelar",
+        confirmText = stringResource(R.string.offer_apply),
+        dismissText = stringResource(R.string.dialog_cancel),
         content = {
             Text(
-                text = "Tens a certeza que te queres candidatar a \"$offerTitle\"?",
+                text = stringResource(R.string.offer_confirm_apply_message, offerTitle),
                 color = DarkGrey,
                 lineHeight = 22.sp,
             )

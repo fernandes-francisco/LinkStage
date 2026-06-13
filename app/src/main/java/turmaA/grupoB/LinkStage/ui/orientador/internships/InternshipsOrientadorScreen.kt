@@ -29,6 +29,8 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -37,12 +39,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
 import turmaA.grupoB.LinkStage.ui.orientador.MentorInternship
 import turmaA.grupoB.LinkStage.ui.orientador.OrientadorRoutes
@@ -54,19 +60,31 @@ import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.ui.theme.MediumBlue
+import turmaA.grupoB.LinkStage.viewmodel.orientador.OrientadorDashboardData
+import turmaA.grupoB.LinkStage.viewmodel.orientador.OrientadorDashboardUiState
+import turmaA.grupoB.LinkStage.viewmodel.orientador.OrientadorDashboardViewModel
+import turmaA.grupoB.LinkStage.viewmodel.orientador.OrientadorDashboardViewModelFactory
 
 @Composable
 fun InternshipsOrientadorScreen(
     navController: NavController,
     modifier: Modifier = Modifier,
+    orientadorDashboardViewModel: OrientadorDashboardViewModel = viewModel(factory = OrientadorDashboardViewModelFactory()),
 ) {
     var searchQuery by rememberSaveable { mutableStateOf("") }
+    val context = LocalContext.current
+    val dashboardUiState by orientadorDashboardViewModel.uiState.collectAsState()
+    val dashboardData = dashboardUiState.dashboardData(context)
 
-    val filtered = if (searchQuery.isEmpty()) sampleMentorInternships
-    else sampleMentorInternships.filter {
+    val filtered = if (searchQuery.isEmpty()) dashboardData.internships
+    else dashboardData.internships.filter {
         it.offerTitle.contains(searchQuery, ignoreCase = true) ||
             it.businessInstitutionName.contains(searchQuery, ignoreCase = true) ||
             it.schoolInstitutionName.contains(searchQuery, ignoreCase = true)
+    }
+
+    LaunchedEffect(orientadorDashboardViewModel) {
+        orientadorDashboardViewModel.loadDashboard()
     }
 
     Column(
@@ -77,7 +95,7 @@ fun InternshipsOrientadorScreen(
         CommonTopBar()
 
         Text(
-            text = "Estágios Envolvidos",
+            text = stringResource(R.string.advisor_internships_title),
             style = MaterialTheme.typography.headlineSmall.copy(
                 fontWeight = FontWeight.Bold,
                 color = DarkBlue,
@@ -93,9 +111,9 @@ fun InternshipsOrientadorScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp),
-            placeholder = { Text("Pesquisar...", color = DarkGrey) },
+            placeholder = { Text(stringResource(R.string.common_search), color = DarkGrey) },
             leadingIcon = {
-                Icon(Icons.Outlined.Search, contentDescription = "Pesquisar", tint = DarkGrey)
+                Icon(Icons.Outlined.Search, contentDescription = stringResource(R.string.common_search), tint = DarkGrey)
             },
             shape = RoundedCornerShape(12.dp),
             colors = OutlinedTextFieldDefaults.colors(
@@ -123,7 +141,7 @@ fun InternshipsOrientadorScreen(
                 )
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
-                    text = "Não estás envolvido em nenhum estágio.",
+                    text = stringResource(R.string.advisor_no_internships),
                     color = DarkGrey,
                     fontSize = 16.sp,
                 )
@@ -148,6 +166,7 @@ private fun InternshipCard(
     internship: MentorInternship,
     onClick: () -> Unit = {},
 ) {
+    val context = LocalContext.current
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -201,7 +220,7 @@ private fun InternshipCard(
                             .padding(horizontal = 8.dp, vertical = 2.dp),
                     ) {
                         Text(
-                            text = if (internship.isBusinessInternship) "Instituição Empresarial" else "Instituição Escolar",
+                            text = stringResource(if (internship.isBusinessInternship) R.string.advisor_type_business else R.string.advisor_type_school),
                             color = if (internship.isBusinessInternship) DarkBlue else DarkGrey,
                             fontWeight = FontWeight.Bold,
                             fontSize = 10.sp,
@@ -227,12 +246,27 @@ private fun InternshipCard(
                 )
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(
-                    text = "Termina a ${formatInternshipDate(internship.endDate)}",
+                    text = stringResource(R.string.advisor_ends_at, formatInternshipDate(internship.endDate, context)),
                     color = DarkGrey,
                     fontSize = 12.sp,
                 )
             }
         }
+    }
+}
+
+private fun OrientadorDashboardUiState.dashboardData(context: android.content.Context): OrientadorDashboardData {
+    return when (this) {
+        is OrientadorDashboardUiState.Success -> data
+        OrientadorDashboardUiState.Idle,
+        OrientadorDashboardUiState.Loading,
+        OrientadorDashboardUiState.Empty,
+        is OrientadorDashboardUiState.Error -> OrientadorDashboardData(
+            internships = sampleMentorInternships(context),
+            students = emptyList(),
+            activityLogs = emptyList(),
+            evaluation = null,
+        )
     }
 }
 

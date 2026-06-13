@@ -11,6 +11,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import turmaA.grupoB.LinkStage.ui.admin.AdminMainScreen
 import turmaA.grupoB.LinkStage.ui.aluno.AlunoMainScreen
+import turmaA.grupoB.LinkStage.ui.auth.ForceChangePasswordScreen
 import turmaA.grupoB.LinkStage.ui.auth.login.LoginScreen
 import turmaA.grupoB.LinkStage.ui.auth.register.RegisterScreen
 import turmaA.grupoB.LinkStage.ui.auth.register.RegisterDataScreen
@@ -20,7 +21,9 @@ import turmaA.grupoB.LinkStage.ui.auth.updatepassword.UpdatePasswordScreen
 import turmaA.grupoB.LinkStage.ui.introSliders.IntroSlidersScreen
 import turmaA.grupoB.LinkStage.ui.splash.SplashScreen
 import turmaA.grupoB.LinkStage.ui.instituicao.InstituicaoMainScreen
+import turmaA.grupoB.LinkStage.ui.instituicao.InstitutionPendingScreen
 import turmaA.grupoB.LinkStage.ui.orientador.OrientadorMainScreen
+import turmaA.grupoB.LinkStage.data.remote.model.enums.UserRole
 
 object Routes {
     const val SPLASH = "splash"
@@ -31,6 +34,9 @@ object Routes {
     const val REGISTER_SKILLS = "auth/register-skills"
     const val FORGOT_PASSWORD = "auth/forgot-password"
     const val UPDATE_PASSWORD = "auth/update-password"
+
+    const val FORCE_CHANGE_PASSWORD = "force_change_password"
+    const val INSTITUTION_PENDING = "institution_pending"
 
     const val ADMIN_MAIN = "admin"
     const val ALUNO_MAIN = "aluno"
@@ -92,8 +98,17 @@ fun AppNavigation(
         composable(Routes.LOGIN) {
             LoginScreen(
                 onLoginClick = { _, _ ->
-                    navController.navigate(Routes.ALUNO_MAIN) {
-                        popUpTo(Routes.LOGIN) { inclusive = true }
+                    // TODO: Replace with real auth check.
+                    // Hardcoded: simulate a mentor account that must change password.
+                    val mustChangePassword = false
+                    if (mustChangePassword) {
+                        navController.navigate(Routes.FORCE_CHANGE_PASSWORD) {
+                            popUpTo(Routes.LOGIN) { inclusive = true }
+                        }
+                    } else {
+                        navController.navigate(Routes.ORIENTADOR_MAIN) {
+                            popUpTo(Routes.LOGIN) { inclusive = true }
+                        }
                     }
                 },
                 onRegisterClick = {
@@ -102,6 +117,12 @@ fun AppNavigation(
                 onForgotPasswordClick = {
                     navController.navigate(Routes.FORGOT_PASSWORD)
                 }
+            )
+        }
+        composable(Routes.FORCE_CHANGE_PASSWORD) {
+            ForceChangePasswordScreen(
+                navController = navController,
+                userDestination = Routes.ORIENTADOR_MAIN,
             )
         }
         composable(Routes.FORGOT_PASSWORD) {
@@ -149,14 +170,19 @@ fun AppNavigation(
                 }
             )
         ) { backStackEntry ->
-            val profile = backStackEntry.arguments?.getString("profile") ?: ""
+            val profileStr = backStackEntry.arguments?.getString("profile") ?: ""
+            val profile = try {
+                UserRole.valueOf(profileStr)
+            } catch (_: IllegalArgumentException) {
+                UserRole.STUDENT
+            }
             RegisterDataScreen(
                 selectedProfile = profile,
                 onBackClick = {
                     navController.popBackStack()
                 },
                 onContinueClick = { data ->
-                    if (profile == "Estudante") {
+                    if (profile == UserRole.STUDENT) {
                         navController.navigate(Routes.REGISTER_SKILLS)
                     } else {
                         navController.navigate(Routes.LOGIN) {
@@ -205,6 +231,9 @@ fun AppNavigation(
                     }
                 },
             )
+        }
+        composable(Routes.INSTITUTION_PENDING) {
+            InstitutionPendingScreen(navController = navController)
         }
         composable(Routes.INSTITUICAO_MAIN) { InstituicaoMainScreen() }
     }

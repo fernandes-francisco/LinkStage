@@ -1,26 +1,32 @@
 package turmaA.grupoB.LinkStage.ui.common
 
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
+import turmaA.grupoB.LinkStage.ui.theme.Fade2
 import turmaA.grupoB.LinkStage.ui.theme.Red
 
 @Composable
 fun ConfirmationDialog(
     title: String,
     body: String,
-    confirmLabel: String = "Confirmar",
-    confirmColor: Color = DarkBlue,
+    confirmLabel: String = stringResource(R.string.common_confirm),
+    confirmBrush: Brush = Fade2,
     isDanger: Boolean = false,
     onConfirm: () -> Unit,
     onDismiss: () -> Unit,
@@ -44,23 +50,25 @@ fun ConfirmationDialog(
             )
         },
         confirmButton = {
-            Button(
+            LinkStageButton(
+                text = confirmLabel,
                 onClick = onConfirm,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = if (isDanger) Red else confirmColor,
-                ),
-                shape = RoundedCornerShape(10.dp),
-            ) {
-                Text(confirmLabel, color = Color.White, fontWeight = FontWeight.SemiBold)
-            }
+                modifier = Modifier.width(120.dp),
+                height = 40.dp,
+                brush = if (isDanger) SolidColor(Red) else confirmBrush
+            )
         },
         dismissButton = {
-            OutlinedButton(
+            TextButton(
                 onClick = onDismiss,
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = DarkBlue),
-                shape = RoundedCornerShape(10.dp),
+                modifier = Modifier.height(40.dp)
             ) {
-                Text("Cancelar", fontWeight = FontWeight.SemiBold)
+                Text(
+                    text = stringResource(R.string.dialog_cancel),
+                    color = DarkGrey,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 14.sp
+                )
             }
         },
         containerColor = Color.White,

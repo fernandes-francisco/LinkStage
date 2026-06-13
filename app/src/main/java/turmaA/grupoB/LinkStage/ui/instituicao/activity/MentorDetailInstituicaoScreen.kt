@@ -42,6 +42,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -56,18 +57,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.admin.AdminMentor
 import turmaA.grupoB.LinkStage.ui.admin.sampleMentors
 import turmaA.grupoB.LinkStage.ui.common.ConfirmationDialog
 import turmaA.grupoB.LinkStage.ui.common.LinkStageTabRow
 import turmaA.grupoB.LinkStage.ui.common.SectionLabel
 import turmaA.grupoB.LinkStage.ui.instituicao.InstituicaoRoutes
+import androidx.compose.ui.platform.LocalContext
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
@@ -82,68 +86,72 @@ fun MentorDetailInstituicaoScreen(
     navController: NavController,
     modifier: Modifier = Modifier,
 ) {
-    val mentor = sampleMentors.find { it.id == mentorId } ?: sampleMentors.first()
+    val context = LocalContext.current
+    val mentor = sampleMentors(context).find { it.id == mentorId } ?: sampleMentors(context).first()
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .background(BackgroundLight),
-    ) {
-        // Header
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Color.White)
-                .padding(bottom = 12.dp),
-        ) {
-            Row(
-                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                IconButton(onClick = { navController.popBackStack() }) {
-                    Icon(
-                        Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Voltar",
-                        tint = DarkBlue,
-                        modifier = Modifier.size(22.dp),
+    Scaffold(
+        modifier = modifier.fillMaxSize(),
+        containerColor = BackgroundLight,
+        topBar = {
+            Column(modifier = Modifier.background(Color.White)) {
+                // Top Row: Back + Title
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 8.dp, end = 20.dp, top = 8.dp, bottom = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.common_back_content_desc),
+                            tint = DarkBlue
+                        )
+                    }
+                    Text(
+                        text = stringResource(R.string.admin_mentors_title),
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = DarkBlue,
+                            fontSize = 20.sp
+                        )
                     )
                 }
-                Text("Orientadores", color = DarkBlue, fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
-            }
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(BackgroundLight)
-                    .padding(12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Box(
+                Row(
                     modifier = Modifier
-                        .size(44.dp)
-                        .clip(CircleShape)
-                        .background(Fade1),
-                    contentAlignment = Alignment.Center,
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(BackgroundLight)
+                        .padding(12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text(mentor.avatarInitials, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Box(
+                        modifier = Modifier
+                            .size(44.dp)
+                            .clip(CircleShape)
+                            .background(Fade1),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(mentor.avatarInitials, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    }
+                    Column(modifier = Modifier.padding(start = 12.dp)) {
+                        Text(mentor.name, color = DarkBlue, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                        Text(mentor.institution, color = LightBlue, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+                    }
                 }
-                Column(modifier = Modifier.padding(start = 12.dp)) {
-                    Text(mentor.name, color = DarkBlue, fontWeight = FontWeight.Bold, fontSize = 15.sp)
-                    Text(mentor.institution, color = LightBlue, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
-                }
+
+                LinkStageTabRow(
+                    tabs = listOf(stringResource(R.string.mentor_detail_tab_details), stringResource(R.string.mentor_detail_tab_skills), stringResource(R.string.mentor_detail_tab_manage)),
+                    selectedIndex = selectedTab,
+                    onTabSelected = { selectedTab = it },
+                )
             }
         }
-
-        LinkStageTabRow(
-            tabs = listOf("Detalhes", "Competências", "Gerir"),
-            selectedIndex = selectedTab,
-            onTabSelected = { selectedTab = it },
-        )
-
-        Box(modifier = Modifier.weight(1f)) {
+    ) { paddingValues ->
+        Box(modifier = Modifier.padding(paddingValues)) {
             when (selectedTab) {
                 0 -> DetailsTab(mentor = mentor)
                 1 -> SkillsTab(mentor = mentor)
@@ -163,9 +171,9 @@ private fun DetailsTab(mentor: AdminMentor) {
 
     if (showSaveDialog) {
         ConfirmationDialog(
-            title = "Guardar nota?",
-            body = "Tem a certeza que pretende guardar a nota interna?",
-            confirmLabel = "Guardar",
+            title = stringResource(R.string.mentor_detail_save_note_title),
+            body = stringResource(R.string.mentor_detail_save_note_body),
+            confirmLabel = stringResource(R.string.common_save),
             onConfirm = {
                 showSaveDialog = false
                 isEditing = false
@@ -180,25 +188,25 @@ private fun DetailsTab(mentor: AdminMentor) {
             .verticalScroll(rememberScrollState())
             .padding(vertical = 8.dp),
     ) {
-        InfoFieldWithIcon(label = "Email", value = mentor.email, icon = Icons.Outlined.Email)
-        InfoFieldWithIcon(label = "Telemóvel", value = mentor.phone, icon = Icons.Outlined.Phone)
-        InfoFieldWithIcon(label = "Área", value = mentor.department, icon = Icons.AutoMirrored.Outlined.MenuBook)
+        InfoFieldWithIcon(label = stringResource(R.string.admin_detail_email), value = mentor.email, icon = Icons.Outlined.Email)
+        InfoFieldWithIcon(label = stringResource(R.string.admin_detail_phone), value = mentor.phone, icon = Icons.Outlined.Phone)
+        InfoFieldWithIcon(label = stringResource(R.string.mentor_detail_area), value = mentor.department, icon = Icons.AutoMirrored.Outlined.MenuBook)
 
         Spacer(modifier = Modifier.height(8.dp))
 
         // Internal note
         Column(modifier = Modifier.padding(horizontal = 16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                SectionLabel("Nota Interna")
+                SectionLabel(stringResource(R.string.mentor_detail_internal_note))
                 Spacer(modifier = Modifier.weight(1f))
                 if (!isEditing) {
                     IconButton(onClick = { isEditing = true }, modifier = Modifier.size(32.dp)) {
-                        Icon(Icons.Outlined.Edit, contentDescription = "Editar", tint = LightBlue, modifier = Modifier.size(20.dp))
+                        Icon(Icons.Outlined.Edit, contentDescription = stringResource(R.string.common_edit), tint = LightBlue, modifier = Modifier.size(20.dp))
                     }
                 }
             }
             Text(
-                text = "Nota visível apenas para a instituição. Utilize para anotações internas.",
+                text = stringResource(R.string.mentor_detail_note_info),
                 color = DarkGrey, fontSize = 12.sp,
             )
         }
@@ -219,7 +227,7 @@ private fun DetailsTab(mentor: AdminMentor) {
                         value = noteText,
                         onValueChange = { noteText = it },
                         modifier = Modifier.fillMaxWidth(),
-                        placeholder = { Text("Escreva uma nota interna...", color = DarkGrey, fontSize = 14.sp) },
+                        placeholder = { Text(stringResource(R.string.mentor_detail_note_placeholder), color = DarkGrey, fontSize = 14.sp) },
                         shape = RoundedCornerShape(10.dp),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = LightBlue,
@@ -237,18 +245,19 @@ private fun DetailsTab(mentor: AdminMentor) {
                             colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
                             shape = RoundedCornerShape(10.dp),
                         ) {
-                            Text("Guardar", fontWeight = FontWeight.SemiBold)
+                            Text(stringResource(R.string.common_save), fontWeight = FontWeight.SemiBold)
                         }
                         TextButton(onClick = {
                             noteText = mentor.internalNote
                             isEditing = false
                         }) {
-                            Text("Cancelar", color = DarkGrey, fontWeight = FontWeight.SemiBold)
+                            Text(stringResource(R.string.common_cancel), color = DarkGrey, fontWeight = FontWeight.SemiBold)
                         }
                     }
                 } else {
+                    val noNoteText = stringResource(R.string.mentor_detail_no_note)
                     Text(
-                        text = noteText.ifBlank { "Sem nota interna." },
+                        text = noteText.ifBlank { noNoteText },
                         color = DarkGrey, fontSize = 14.sp, lineHeight = 20.sp,
                     )
                 }
@@ -267,9 +276,7 @@ private fun DetailsTab(mentor: AdminMentor) {
             shape = RoundedCornerShape(12.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
         ) {
-            Icon(Icons.Outlined.Work, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("Ver estágios atribuídos", fontWeight = FontWeight.SemiBold)
+            Text(stringResource(R.string.mentor_detail_view_assigned), fontWeight = FontWeight.SemiBold)
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -312,7 +319,7 @@ private fun SkillsTab(mentor: AdminMentor) {
             .padding(vertical = 8.dp),
     ) {
         Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-            SectionLabel("Competências técnicas")
+            SectionLabel(stringResource(R.string.mentor_detail_technical_skills))
         }
         Spacer(modifier = Modifier.height(8.dp))
         FlowRow(
@@ -328,7 +335,7 @@ private fun SkillsTab(mentor: AdminMentor) {
         Spacer(modifier = Modifier.height(20.dp))
 
         Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-            SectionLabel("Áreas de supervisão")
+            SectionLabel(stringResource(R.string.mentor_detail_supervision_areas))
         }
         Spacer(modifier = Modifier.height(8.dp))
         FlowRow(
@@ -368,9 +375,9 @@ private fun ManageTab(mentor: AdminMentor, navController: NavController) {
 
     if (showReassignDialog) {
         ConfirmationDialog(
-            title = "Reatribuir estágio?",
-            body = "Tem a certeza que pretende transferir o acompanhamento para outro orientador?",
-            confirmLabel = "Confirmar",
+            title = stringResource(R.string.mentor_detail_reassign_title),
+            body = stringResource(R.string.mentor_detail_reassign_body),
+            confirmLabel = stringResource(R.string.common_confirm),
             onConfirm = {
                 showReassignDialog = false
                 navController.navigate(InstituicaoRoutes.assignMentorRoute(mentor.id))
@@ -387,43 +394,43 @@ private fun ManageTab(mentor: AdminMentor, navController: NavController) {
     ) {
         ActionRow(
             icon = Icons.Outlined.Work,
-            title = "Atribuir a estágio",
-            subtitle = "Associar este orientador a um novo estágio",
+            title = stringResource(R.string.mentor_detail_assign_internship),
+            subtitle = stringResource(R.string.mentor_detail_assign_internship_sub),
             iconBg = LightBlue.copy(alpha = 0.15f),
             onClick = { navController.navigate(InstituicaoRoutes.assignMentorRoute(mentor.id)) },
         )
         ActionRow(
             icon = Icons.Outlined.SwapHoriz,
-            title = "Reatribuir estágio",
-            subtitle = "Transferir acompanhamento para outro docente",
+            title = stringResource(R.string.mentor_detail_reassign_title),
+            subtitle = stringResource(R.string.mentor_detail_reassign_body),
             iconBg = LightBlue.copy(alpha = 0.15f),
             onClick = { showReassignDialog = true },
         )
         ActionRow(
             icon = Icons.Outlined.CalendarMonth,
-            title = "Ver estágios atribuídos",
-            subtitle = "Consultar a lista de estágios acompanhados",
+            title = stringResource(R.string.mentor_detail_view_assigned),
+            subtitle = stringResource(R.string.mentor_detail_view_assigned_sub),
             iconBg = LightBlue.copy(alpha = 0.15f),
             onClick = { },
         )
         ActionRow(
             icon = Icons.AutoMirrored.Outlined.MenuBook,
-            title = "Consultar disponibilidade",
-            subtitle = "Ver disponibilidade do orientador declarada",
+            title = stringResource(R.string.mentor_detail_check_availability),
+            subtitle = stringResource(R.string.mentor_detail_check_availability_sub),
             iconBg = LightBlue.copy(alpha = 0.15f),
             onClick = { },
         )
         ActionRow(
             icon = Icons.AutoMirrored.Outlined.Chat,
-            title = "Enviar mensagem",
-            subtitle = "Comunicar sobre acompanhamento",
+            title = stringResource(R.string.common_send_message),
+            subtitle = stringResource(R.string.mentor_detail_send_message_sub),
             iconBg = LightBlue.copy(alpha = 0.15f),
             onClick = { navController.navigate(InstituicaoRoutes.chatRoute(mentor.id)) },
         )
         ActionRow(
             icon = Icons.Outlined.PersonAdd,
-            title = "Atribuir a um aluno",
-            subtitle = "Associar este orientador a um aluno específico",
+            title = stringResource(R.string.mentor_detail_assign_student),
+            subtitle = stringResource(R.string.mentor_detail_assign_student_sub),
             iconBg = LightBlue.copy(alpha = 0.15f),
             onClick = { },
         )

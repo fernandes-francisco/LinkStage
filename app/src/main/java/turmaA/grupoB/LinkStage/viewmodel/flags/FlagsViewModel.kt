@@ -18,13 +18,13 @@ class FlagsViewModel (
         viewModelScope.launch {
             _uiState.value = FlagsUIState.Loading
             try {
-                for (name in names){
-                    val image = flagsRepository.getFlag(name)
-                    _uiState.value = if (image != null){
-                        FlagsUIState.Success(image)
-                    }else{
-                        FlagsUIState.Empty
-                    }
+                val results = names.map { name ->
+                    flagsRepository.getFlag(name)
+                }
+                _uiState.value = if (results.isEmpty()) {
+                    FlagsUIState.Empty
+                } else {
+                    FlagsUIState.Success(results)
                 }
             }catch (e: Exception){
                 _uiState.value = FlagsUIState.Error(

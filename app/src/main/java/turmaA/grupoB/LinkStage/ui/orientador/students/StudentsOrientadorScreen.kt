@@ -29,6 +29,8 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -37,34 +39,49 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.admin.AdminStudent
 import turmaA.grupoB.LinkStage.ui.orientador.OrientadorRoutes
 import turmaA.grupoB.LinkStage.ui.orientador.sampleMentorStudents
 import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
-import turmaA.grupoB.LinkStage.ui.common.LinkStageLogo
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
+import turmaA.grupoB.LinkStage.viewmodel.orientador.OrientadorDashboardData
+import turmaA.grupoB.LinkStage.viewmodel.orientador.OrientadorDashboardUiState
+import turmaA.grupoB.LinkStage.viewmodel.orientador.OrientadorDashboardViewModel
+import turmaA.grupoB.LinkStage.viewmodel.orientador.OrientadorDashboardViewModelFactory
 
 @Composable
 fun StudentsOrientadorScreen(
     navController: NavController,
     modifier: Modifier = Modifier,
+    orientadorDashboardViewModel: OrientadorDashboardViewModel = viewModel(factory = OrientadorDashboardViewModelFactory()),
 ) {
     var searchQuery by rememberSaveable { mutableStateOf("") }
+    val context = LocalContext.current
+    val dashboardUiState by orientadorDashboardViewModel.uiState.collectAsState()
+    val dashboardData = dashboardUiState.dashboardData(context)
 
-    val filtered = if (searchQuery.isEmpty()) sampleMentorStudents
-    else sampleMentorStudents.filter {
+    val filtered = if (searchQuery.isEmpty()) dashboardData.students
+    else dashboardData.students.filter {
         it.name.contains(searchQuery, ignoreCase = true) ||
             it.institution.contains(searchQuery, ignoreCase = true)
+    }
+
+    LaunchedEffect(orientadorDashboardViewModel) {
+        orientadorDashboardViewModel.loadDashboard()
     }
 
     Column(
@@ -75,7 +92,7 @@ fun StudentsOrientadorScreen(
         CommonTopBar()
 
         Text(
-            text = "Alunos orientados",
+            text = stringResource(R.string.advisor_students_title),
             style = MaterialTheme.typography.headlineSmall.copy(
                 fontWeight = FontWeight.Bold,
                 color = DarkBlue,
@@ -91,9 +108,9 @@ fun StudentsOrientadorScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp),
-            placeholder = { Text("Pesquisar...", color = DarkGrey) },
+            placeholder = { Text(stringResource(R.string.common_search), color = DarkGrey) },
             leadingIcon = {
-                Icon(Icons.Outlined.Search, contentDescription = "Pesquisar", tint = DarkGrey)
+                Icon(Icons.Outlined.Search, contentDescription = stringResource(R.string.common_search), tint = DarkGrey)
             },
             shape = RoundedCornerShape(12.dp),
             colors = OutlinedTextFieldDefaults.colors(
@@ -121,7 +138,7 @@ fun StudentsOrientadorScreen(
                 )
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
-                    text = "Não tens alunos orientados.",
+                    text = stringResource(R.string.advisor_no_students),
                     color = DarkGrey,
                     fontSize = 16.sp,
                 )
@@ -147,7 +164,7 @@ fun StudentsOrientadorScreen(
                             )
                             Spacer(modifier = Modifier.weight(1f))
                             Text(
-                                text = "${students.size} alunos",
+                                text = stringResource(R.string.advisor_student_count, students.size),
                                 color = DarkGrey,
                                 fontSize = 12.sp,
                             )
@@ -176,10 +193,9 @@ private fun StudentCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 3.dp)
+            .padding(horizontal = 16.dp, vertical = 6.dp)
             .clickable { onClick() },
-        shape = RoundedCornerShape(10.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
     ) {
         Row(
@@ -209,7 +225,7 @@ private fun StudentCard(
                     fontSize = 14.sp,
                 )
                 Text(
-                    text = "• Registou-se há ${student.registeredAgo}",
+                    text = stringResource(R.string.advisor_registered_ago, student.registeredAgo),
                     color = DarkGrey,
                     fontSize = 12.sp,
                 )
@@ -229,6 +245,21 @@ private fun StudentCard(
                 )
             }
         }
+    }
+}
+
+private fun OrientadorDashboardUiState.dashboardData(context: android.content.Context): OrientadorDashboardData {
+    return when (this) {
+        is OrientadorDashboardUiState.Success -> data
+        OrientadorDashboardUiState.Idle,
+        OrientadorDashboardUiState.Loading,
+        OrientadorDashboardUiState.Empty,
+        is OrientadorDashboardUiState.Error -> OrientadorDashboardData(
+            internships = emptyList(),
+            students = sampleMentorStudents(context),
+            activityLogs = emptyList(),
+            evaluation = null,
+        )
     }
 }
 

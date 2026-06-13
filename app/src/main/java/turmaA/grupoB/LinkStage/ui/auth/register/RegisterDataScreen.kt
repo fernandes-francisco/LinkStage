@@ -4,7 +4,6 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -22,6 +21,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -30,13 +30,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlinx.coroutines.delay
 import turmaA.grupoB.LinkStage.R
+import turmaA.grupoB.LinkStage.data.remote.model.enums.UserRole
+import turmaA.grupoB.LinkStage.ui.common.LinkStageTabRow
 import turmaA.grupoB.LinkStage.ui.theme.*
 
 @Composable
 fun RegisterDataScreen(
-    selectedProfile: String,
+    selectedProfile: UserRole,
     onBackClick: () -> Unit = {},
     onContinueClick: (Map<String, String>) -> Unit = {}
 ) {
@@ -44,10 +45,16 @@ fun RegisterDataScreen(
     var email by rememberSaveable { mutableStateOf("") }
     var institute by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
-    
+    var gdprConsent by rememberSaveable { mutableStateOf(false) }
+
+    var institutionType by rememberSaveable { mutableIntStateOf(0) } // 0: Empresarial, 1: Escolar
+
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
 
     var showSuccessMessage by remember { mutableStateOf(false) }
+
+    val corporateLabel = stringResource(R.string.register_data_type_corporate)
+    val schoolLabel = stringResource(R.string.register_data_type_school)
 
     // Validation
     val isEmailValid by remember {
@@ -68,10 +75,11 @@ fun RegisterDataScreen(
 
     val isFormValid by remember {
         derivedStateOf {
-            name.isNotEmpty() && 
-            android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches() && 
-            isPasswordValid && 
-            (if (selectedProfile == "Estudante") institute.isNotEmpty() else true)
+            name.isNotEmpty() &&
+            android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches() &&
+            isPasswordValid &&
+            (if (selectedProfile == UserRole.STUDENT) institute.isNotEmpty() else true) &&
+            gdprConsent
         }
     }
 
@@ -79,10 +87,10 @@ fun RegisterDataScreen(
         AlertDialog(
             onDismissRequest = { },
             confirmButton = {},
-            title = { Text("Sucesso!", fontWeight = FontWeight.Bold, color = DarkBlue) },
+            title = { Text(stringResource(R.string.register_data_success_title), fontWeight = FontWeight.Bold, color = DarkBlue) },
             text = {
                 Column {
-                    Text("A sua conta foi criada com sucesso. Pode agora iniciar sessão.", color = Color.Gray)
+                    Text(stringResource(R.string.register_data_success_message), color = Color.Gray)
                     Spacer(modifier = Modifier.height(24.dp))
                     Box(
                         modifier = Modifier
@@ -92,20 +100,23 @@ fun RegisterDataScreen(
                             .background(Fade2)
                     ) {
                         Button(
-                            onClick = { 
+                            onClick = {
                                 val data = mutableMapOf(
                                     "name" to name,
                                     "email" to email,
                                     "password" to password
                                 )
-                                if (selectedProfile == "Estudante") data["institute"] = institute
+                                if (selectedProfile == UserRole.STUDENT) data["institute"] = institute
+                                if (selectedProfile == UserRole.INSTITUTION) {
+                                    data["institutionType"] = if (institutionType == 0) corporateLabel else schoolLabel
+                                }
                                 onContinueClick(data)
                             },
                             colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
                             shape = RoundedCornerShape(10.dp),
                             modifier = Modifier.fillMaxSize()
                         ) {
-                            Text("OK", color = Color.White, fontWeight = FontWeight.Bold)
+                            Text(stringResource(R.string.register_data_success_ok), color = Color.White, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -138,24 +149,41 @@ fun RegisterDataScreen(
             Spacer(modifier = Modifier.height(32.dp))
 
             Text(
-                text = "Criar Conta",
+                text = stringResource(R.string.register_title),
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
                 color = Color.Black
             )
 
             Text(
-                text = if (selectedProfile == "Estudante") "Passo 1 de 2 - Dados da conta" else "Passo 1 de 1 - Dados da conta",
+                text = if (selectedProfile == UserRole.STUDENT) stringResource(R.string.register_data_step_student) else stringResource(R.string.register_data_step_institution),
                 style = MaterialTheme.typography.bodyMedium,
                 color = Color.Gray
             )
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(24.dp))
+
+            if (selectedProfile == UserRole.INSTITUTION) {
+                LinkStageTabRow(
+                    tabs = listOf(stringResource(R.string.register_data_tab_corporate), stringResource(R.string.register_data_tab_school)),
+                    selectedIndex = institutionType,
+                    onTabSelected = { institutionType = it }
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+            }
 
             // Dynamic Name Field
-            val nameLabel = if (selectedProfile == "Estudante") "Nome Completo" else "Nome da Instituição"
-            val namePlaceholder = if (selectedProfile == "Estudante") "Introduza o seu nome" else "Introduza o nome da instituição"
-            
+            val nameLabel = when {
+                selectedProfile == UserRole.STUDENT -> stringResource(R.string.register_data_name_student)
+                institutionType == 0 -> stringResource(R.string.register_data_name_corporate)
+                else -> stringResource(R.string.register_data_name_school)
+            }
+            val namePlaceholder = when {
+                selectedProfile == UserRole.STUDENT -> stringResource(R.string.register_data_name_student_placeholder)
+                institutionType == 0 -> stringResource(R.string.register_data_name_corporate_placeholder)
+                else -> stringResource(R.string.register_data_name_school_placeholder)
+            }
+
             RegisterTextField(
                 label = nameLabel,
                 value = name,
@@ -167,44 +195,63 @@ fun RegisterDataScreen(
 
             // Email Field
             RegisterTextField(
-                label = "E-mail",
+                label = stringResource(R.string.register_data_email),
                 value = email,
                 onValueChange = { email = it },
-                placeholder = "Introduza o seu E-mail",
+                placeholder = stringResource(R.string.register_data_email_placeholder),
                 keyboardType = KeyboardType.Email,
                 isError = !isEmailValid,
-                errorText = if (!isEmailValid) "E-mail inválido. Use o formato nome@dominio.com" else null
+                errorText = if (!isEmailValid) stringResource(R.string.register_data_email_error) else null
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
             // Dynamic Institute Field (Only for Estudante)
-            if (selectedProfile == "Estudante") {
+            if (selectedProfile == UserRole.STUDENT) {
                 RegisterTextField(
-                    label = "Instituto",
+                    label = stringResource(R.string.register_data_institution),
                     value = institute,
                     onValueChange = { institute = it },
-                    placeholder = "Introduza o seu instituto"
+                    placeholder = stringResource(R.string.register_data_institution_placeholder)
                 )
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
             // Password Field
             RegisterTextField(
-                label = "Palavra-passe",
+                label = stringResource(R.string.register_data_password),
                 value = password,
                 onValueChange = { password = it },
-                placeholder = "Introduza a sua Palavra-passe",
+                placeholder = stringResource(R.string.register_data_password_placeholder),
                 isPassword = true,
                 passwordVisible = passwordVisible,
                 onVisibilityChange = { passwordVisible = !passwordVisible },
                 showValidation = password.isNotEmpty(),
                 validations = listOf(
-                    "Incluir um número" to hasNumber,
-                    "Incluir maiúsculas e minúsculas" to hasUpperAndLower,
-                    "Mínimo 8 caracteres" to hasMinLength
+                    stringResource(R.string.validation_number) to hasNumber,
+                    stringResource(R.string.validation_case) to hasUpperAndLower,
+                    stringResource(R.string.validation_length) to hasMinLength
                 )
             )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Checkbox(
+                    checked = gdprConsent,
+                    onCheckedChange = { gdprConsent = it },
+                    colors = CheckboxDefaults.colors(checkedColor = DarkBlue)
+                )
+                Text(
+                    text = stringResource(R.string.register_data_gdpr),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.Gray,
+                    modifier = Modifier.padding(start = 8.dp)
+                )
+            }
 
             Spacer(modifier = Modifier.weight(1f))
 
@@ -220,9 +267,9 @@ fun RegisterDataScreen(
                         )
                 ) {
                     Button(
-                        onClick = { 
+                        onClick = {
                             if (isFormValid) {
-                                if (selectedProfile == "Estudante") {
+                                if (selectedProfile == UserRole.STUDENT) {
                                     val data = mutableMapOf(
                                         "name" to name,
                                         "email" to email,
@@ -231,6 +278,13 @@ fun RegisterDataScreen(
                                     )
                                     onContinueClick(data)
                                 } else {
+                                    val data = mutableMapOf(
+                                        "name" to name,
+                                        "email" to email,
+                                        "password" to password,
+                                        "institutionType" to if (institutionType == 0) corporateLabel else schoolLabel
+                                    )
+                                    onContinueClick(data)
                                     showSuccessMessage = true
                                 }
                             }
@@ -245,14 +299,14 @@ fun RegisterDataScreen(
                         contentPadding = PaddingValues()
                     ) {
                         Text(
-                            text = if (selectedProfile == "Estudante") "Continuar" else "Registar",
+                            text = if (selectedProfile == UserRole.STUDENT) stringResource(R.string.register_continue) else stringResource(R.string.register_data_button_register),
                             color = if (isFormValid) Color.White else Color.Gray.copy(alpha = 0.8f),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
                         )
                     }
                 }
-                
+
                 Spacer(modifier = Modifier.height(12.dp))
 
                 OutlinedButton(
@@ -267,7 +321,7 @@ fun RegisterDataScreen(
                     )
                 ) {
                     Text(
-                        text = "Voltar",
+                        text = stringResource(R.string.register_back),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
                     )
@@ -368,6 +422,10 @@ private fun ValidationItem(text: String, isValid: Boolean) {
 @Composable
 fun RegisterDataScreenPreview() {
     LinkStageTheme {
-        RegisterDataScreen(selectedProfile = "Estudante")
+        Column {
+            RegisterDataScreen(selectedProfile = UserRole.STUDENT)
+            HorizontalDivider()
+            RegisterDataScreen(selectedProfile = UserRole.INSTITUTION)
+        }
     }
 }

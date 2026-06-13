@@ -1,6 +1,10 @@
 package turmaA.grupoB.LinkStage.ui.instituicao
 
+import android.content.Context
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
+import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.aluno.home.ApplicationStatus
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.ui.theme.Red
@@ -60,7 +64,7 @@ enum class MentorStatus {
     NO_STUDENTS,
 }
 
-val sampleInstitutionInternships = listOf(
+fun sampleInstitutionInternships(context: Context) = listOf(
     InstitutionInternship(
         id = "int1", studentName = "Tomás Silva", studentAvatarInitials = "TS", studentAvatarColorIndex = 0,
         offerTitle = "UI/UX Designer", origin = InternshipOrigin.SCHOOL,
@@ -81,12 +85,12 @@ val sampleInstitutionInternships = listOf(
     ),
     InstitutionInternship(
         id = "int4", studentName = "João Pinto", studentAvatarInitials = "JP", studentAvatarColorIndex = 1,
-        offerTitle = "Designer de Produto", origin = InternshipOrigin.SCHOOL,
+        offerTitle = context.getString(R.string.mock_product_designer), origin = InternshipOrigin.SCHOOL,
         progressPercent = 0, status = InternshipStatus.NO_MENTOR,
     ),
     InstitutionInternship(
         id = "int5", studentName = "Ricardo Lopes", studentAvatarInitials = "RL", studentAvatarColorIndex = 0,
-        offerTitle = "Programador Full-Stack", origin = InternshipOrigin.COMPANY,
+        offerTitle = context.getString(R.string.mock_fullstack_developer), origin = InternshipOrigin.COMPANY,
         schoolMentorName = "Prof. Carvalho",
         progressPercent = 0, status = InternshipStatus.NO_MENTOR,
     ),
@@ -98,11 +102,12 @@ val sampleInstitutionMentors = listOf(
     InstitutionMentorItem("m3", "Miguel Azev.", "MA", 2, "ESTG-IPVC", MentorStatus.NO_STUDENTS),
 )
 
+@Composable
 fun internshipStatusLabel(status: InternshipStatus): String = when (status) {
-    InternshipStatus.IN_PROGRESS -> "Em acompanhamento"
-    InternshipStatus.PENDING_REVIEW -> "Por avaliar"
-    InternshipStatus.COMPLETED -> "Concluído"
-    InternshipStatus.NO_MENTOR -> "Sem orientador"
+    InternshipStatus.IN_PROGRESS -> stringResource(R.string.status_in_progress)
+    InternshipStatus.PENDING_REVIEW -> stringResource(R.string.status_pending_review)
+    InternshipStatus.COMPLETED -> stringResource(R.string.status_completed)
+    InternshipStatus.NO_MENTOR -> stringResource(R.string.status_no_mentor)
 }
 
 fun internshipStatusColor(status: InternshipStatus): Color = when (status) {
@@ -112,10 +117,11 @@ fun internshipStatusColor(status: InternshipStatus): Color = when (status) {
     InternshipStatus.NO_MENTOR -> Red
 }
 
+@Composable
 fun mentorStatusLabel(status: MentorStatus): String = when (status) {
-    MentorStatus.ACTIVE -> "Em acompanhamento"
-    MentorStatus.INACTIVE -> "Inativo"
-    MentorStatus.NO_STUDENTS -> "Sem estágios"
+    MentorStatus.ACTIVE -> stringResource(R.string.mentor_status_active)
+    MentorStatus.INACTIVE -> stringResource(R.string.mentor_status_inactive)
+    MentorStatus.NO_STUDENTS -> stringResource(R.string.mentor_status_no_students)
 }
 
 fun mentorStatusColor(status: MentorStatus): Color = when (status) {
@@ -142,30 +148,30 @@ data class InstitutionApplication(
     val status: ApplicationStatus,
 )
 
-val sampleInstitutionApplications = listOf(
+fun sampleInstitutionApplications(context: Context) = listOf(
     InstitutionApplication(
-        "a1", "Miguel Azev.", "MA", 2, "ESTG-IPVC", "Eng. Informatica", "14,7",
+        "a1", "Miguel Azev.", "MA", 2, "ESTG-IPVC", context.getString(R.string.mock_course_cs), "14,7",
         "miguel@estg.ipvc.pt", "912000001",
-        listOf("Python", "Trabalho em grupo", "Gestao de Projetos", "IA", "C++", "Java"),
+        listOf("Python", context.getString(R.string.skill_teamwork), context.getString(R.string.skill_project_management), context.getString(R.string.skill_ai), "C++", "Java"),
         "Lorem ipsum dolor sit amet consectetur adipiscing elit. Quisque faucibus ex sapien vitae pellentesque sem placerat.",
         "Lorem ipsum dolor sit.",
         "Lorem ipsum dolor sit amet consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
         true, ApplicationStatus.ACCEPTED,
     ),
     InstitutionApplication(
-        "a2", "Miguel Azev.", "MA", 2, "ESTG-IPVC", "Eng. Informatica", "13,2",
+        "a2", "Miguel Azev.", "MA", 2, "ESTG-IPVC", context.getString(R.string.mock_course_cs), "13,2",
         "miguel2@estg.ipvc.pt", "912000002",
         listOf("Python", "Java"),
-        "Declaracao pessoal do candidato.",
-        "Carta de motivacao.", "Conteudo da carta de motivacao do candidato.",
+        context.getString(R.string.mock_personal_statement_generic),
+        context.getString(R.string.mock_motivation_letter_title), context.getString(R.string.mock_motivation_letter_body),
         true, ApplicationStatus.PENDING,
     ),
     InstitutionApplication(
-        "a3", "Miguel Azev.", "MA", 2, "ESTG-IPVC", "Eng. Informatica", "12,0",
+        "a3", "Miguel Azev.", "MA", 2, "ESTG-IPVC", context.getString(R.string.mock_course_cs), "12,0",
         "miguel3@estg.ipvc.pt", "912000003",
         listOf("C++"),
-        "Declaracao pessoal.",
-        "Carta de motivacao.", "Conteudo da carta.",
+        context.getString(R.string.mock_personal_statement_short),
+        context.getString(R.string.mock_motivation_letter_title), context.getString(R.string.mock_motivation_letter_body_short),
         true, ApplicationStatus.PENDING,
     ),
 )

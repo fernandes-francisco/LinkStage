@@ -35,10 +35,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.common.LinkStageButton
 import turmaA.grupoB.LinkStage.ui.common.SecondaryTopBar
 import turmaA.grupoB.LinkStage.ui.common.LinkStageDialog
@@ -50,23 +52,27 @@ import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.viewmodel.ApplyViewModel
 
-val skillCategories = mapOf(
-    "Tecnologia" to listOf("Python", "Java", "C++", "Kotlin", "React", "SQL", "IA", "Machine Learning"),
-    "Gestão" to listOf("Gestão de Projetos", "Gestão de Orçamento", "Liderança", "Planeamento Estratégico"),
-    "Comunicação" to listOf("Comunicação", "Escrita Persuasiva", "Apresentações", "Negociação"),
-    "Interpessoal" to listOf("Trabalho em Grupo", "Resolução de Problemas", "Curiosidade Intelectual", "Adaptabilidade"),
-    "Culinária" to listOf("Cozinha Portuguesa", "Pastelaria", "Gestão de Cozinha", "HACCP"),
-    "Design" to listOf("Figma", "UI/UX", "Illustrator", "Photoshop"),
-    "Mecânica" to listOf("Manutenção Industrial", "AutoCAD", "Soldadura", "Pneumática"),
-    "Saúde" to listOf("Primeiros Socorros", "Cuidados de Saúde", "Anatomia", "Farmacologia"),
-)
+@Composable
+fun getSkillCategories(): Map<String, List<String>> {
+    return mapOf(
+        stringResource(R.string.skill_cat_tech) to listOf("Python", "Java", "C++", "Kotlin", "React", "SQL", "IA", "Machine Learning"),
+        stringResource(R.string.skill_cat_management) to listOf("Gestão de Projetos", "Gestão de Orçamento", "Liderança", "Planeamento Estratégico"),
+        stringResource(R.string.skill_cat_comm) to listOf("Comunicação", "Escrita Persuasiva", "Apresentações", "Negociação"),
+        stringResource(R.string.skill_cat_interpersonal) to listOf("Trabalho em Grupo", "Resolução de Problemas", "Curiosidade Intelectual", "Adaptabilidade"),
+        stringResource(R.string.skill_cat_culinary) to listOf("Cozinha Portuguesa", "Pastelaria", "Gestão de Cozinha", "HACCP"),
+        stringResource(R.string.skill_cat_design) to listOf("Figma", "UI/UX", "Illustrator", "Photoshop"),
+        stringResource(R.string.skill_cat_mechanics) to listOf("Manutenção Industrial", "AutoCAD", "Soldadura", "Pneumática"),
+        stringResource(R.string.skill_cat_health) to listOf("Primeiros Socorros", "Cuidados de Saúde", "Anatomia", "Farmacologia"),
+    )
+}
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun EditCvScreen(
+fun EditSkillsScreen(
     viewModel: ApplyViewModel,
     onBack: () -> Unit,
 ) {
+    val skillCategories = getSkillCategories()
     var searchQuery by remember { mutableStateOf("") }
     var showAddSkillDialog by remember { mutableStateOf(false) }
     var newSkillText by remember { mutableStateOf("") }
@@ -77,18 +83,18 @@ fun EditCvScreen(
                 newSkillText = ""
                 showAddSkillDialog = false
             },
-            title = "Adicionar Skill",
+            title = stringResource(R.string.register_skills_dialog_title),
             onConfirm = {
                 viewModel.addSkill(newSkillText.trim())
                 newSkillText = ""
                 showAddSkillDialog = false
             },
-            confirmText = "Guardar",
-            dismissText = "Cancelar",
+            confirmText = stringResource(R.string.register_skills_dialog_save),
+            dismissText = stringResource(R.string.dialog_cancel),
             content = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
-                        "Adiciona uma nova habilidade técnica ou interpessoal para o teu perfil.",
+                        stringResource(R.string.register_skills_dialog_desc),
                         fontSize = 13.sp,
                         color = DarkGrey,
                     )
@@ -96,8 +102,8 @@ fun EditCvScreen(
                         value = newSkillText,
                         onValueChange = { newSkillText = it },
                         modifier = Modifier.fillMaxWidth(),
-                        label = { Text("Skill") },
-                        placeholder = { Text("Insere aqui a tua skill.", color = DarkGrey) },
+                        label = { Text(stringResource(R.string.register_skills_dialog_label)) },
+                        placeholder = { Text(stringResource(R.string.register_skills_dialog_placeholder), color = DarkGrey) },
                         shape = RoundedCornerShape(10.dp),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = LightBlue,
@@ -115,7 +121,7 @@ fun EditCvScreen(
     Scaffold(
         topBar = {
             SecondaryTopBar(
-                title = "Editar CV",
+                title = stringResource(R.string.edit_skills_title),
                 onBack = onBack
             )
         },
@@ -130,14 +136,14 @@ fun EditCvScreen(
             ) {
                 // Add custom skill button
                 LinkStageOutlinedButton(
-                    text = "Adicionar skill",
+                    text = stringResource(R.string.edit_skills_add),
                     onClick = { showAddSkillDialog = true }
                 )
 
                 // Save button
                 LinkStageButton(
                     onClick = onBack,
-                    text = "Guardar",
+                    text = stringResource(R.string.common_save),
                     height = 50.dp
                 )
             }
@@ -160,7 +166,7 @@ fun EditCvScreen(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("Pesquisar skills...", color = DarkGrey) },
+                placeholder = { Text(stringResource(R.string.register_skills_search), color = DarkGrey) },
                 leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null, tint = DarkGrey) },
                 shape = RoundedCornerShape(10.dp),
                 colors = OutlinedTextFieldDefaults.colors(
@@ -178,7 +184,7 @@ fun EditCvScreen(
 
             if (filteredUserSkills.isNotEmpty()) {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("As suas habilidades", fontWeight = FontWeight.Bold, color = DarkBlue, fontSize = 15.sp)
+                    Text(stringResource(R.string.edit_skills_your_skills), fontWeight = FontWeight.Bold, color = DarkBlue, fontSize = 15.sp)
                     FlowRow(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -205,7 +211,7 @@ fun EditCvScreen(
             }
 
             // Other skills
-            Text("Outras habilidades", fontWeight = FontWeight.Bold, color = DarkBlue, fontSize = 15.sp)
+            Text(stringResource(R.string.edit_skills_other), fontWeight = FontWeight.Bold, color = DarkBlue, fontSize = 15.sp)
 
             if (searchQuery.isNotBlank()) {
                 val allOtherSkills = skillCategories.values.flatten()
@@ -236,7 +242,7 @@ fun EditCvScreen(
                         }
                     }
                 } else {
-                    Text("Sem resultados para \"$searchQuery\"", color = DarkGrey, fontSize = 13.sp)
+                    Text(stringResource(R.string.edit_skills_no_results, searchQuery), color = DarkGrey, fontSize = 13.sp)
                 }
             } else {
                 skillCategories.forEach { (category, skills) ->
@@ -276,9 +282,10 @@ fun EditCvScreen(
 }
 
 @Preview(showSystemUi = true)
+@Suppress("ViewModelConstructorInComposable")
 @Composable
-private fun EditCvScreenPreview() {
+private fun EditSkillsScreenPreview() {
     MaterialTheme {
-        EditCvScreen(viewModel = ApplyViewModel(), onBack = {})
+        EditSkillsScreen(viewModel = ApplyViewModel(), onBack = {})
     }
 }

@@ -20,16 +20,15 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -38,55 +37,82 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import androidx.lifecycle.viewmodel.compose.viewModel
+import turmaA.grupoB.LinkStage.R
+import turmaA.grupoB.LinkStage.ui.common.SecondaryTopBar
+import turmaA.grupoB.LinkStage.ui.common.formatGrade
+import turmaA.grupoB.LinkStage.ui.orientador.EvaluationState
 import turmaA.grupoB.LinkStage.ui.orientador.InternshipEvaluation
+import turmaA.grupoB.LinkStage.ui.orientador.InternshipType
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.Fade2
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
+import turmaA.grupoB.LinkStage.viewmodel.HomeViewModel
 
 private val sampleResultEvaluation = InternshipEvaluation(
     internshipId = "int1",
-    schoolMentorName = "Prof. Carvalho",
+    internshipType = InternshipType.COMPANY_SCHOOL,
+    state = EvaluationState.COMPLETED,
+    companyResponsibleGrade = 17f,
+    companyResponsibleObservation = "Boa integração na equipa. Mostrou iniciativa e capacidade de trabalho autónomo.",
+    companyResponsibleName = "Ana Costa",
+    companyMentorGrade = 15.5f,
+    companyMentorObservation = "Bom trabalho técnico.",
+    companyMentorName = "Prof. Tiago Alexandre",
+    schoolMentorGrade = 16.5f,
     schoolMentorObservation = "O aluno demonstrou um excelente desempenho ao longo do estágio, com particular destaque na capacidade de resolver problemas de forma criativa.",
-    schoolMentorGrade = "16",
-    companyMentorName = "Ana Costa",
-    companyMentorObservation = "Boa integração na equipa. Mostrou iniciativa e capacidade de trabalho autónomo.",
-    companyMentorGrade = "17",
-    finalGrade = 16.5f,
-    isCompleted = true,
+    schoolMentorName = "Prof. Carvalho",
 )
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InternshipResultScreen(
     internshipId: String,
     navController: NavController,
+    homeViewModel: HomeViewModel = viewModel(),
 ) {
     val evaluation = sampleResultEvaluation
 
+    LaunchedEffect(Unit) {
+        homeViewModel.setHasSeenEvaluationResult(true)
+    }
+
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        "Resultado do Estágio",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp,
-                        color = DarkBlue,
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar", tint = DarkBlue)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White),
+            SecondaryTopBar(
+                title = stringResource(R.string.result_internship_title),
+                onBack = { navController.popBackStack() }
             )
+        },
+        bottomBar = {
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                color = Color.White,
+                shadowElevation = 8.dp
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                        .height(50.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Fade2)
+                        .clickable { navController.popBackStack() },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        text = stringResource(R.string.result_back_home),
+                        color = Color.White,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                }
+            }
         },
         containerColor = BackgroundLight,
     ) { paddingValues ->
@@ -124,7 +150,7 @@ fun InternshipResultScreen(
                     Column {
                         Text("Designer de Produto", color = DarkBlue, fontWeight = FontWeight.Bold, fontSize = 17.sp)
                         Text("Viana S.T.Arts", color = LightBlue, fontSize = 14.sp)
-                        Text("Concluído", color = LightBlue, fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
+                        Text(stringResource(R.string.activity_status_completed), color = LightBlue, fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
                     }
                 }
             }
@@ -137,72 +163,79 @@ fun InternshipResultScreen(
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp),
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = DarkBlue),
+                colors = CardDefaults.cardColors(containerColor = Color.Transparent),
             ) {
-                Column(
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .background(Fade2)
                         .padding(24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
+                    contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = "Nota Final",
-                        color = Color.White.copy(alpha = 0.8f),
-                        fontSize = 14.sp,
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "${evaluation.finalGrade}",
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 48.sp,
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "em 20 valores",
-                        color = Color.White.copy(alpha = 0.7f),
-                        fontSize = 13.sp,
-                    )
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        Text(
+                            text = stringResource(R.string.report_final_grade),
+                            color = Color.White.copy(alpha = 0.8f),
+                            fontSize = 14.sp,
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = if (evaluation.schoolMentorGrade != null) formatGrade(evaluation.schoolMentorGrade) else "--",
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 48.sp,
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = stringResource(R.string.report_out_of_20),
+                            color = Color.White.copy(alpha = 0.7f),
+                            fontSize = 13.sp,
+                        )
+                    }
                 }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // School mentor evaluation
-            EvaluationCard(
-                mentorName = evaluation.schoolMentorName,
-                mentorRole = "Orientador Escolar",
-                observation = evaluation.schoolMentorObservation,
-                grade = evaluation.schoolMentorGrade,
-            )
-
-            // Company mentor evaluation (if exists)
-            if (evaluation.companyMentorName.isNotEmpty()) {
+            // School mentor evaluation (nota final)
+            if (evaluation.schoolMentorGrade != null) {
                 EvaluationCard(
-                    mentorName = evaluation.companyMentorName,
-                    mentorRole = "Orientador de Empresa",
-                    observation = evaluation.companyMentorObservation,
-                    grade = evaluation.companyMentorGrade,
+                    mentorName = evaluation.schoolMentorName,
+                    mentorRole = stringResource(R.string.eval_role_school_mentor_short),
+                    observation = evaluation.schoolMentorObservation ?: "",
+                    grade = formatGrade(evaluation.schoolMentorGrade),
                 )
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            // Company responsible evaluation
+            if (evaluation.companyResponsibleGrade != null) {
+                EvaluationCard(
+                    mentorName = evaluation.companyResponsibleName,
+                    mentorRole = stringResource(R.string.eval_role_company_responsible),
+                    observation = evaluation.companyResponsibleObservation ?: "",
+                    grade = formatGrade(evaluation.companyResponsibleGrade),
+                )
+            }
 
-            // Back button
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-                    .height(50.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(Fade2)
-                    .clickable { navController.popBackStack() },
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(
-                    text = "Voltar ao Início",
-                    color = Color.White,
-                    fontWeight = FontWeight.SemiBold,
+            // Company mentor evaluation
+            if (evaluation.companyMentorGrade != null && evaluation.companyMentorName.isNotEmpty()) {
+                EvaluationCard(
+                    mentorName = evaluation.companyMentorName,
+                    mentorRole = stringResource(R.string.eval_role_company_mentor),
+                    observation = evaluation.companyMentorObservation ?: "",
+                    grade = formatGrade(evaluation.companyMentorGrade),
+                )
+            }
+
+            // Institution evaluation (for SCHOOL_ONLY)
+            if (evaluation.institutionGrade != null) {
+                EvaluationCard(
+                    mentorName = evaluation.institutionName,
+                    mentorRole = stringResource(R.string.eval_role_institution),
+                    observation = evaluation.institutionObservation ?: "",
+                    grade = formatGrade(evaluation.institutionGrade),
                 )
             }
 
@@ -254,7 +287,7 @@ private fun EvaluationCard(
                         .background(LightBlue.copy(alpha = 0.15f))
                         .padding(horizontal = 10.dp, vertical = 4.dp),
                 ) {
-                    Text("$grade valores", color = DarkBlue, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                    Text(stringResource(R.string.result_grade_values, grade), color = DarkBlue, fontWeight = FontWeight.Bold, fontSize = 13.sp)
                 }
             }
 
@@ -262,7 +295,7 @@ private fun EvaluationCard(
             HorizontalDivider(color = BorderGrey)
             Spacer(modifier = Modifier.height(8.dp))
 
-            Text("Observações", color = DarkGrey, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+            Text(stringResource(R.string.result_observations), color = DarkGrey, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
             Spacer(modifier = Modifier.height(4.dp))
             Text(observation, color = DarkBlue, fontSize = 14.sp, lineHeight = 20.sp)
         }

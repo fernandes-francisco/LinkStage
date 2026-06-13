@@ -26,7 +26,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -35,13 +37,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import turmaA.grupoB.LinkStage.ui.admin.sampleStudents
+import androidx.lifecycle.viewmodel.compose.viewModel
+import turmaA.grupoB.LinkStage.R
+import turmaA.grupoB.LinkStage.ui.admin.sampleStudentsList
 import turmaA.grupoB.LinkStage.ui.common.ContentSection
+import turmaA.grupoB.LinkStage.viewmodel.admin.AdminStudentDetailUiState
+import turmaA.grupoB.LinkStage.viewmodel.admin.AdminStudentDetailViewModel
+import turmaA.grupoB.LinkStage.viewmodel.admin.AdminStudentDetailViewModelFactory
 import turmaA.grupoB.LinkStage.ui.common.LinkStageButton
 import turmaA.grupoB.LinkStage.ui.common.LinkStageDialog
 import turmaA.grupoB.LinkStage.ui.common.SecondaryTopBar
@@ -60,26 +68,32 @@ fun StudentDetailAdminScreen(
     onBack: () -> Unit,
     onViewInternship: (String) -> Unit = {},
 ) {
-    val student = sampleStudents.find { it.id == studentId } ?: run {
-        onBack()
-        return
+    val studentDetailViewModel: AdminStudentDetailViewModel = viewModel(factory = AdminStudentDetailViewModelFactory())
+    val studentDetailUiState by studentDetailViewModel.uiState.collectAsState()
+    val student = when (val state = studentDetailUiState) {
+        is AdminStudentDetailUiState.Success -> state.data.student
+        else -> sampleStudentsList.first()
+    }
+
+    LaunchedEffect(studentId) {
+        studentDetailViewModel.loadStudent(studentId)
     }
 
     var showDeleteDialog by remember { mutableStateOf(false) }
 
     if (showDeleteDialog) {
         LinkStageDialog(
-            title = "Remover Aluno",
+            title = stringResource(R.string.admin_student_remove),
             onConfirm = {
                 showDeleteDialog = false
                 onBack()
             },
             onDismiss = { showDeleteDialog = false },
-            confirmText = "Remover",
-            dismissText = "Cancelar",
+            confirmText = stringResource(R.string.common_remove),
+            dismissText = stringResource(R.string.dialog_cancel),
             content = {
                 Text(
-                    text = "Tens a certeza que queres remover \"${student.name}\"? Esta ação não pode ser revertida.",
+                    text = stringResource(R.string.admin_student_remove_confirm, student.name),
                     color = DarkGrey,
                     lineHeight = 22.sp,
                 )
@@ -88,7 +102,7 @@ fun StudentDetailAdminScreen(
     }
 
     Scaffold(
-        topBar = { SecondaryTopBar(title = "Detalhes do Aluno", onBack = onBack) },
+        topBar = { SecondaryTopBar(title = stringResource(R.string.admin_student_detail_title), onBack = onBack) },
         containerColor = BackgroundLight,
         bottomBar = {
             Box(
@@ -98,7 +112,7 @@ fun StudentDetailAdminScreen(
                     .padding(16.dp)
             ) {
                 LinkStageButton(
-                    text = "Remover Aluno",
+                    text = stringResource(R.string.admin_student_remove),
                     onClick = { showDeleteDialog = true },
                     height = 50.dp,
                     brush = SolidColor(Red)
@@ -162,12 +176,12 @@ fun StudentDetailAdminScreen(
             }
 
             // Personal Information
-            ContentSection(title = "Informação Pessoal") {
+            ContentSection(title = stringResource(R.string.admin_detail_personal_info)) {
                 Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
-                    DetailRow("Curso", student.course)
-                    DetailRow("Telemóvel", student.phone)
-                    DetailRow("Média", "${student.gpa} valores")
-                    DetailRow("Registado", student.registeredAgo)
+                    DetailRow(stringResource(R.string.admin_detail_course), student.course)
+                    DetailRow(stringResource(R.string.admin_detail_phone), student.phone)
+                    DetailRow(stringResource(R.string.admin_detail_gpa), stringResource(R.string.admin_detail_gpa_values, student.gpa))
+                    DetailRow(stringResource(R.string.admin_detail_registered), student.registeredAgo)
                 }
             }
 
@@ -184,14 +198,14 @@ fun StudentDetailAdminScreen(
                 ) {
                     Column(modifier = Modifier.padding(20.dp)) {
                         Text(
-                            text = "Estágio Ativo",
+                            text = stringResource(R.string.admin_student_active_internship),
                             color = Color.White,
                             fontWeight = FontWeight.Bold,
                             fontSize = 18.sp,
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "Empresa: ${student.internshipCompany}",
+                            text = stringResource(R.string.admin_student_company, student.internshipCompany),
                             color = Color.White.copy(alpha = 0.8f),
                             fontSize = 14.sp,
                         )
@@ -205,7 +219,7 @@ fun StudentDetailAdminScreen(
                                 contentColor = DarkBlue
                             )
                         ) {
-                            Text("Ver Detalhes do Estágio", fontWeight = FontWeight.Bold)
+                            Text(stringResource(R.string.admin_detail_view_internship), fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -225,14 +239,14 @@ fun StudentDetailAdminScreen(
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         Text(
-                            text = "Sem estágio ativo",
+                            text = stringResource(R.string.admin_student_no_internship),
                             color = DarkGrey,
                             fontSize = 14.sp,
                             textAlign = TextAlign.Center,
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "${student.applicationCount} candidaturas submetidas",
+                            text = stringResource(R.string.admin_detail_applications_submitted, student.applicationCount),
                             color = DarkGrey,
                             fontSize = 12.sp,
                             textAlign = TextAlign.Center,
@@ -244,11 +258,19 @@ fun StudentDetailAdminScreen(
             Spacer(modifier = Modifier.height(12.dp))
 
             // Recent Applications (placeholder)
-            ContentSection(title = "Candidaturas Recentes") {
+            ContentSection(title = stringResource(R.string.admin_detail_recent_applications)) {
                 Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
-                    ApplicationPlaceholderItem("UI/UX Designer", "Viana S.T.Arts", "Pendente")
+                    ApplicationPlaceholderItem(
+                        title = stringResource(R.string.mock_application_designer),
+                        company = stringResource(R.string.mock_company_viana),
+                        status = stringResource(R.string.application_status_pending),
+                    )
                     Spacer(modifier = Modifier.height(8.dp))
-                    ApplicationPlaceholderItem("Frontend Developer", "Pingo Doce", "Em análise")
+                    ApplicationPlaceholderItem(
+                        title = stringResource(R.string.mock_application_frontend),
+                        company = stringResource(R.string.mock_company_pingodoce),
+                        status = stringResource(R.string.application_status_reviewing),
+                    )
                 }
             }
 

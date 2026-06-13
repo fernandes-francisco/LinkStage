@@ -27,7 +27,10 @@ import androidx.compose.material.icons.outlined.Cancel
 import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.LocationOn
+import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.Work
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -40,6 +43,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -52,13 +56,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.aluno.chat.avatarColors
 import turmaA.grupoB.LinkStage.ui.aluno.home.ApplicationStatus
 import turmaA.grupoB.LinkStage.ui.aluno.offers.OfferDetail
@@ -67,10 +75,13 @@ import turmaA.grupoB.LinkStage.ui.common.CheckItem
 import turmaA.grupoB.LinkStage.ui.common.ContentSection
 import turmaA.grupoB.LinkStage.ui.common.ContentSectionColored
 import turmaA.grupoB.LinkStage.ui.common.ConfirmationDialog
+import turmaA.grupoB.LinkStage.ui.common.LinkStageButton
+import turmaA.grupoB.LinkStage.ui.common.LinkStageOutlinedButton
 import turmaA.grupoB.LinkStage.ui.common.LinkStageTabRow
 import turmaA.grupoB.LinkStage.ui.instituicao.InstituicaoRoutes
 import turmaA.grupoB.LinkStage.ui.instituicao.InstitutionApplication
 import turmaA.grupoB.LinkStage.ui.instituicao.sampleInstitutionApplications
+import androidx.compose.ui.platform.LocalContext
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
@@ -119,9 +130,9 @@ fun OfferDetailInstituicaoScreen(
 
     if (showCloseDialog) {
         ConfirmationDialog(
-            title = "Fechar oferta?",
-            body = "A oferta ficará invisível para novos candidatos. Poderá reabri-la posteriormente.",
-            confirmLabel = "Fechar",
+            title = stringResource(R.string.offer_detail_close_title),
+            body = stringResource(R.string.offer_detail_close_body),
+            confirmLabel = stringResource(R.string.offer_detail_close_confirm),
             onConfirm = { showCloseDialog = false },
             onDismiss = { showCloseDialog = false },
         )
@@ -129,10 +140,10 @@ fun OfferDetailInstituicaoScreen(
 
     if (showDeleteDialog) {
         ConfirmationDialog(
-            title = "Remover oferta?",
-            body = "Esta ação é irreversível. Todas as candidaturas associadas serão removidas.",
-            confirmLabel = "Remover",
-            isDanger = true,
+            title = stringResource(R.string.offer_detail_delete_title),
+            body = stringResource(R.string.offer_detail_delete_body),
+            confirmLabel = stringResource(R.string.offer_detail_delete_confirm),
+            isDanger = false,
             onConfirm = {
                 showDeleteDialog = false
                 navController.popBackStack()
@@ -141,63 +152,75 @@ fun OfferDetailInstituicaoScreen(
         )
     }
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .background(BackgroundLight),
-    ) {
-        // Fixed header
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Color.White)
-                .padding(bottom = 12.dp),
-        ) {
-            Row(
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                IconButton(onClick = { navController.popBackStack() }, modifier = Modifier.size(40.dp)) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar", tint = DarkBlue)
-                }
-                Spacer(modifier = Modifier.width(4.dp))
-                Text("Ofertas", color = DarkBlue, fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
-            }
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(BackgroundLight)
-                    .padding(12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Box(
+    Scaffold(
+        modifier = modifier.fillMaxSize(),
+        containerColor = BackgroundLight,
+        topBar = {
+            Column(modifier = Modifier.background(Color.White)) {
+                // Top Row: Back + Title
+                Row(
                     modifier = Modifier
-                        .size(44.dp)
-                        .clip(RoundedCornerShape(10.dp))
-                        .background(offer.logoColor),
-                    contentAlignment = Alignment.Center,
+                        .fillMaxWidth()
+                        .padding(start = 8.dp, end = 20.dp, top = 8.dp, bottom = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(offer.logoInitial, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.common_back),
+                            tint = DarkBlue
+                        )
+                    }
+                    Text(
+                        text = stringResource(R.string.offer_detail_title),
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = DarkBlue,
+                            fontSize = 20.sp
+                        )
+                    )
                 }
-                Spacer(modifier = Modifier.width(12.dp))
-                Column {
-                    Text(offer.title, color = DarkBlue, fontWeight = FontWeight.Bold, fontSize = 15.sp)
-                    Text(offer.company, color = LightBlue, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+
+                // Small Header with Offer Info
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(BackgroundLight)
+                        .padding(12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(44.dp)
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(offer.logoColor),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(offer.logoInitial, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                    }
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column {
+                        Text(offer.title, color = DarkBlue, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                        Text(offer.company, color = LightBlue, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+                    }
                 }
+
+                LinkStageTabRow(
+                    tabs = listOf(stringResource(R.string.common_details), stringResource(R.string.offer_detail_tab_applications), stringResource(R.string.common_manage)),
+                    selectedIndex = selectedTab,
+                    onTabSelected = { selectedTab = it },
+                )
             }
         }
-
-        LinkStageTabRow(
-            tabs = listOf("Detalhes", "Candidaturas", "Gerir"),
-            selectedIndex = selectedTab,
-            onTabSelected = { selectedTab = it },
-        )
-
+    ) { paddingValues ->
         // Content
-        Box(modifier = Modifier.weight(1f)) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        ) {
             when (selectedTab) {
                 0 -> DetailsTab(offer = offer)
                 1 -> ApplicationsTab(navController = navController)
@@ -226,7 +249,7 @@ private fun DetailsTab(offer: OfferDetail) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        ContentSection(title = "Sobre a empresa") {
+        ContentSection(title = stringResource(R.string.offer_detail_about)) {
             Text(
                 text = offer.aboutCompany,
                 fontSize = 14.sp, color = DarkGrey, lineHeight = 22.sp,
@@ -236,14 +259,14 @@ private fun DetailsTab(offer: OfferDetail) {
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        ContentSection(title = "Responsabilidades") {
+        ContentSection(title = stringResource(R.string.offer_detail_responsibilities)) {
             offer.responsibilities.forEach { item -> ResponsibilityItem(text = item) }
             Spacer(modifier = Modifier.height(8.dp))
         }
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        ContentSectionColored(title = "Requisitos") {
+        ContentSectionColored(title = stringResource(R.string.offer_detail_requirements)) {
             offer.requirements.forEach { item -> CheckItem(text = item) }
         }
 
@@ -259,14 +282,19 @@ private fun OfferMetaChips(offer: OfferDetail) {
             .padding(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        MetaChipSmall(label = "Localização", value = offer.location, modifier = Modifier.weight(1f))
-        MetaChipSmall(label = "Duração", value = offer.duration, modifier = Modifier.weight(1f))
-        MetaChipSmall(label = "Tipo", value = offer.type, modifier = Modifier.weight(1f))
+        MetaChipSmall(icon = Icons.Outlined.LocationOn, label = stringResource(R.string.offer_detail_location), value = offer.location, modifier = Modifier.weight(1f))
+        MetaChipSmall(icon = Icons.Outlined.Schedule, label = stringResource(R.string.offer_detail_duration), value = offer.duration, modifier = Modifier.weight(1f))
+        MetaChipSmall(icon = Icons.Outlined.Work, label = stringResource(R.string.offer_detail_type), value = offer.type, modifier = Modifier.weight(1f))
     }
 }
 
 @Composable
-private fun MetaChipSmall(label: String, value: String, modifier: Modifier = Modifier) {
+private fun MetaChipSmall(
+    icon: ImageVector,
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier
+) {
     Card(
         modifier = modifier,
         shape = RoundedCornerShape(10.dp),
@@ -278,6 +306,12 @@ private fun MetaChipSmall(label: String, value: String, modifier: Modifier = Mod
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = LightBlue,
+                modifier = Modifier.size(20.dp),
+            )
             Text(label, fontSize = 11.sp, color = DarkGrey, textAlign = TextAlign.Center)
             Text(value, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = DarkBlue, textAlign = TextAlign.Center)
         }
@@ -288,21 +322,26 @@ private fun MetaChipSmall(label: String, value: String, modifier: Modifier = Mod
 
 // region Tab 1 — Applications
 
-private val applicationStatusFilters = listOf("Todas", "Pendente", "Aceite", "Rejeitada")
-
 @Composable
 private fun ApplicationsTab(navController: NavController) {
-    var searchQuery by rememberSaveable { mutableStateOf("") }
-    var selectedFilter by rememberSaveable { mutableStateOf("Todas") }
+    val filterAll = stringResource(R.string.applications_filter_all)
+    val filterPending = stringResource(R.string.applications_filter_pending)
+    val filterAccepted = stringResource(R.string.applications_filter_accepted)
+    val filterRejected = stringResource(R.string.applications_filter_rejected)
+    val applicationStatusFilters = listOf(filterAll, filterPending, filterAccepted, filterRejected)
 
-    val filtered = sampleInstitutionApplications.filter { app ->
+    var searchQuery by rememberSaveable { mutableStateOf("") }
+    var selectedFilter by rememberSaveable { mutableStateOf(filterAll) }
+
+    val context = LocalContext.current
+    val filtered = sampleInstitutionApplications(context).filter { app ->
         val matchesSearch = searchQuery.isEmpty() ||
             app.studentName.contains(searchQuery, ignoreCase = true)
 
         val matchesFilter = when (selectedFilter) {
-            "Pendente" -> app.status == ApplicationStatus.PENDING
-            "Aceite" -> app.status == ApplicationStatus.ACCEPTED
-            "Rejeitada" -> app.status == ApplicationStatus.REJECTED
+            filterPending -> app.status == ApplicationStatus.PENDING
+            filterAccepted -> app.status == ApplicationStatus.ACCEPTED
+            filterRejected -> app.status == ApplicationStatus.REJECTED
             else -> true
         }
 
@@ -318,7 +357,7 @@ private fun ApplicationsTab(navController: NavController) {
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp),
-            placeholder = { Text("Pesquisar...", color = DarkGrey) },
+            placeholder = { Text(stringResource(R.string.common_search_placeholder), color = DarkGrey) },
             leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null, tint = DarkGrey) },
             shape = RoundedCornerShape(12.dp),
             colors = OutlinedTextFieldDefaults.colors(
@@ -369,7 +408,7 @@ private fun ApplicationsTab(navController: NavController) {
         Spacer(modifier = Modifier.height(8.dp))
 
         if (filtered.isEmpty()) {
-            EmptyStateCard("Nenhuma candidatura encontrada.")
+            EmptyStateCard(stringResource(R.string.app_detail_no_applications))
         } else {
             LazyColumn(contentPadding = PaddingValues(bottom = 16.dp)) {
                 items(filtered, key = { it.id }) { application ->
@@ -413,7 +452,7 @@ private fun ApplicationListItem(
             Spacer(modifier = Modifier.width(10.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(application.studentName, color = DarkBlue, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                Text("Instituição: ${application.institution}", color = DarkGrey, fontSize = 12.sp)
+                Text(stringResource(R.string.app_detail_institution_label, application.institution), color = DarkGrey, fontSize = 12.sp)
             }
             ApplicationStatusBadge(application.status)
             Spacer(modifier = Modifier.width(4.dp))
@@ -425,9 +464,9 @@ private fun ApplicationListItem(
 @Composable
 private fun ApplicationStatusBadge(status: ApplicationStatus) {
     val (label, color) = when (status) {
-        ApplicationStatus.ACCEPTED -> "Aceite" to Color(0xFF4CAF50)
-        ApplicationStatus.REJECTED -> "Recusado" to Red
-        ApplicationStatus.PENDING -> "Pendente" to Color(0xFFF5C518)
+        ApplicationStatus.ACCEPTED -> stringResource(R.string.app_detail_status_accepted) to Color(0xFF4CAF50)
+        ApplicationStatus.REJECTED -> stringResource(R.string.app_detail_status_rejected) to Red
+        ApplicationStatus.PENDING -> stringResource(R.string.app_detail_status_pending) to Color(0xFFF5C518)
     }
     Box(
         modifier = Modifier
@@ -474,42 +513,24 @@ private fun ManageTab(
             .padding(horizontal = 16.dp, vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Button(
+        LinkStageButton(
+            text = stringResource(R.string.offer_detail_edit),
             onClick = onEdit,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(48.dp)
-                .background(Fade2, RoundedCornerShape(10.dp)),
-            shape = RoundedCornerShape(10.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-        ) {
-            Icon(Icons.Outlined.Edit, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("Editar oferta", fontWeight = FontWeight.SemiBold)
-        }
+            height = 48.dp
+        )
 
-        OutlinedButton(
+        LinkStageOutlinedButton(
+            text = stringResource(R.string.offer_detail_close),
             onClick = onClose,
-            modifier = Modifier.fillMaxWidth().height(48.dp),
-            shape = RoundedCornerShape(10.dp),
-            border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(brush = androidx.compose.ui.graphics.SolidColor(DarkGrey)),
-        ) {
-            Icon(Icons.Outlined.Cancel, contentDescription = null, tint = DarkGrey, modifier = Modifier.size(18.dp))
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("Fechar oferta", color = DarkGrey, fontWeight = FontWeight.SemiBold)
-        }
+            height = 48.dp
+        )
 
-        Button(
+        LinkStageButton(
+            text = stringResource(R.string.offer_detail_remove),
             onClick = onDelete,
-            modifier = Modifier.fillMaxWidth().height(48.dp),
-            shape = RoundedCornerShape(10.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Red.copy(alpha = 0.12f)),
-            border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(brush = androidx.compose.ui.graphics.SolidColor(Red)),
-        ) {
-            Icon(Icons.Outlined.Delete, contentDescription = null, tint = Red, modifier = Modifier.size(18.dp))
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("Remover oferta", color = Red, fontWeight = FontWeight.SemiBold)
-        }
+            height = 48.dp,
+            brush = SolidColor(Red)
+        )
     }
 }
 

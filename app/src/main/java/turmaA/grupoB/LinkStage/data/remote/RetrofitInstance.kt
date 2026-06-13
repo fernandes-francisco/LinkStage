@@ -5,7 +5,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import turmaA.grupoB.LinkStage.data.remote.api.CountriesService
 
 object RetrofitInstance {
-    private  const val Base_url = "https://restcountries.com/"
+    private  const val Base_url = "https://api.restcountries.com/"
     val api: CountriesService by lazy {
         Retrofit.Builder()
             .baseUrl(Base_url)

@@ -12,11 +12,14 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
+import turmaA.grupoB.LinkStage.R
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
@@ -53,16 +56,16 @@ object AdminRoutes {
 }
 
 private data class AdminTab(
-    val title: String,
+    @StringRes val titleResId: Int,
     val icon: ImageVector,
     val route: String,
 )
 
 private val adminTabs = listOf(
-    AdminTab("Início", Icons.Outlined.Home, AdminRoutes.HOME),
-    AdminTab("Utilizadores", Icons.Outlined.People, AdminRoutes.STUDENTS),
-    AdminTab("Instituições", Icons.Outlined.AccountBalance, AdminRoutes.INSTITUTIONS),
-    AdminTab("Definições", Icons.Outlined.Settings, AdminRoutes.SETTINGS),
+    AdminTab(R.string.tab_home, Icons.Outlined.Home, AdminRoutes.HOME),
+    AdminTab(R.string.tab_users, Icons.Outlined.People, AdminRoutes.STUDENTS),
+    AdminTab(R.string.tab_institutions, Icons.Outlined.AccountBalance, AdminRoutes.INSTITUTIONS),
+    AdminTab(R.string.tab_settings, Icons.Outlined.Settings, AdminRoutes.SETTINGS),
 )
 
 @Composable
@@ -95,8 +98,8 @@ fun AdminMainScreen(onLogout: () -> Unit = {}) {
                                     restoreState = true
                                 }
                             },
-                            icon = { Icon(tab.icon, contentDescription = tab.title) },
-                            label = { Text(tab.title) },
+                            icon = { Icon(tab.icon, contentDescription = stringResource(tab.titleResId)) },
+                            label = { Text(stringResource(tab.titleResId)) },
                             colors = NavigationBarItemDefaults.colors(
                                 selectedIconColor = LightBlue,
                                 selectedTextColor = LightBlue,

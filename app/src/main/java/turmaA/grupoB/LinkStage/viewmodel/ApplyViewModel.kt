@@ -20,7 +20,8 @@ class ApplyViewModel : ViewModel() {
 
     // Step 1
     var personalStatement by mutableStateOf("")
-    var userSkills by mutableStateOf(listOf("Python", "Trabalho em grupo", "Gestão de Projetos", "IA"))
+    // Pre-filled with skills simulated from registration
+    var userSkills by mutableStateOf(listOf("Python", "Kotlin", "Trabalho em grupo", "Gestão de Projetos", "IA", "Resolução de problemas"))
     var motivationFile by mutableStateOf<Uri?>(null)
     var motivationFileName by mutableStateOf("")
 
