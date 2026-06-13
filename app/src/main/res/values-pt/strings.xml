@@ -187,6 +187,7 @@
     <string name="home_welcome">Bem-vindo de volta ao LinkStage.</string>
     <string name="home_debug_mode">DEBUG — Modo de Estágio</string>
     <string name="home_active_internship">Estágio Ativo</string>
+    <string name="home_internship_dates_unavailable">As datas do estágio não estão disponíveis.</string>
     <string name="home_view_details">Ver detalhes</string>
     <string name="home_applications_title">Estado das Candidaturas</string>
     <string name="home_discover_title">Descubra Oportunidades</string>

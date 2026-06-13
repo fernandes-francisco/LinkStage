@@ -186,6 +186,7 @@
     <string name="home_welcome">Welcome back to LinkStage.</string>
     <string name="home_debug_mode">DEBUG — Internship Mode</string>
     <string name="home_active_internship">Active Internship</string>
+    <string name="home_internship_dates_unavailable">The internship dates are not available.</string>
     <string name="home_view_details">View details</string>
     <string name="home_applications_title">Application Status</string>
     <string name="home_discover_title">Discover Opportunities</string>

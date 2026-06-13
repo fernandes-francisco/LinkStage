@@ -28,8 +28,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -48,12 +46,16 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import turmaA.grupoB.LinkStage.R
+import turmaA.grupoB.LinkStage.data.remote.model.enums.InternshipStatus
+import turmaA.grupoB.LinkStage.data.remote.model.internship.InternshipModel
 import turmaA.grupoB.LinkStage.data.repository.application.ApplicationRepository
 import turmaA.grupoB.LinkStage.data.repository.auth.AuthRepository
 import turmaA.grupoB.LinkStage.data.repository.institution.InstitutionRepository
+import turmaA.grupoB.LinkStage.data.repository.internship.InternshipRepository
 import turmaA.grupoB.LinkStage.data.repository.offer.OfferRepository
 import turmaA.grupoB.LinkStage.data.repository.student.StudentRepository
 import turmaA.grupoB.LinkStage.ui.aluno.AlunoRoutes
+import turmaA.grupoB.LinkStage.ui.aluno.activity.ActiveInternship
 import turmaA.grupoB.LinkStage.ui.aluno.activity.ApplicationCard
 import turmaA.grupoB.LinkStage.ui.aluno.activity.ApplicationItem
 import turmaA.grupoB.LinkStage.ui.aluno.activity.InternshipHeader
@@ -79,10 +81,14 @@ import turmaA.grupoB.LinkStage.viewmodel.application.StudentApplicationsViewMode
 import turmaA.grupoB.LinkStage.viewmodel.auth.AuthUiState
 import turmaA.grupoB.LinkStage.viewmodel.auth.AuthViewModel
 import turmaA.grupoB.LinkStage.viewmodel.auth.AuthViewModelFactory
+import turmaA.grupoB.LinkStage.viewmodel.internships.InternshipUiState
+import turmaA.grupoB.LinkStage.viewmodel.internships.InternshipViewModel
+import turmaA.grupoB.LinkStage.viewmodel.internships.InternshipViewModelFactory
 import turmaA.grupoB.LinkStage.viewmodel.student.StudentUiState
 import turmaA.grupoB.LinkStage.viewmodel.student.StudentViewModel
 import turmaA.grupoB.LinkStage.viewmodel.student.StudentViewModelFactory
 import turmaA.grupoB.LinkStage.data.remote.model.enums.ApplicationStatus as RemoteApplicationStatus
+import java.time.LocalDate
 
 // region Data models
 
@@ -127,9 +133,10 @@ fun HomeAlunoScreen(
             InstitutionRepository(),
         )
     ),
+    internshipViewModel: InternshipViewModel = viewModel(
+        factory = InternshipViewModelFactory(InternshipRepository())
+    ),
 ) {
-    val hasActiveInternship by homeViewModel.hasActiveInternship.collectAsState()
-    val activeInternship by homeViewModel.activeInternship.collectAsState()
     val recentConversations by homeViewModel.recentConversations.collectAsState()
     val hasSeenResult by homeViewModel.hasSeenEvaluationResult.collectAsState()
     val hasDismissedModal by homeViewModel.hasDismissedEvaluationModal.collectAsState()
@@ -137,6 +144,7 @@ fun HomeAlunoScreen(
     val authUiState by authViewModel.uiState.collectAsState()
     val studentUiState by studentViewModel.uiState.collectAsState()
     val studentApplicationsUiState by studentApplicationsViewModel.uiState.collectAsState()
+    val internshipUiState by internshipViewModel.uiState.collectAsState()
 
     val profile = (authUiState as? AuthUiState.Success)?.profile
     val userName = profile?.name ?: "Tomás"
@@ -160,6 +168,7 @@ fun HomeAlunoScreen(
 
         if (state is StudentUiState.Success) {
             studentApplicationsViewModel.loadApplicationsByStudent(state.student.id)
+            internshipViewModel.getInternshipByStudent(state.student.id)
         }
     }
 
@@ -170,6 +179,11 @@ fun HomeAlunoScreen(
 
         else -> emptyList()
     }
+
+    val activeInternshipModel = (internshipUiState as? InternshipUiState.SuccessList)
+        ?.internships
+        ?.firstOrNull { it.status == InternshipStatus.IN_PROGRESS }
+    val activeInternship = activeInternshipModel?.toActiveInternship()
 
     // Evaluation sample data for demo
     val evaluation: InternshipEvaluation? = remember {
@@ -254,36 +268,9 @@ fun HomeAlunoScreen(
                 .padding(start = 20.dp, end = 20.dp, bottom = 12.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // DEBUG: toggle para testar os dois estados
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color.White, RoundedCornerShape(12.dp))
-                    .border(1.dp, BorderGrey.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    stringResource(R.string.home_debug_mode),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = DarkGrey,
-                    modifier = Modifier.weight(1f),
-                )
-                Switch(
-                    checked = hasActiveInternship,
-                    onCheckedChange = { homeViewModel.toggleInternship() },
-                    colors = SwitchDefaults.colors(
-                        checkedThumbColor = Color.White,
-                        checkedTrackColor = LightBlue,
-                        uncheckedThumbColor = Color.White,
-                        uncheckedTrackColor = DarkGrey.copy(alpha = 0.3f),
-                    ),
-                )
-            }
-
-            if (hasActiveInternship && activeInternship != null) {
+            if (activeInternship != null) {
                 // State B: Active internship
-                val internship = activeInternship!!
+                val internship = activeInternship
                 val progress = calculateInternshipProgress(internship.startDate, internship.endDate)
 
                 var animationStarted by remember { mutableStateOf(false) }
@@ -306,6 +293,18 @@ fun HomeAlunoScreen(
                 }
 
                 EntregasCard(mockEntregas)
+            } else if (activeInternshipModel != null) {
+                HomeSectionCard(
+                    title = stringResource(R.string.home_active_internship),
+                    actionText = stringResource(R.string.home_view_details),
+                    onAction = { navController.navigate(AlunoRoutes.ACTIVITY) }
+                ) {
+                    Text(
+                        text = stringResource(R.string.home_internship_dates_unavailable),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = DarkGrey,
+                    )
+                }
             } else {
                 // State A: No internship — show recent applications
                 HomeSectionCard(
@@ -396,6 +395,21 @@ private fun RemoteApplicationStatus.toUiApplicationStatus(): ApplicationStatus {
         RemoteApplicationStatus.ACCEPTED -> ApplicationStatus.ACCEPTED
         RemoteApplicationStatus.REJECTED -> ApplicationStatus.REJECTED
     }
+}
+
+private fun InternshipModel.toActiveInternship(): ActiveInternship? {
+    val parsedStartDate = startDate?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
+        ?: return null
+    val parsedEndDate = endDate?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
+        ?: return null
+
+    return ActiveInternship(
+        id = id,
+        title = title,
+        startDate = parsedStartDate,
+        endDate = parsedEndDate,
+        activityLogs = emptyList(),
+    )
 }
 
 @Composable
