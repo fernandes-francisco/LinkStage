@@ -1,8 +1,10 @@
 package turmaA.grupoB.LinkStage.data.remote.model.user
 
 import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
 
+@Serializable
 data class CreateStudentInput(
     @SerialName("user_id")
     val userId: String,
