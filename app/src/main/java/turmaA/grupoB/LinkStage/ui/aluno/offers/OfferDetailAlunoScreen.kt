@@ -56,6 +56,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.data.remote.model.offer.InternshipOfferModel
+import turmaA.grupoB.LinkStage.data.remote.model.institution.InstitutionModel
+import turmaA.grupoB.LinkStage.data.repository.institution.InstitutionRepository
 import turmaA.grupoB.LinkStage.data.repository.offer.OfferRepository
 import turmaA.grupoB.LinkStage.ui.common.CheckItem
 import turmaA.grupoB.LinkStage.ui.common.ContentSection
@@ -72,6 +74,8 @@ import turmaA.grupoB.LinkStage.ui.theme.Red
 import turmaA.grupoB.LinkStage.viewmodel.offer.OfferUiState
 import turmaA.grupoB.LinkStage.viewmodel.offer.OfferViewModel
 import turmaA.grupoB.LinkStage.viewmodel.offer.OfferViewModelFactory
+import java.time.LocalDate
+import java.time.temporal.ChronoUnit
 
 // region Data model
 
@@ -94,40 +98,13 @@ data class OfferDetail(
     val hasApplied: Boolean = false,
 )
 
-private val sampleOfferDetail = OfferDetail(
-    id = "2",
-    title = "UI/UX Designer",
-    company = "Viana S.T.Arts",
-    logoInitial = "V",
-    logoColor = Color(0xFF212121),
-    location = "Viana do Castelo, PT",
-    duration = "6 Meses",
-    type = "Remoto",
-    aboutCompany = "Com o principal objetivo de realizar a reabilitação do antigo Matadouro Municipal de Viana do Castelo, visa transformar o edifício histórico num centro de ciência, arte e inovação.",
-    responsibilities = listOf(
-        "Realizar a prototipagem da app web.",
-        "Colaborar com a equipa, com o objetivo cruzar habilidades.",
-        "Desenvolver o nosso sistema de criação de dashboards.",
-    ),
-    requirements = listOf(
-        "Experiência com Figma e prototipagem interativa.",
-        "Portfólio do UI para demonstração.",
-        "Comunicação excelente escrita e verbal em Inglês.",
-    ),
-    benefits = listOf(
-        "Passe de Transporte Público",
-        "Programa de Mentoria",
-        "Mercado Competitivo",
-    ),
-    deadlineDays = 4,
-    applicantsCount = 12,
-)
-
 // endregion
 
 // region Main Screen
 
-private fun InternshipOfferModel.toOfferDetail(): OfferDetail {
+private fun InternshipOfferModel.toOfferDetail(
+    institution: InstitutionModel?,
+): OfferDetail {
     val requirementsList = requirements
         ?.split("\n", ";")
         ?.map { it.trim() }
@@ -137,22 +114,47 @@ private fun InternshipOfferModel.toOfferDetail(): OfferDetail {
     return OfferDetail(
         id = id,
         title = title,
-        company = institutionId,
-        logoInitial = institutionId.firstOrNull()?.uppercaseChar()?.toString() ?: "?",
+        company = institution?.name.orEmpty(),
+        logoInitial = institution?.name?.firstOrNull()?.uppercaseChar()?.toString() ?: "?",
         logoColor = Color(0xFF212121),
         location = location.orEmpty(),
         duration = "",
         type = modality.orEmpty(),
-        aboutCompany = description,
-        responsibilities = listOf(description),
+        aboutCompany = institution?.description.orEmpty(),
+        responsibilities = listOfNotNull(description.takeIf { it.isNotBlank() }),
         requirements = requirementsList,
         benefits = emptyList(),
-        deadlineDays = 0,
-        applicantsCount = vacancies,
+        deadlineDays = deadline.toDeadlineDays(),
+        applicantsCount = 0,
         isFavourite = false,
         hasApplied = false,
     )
 }
+
+private fun String?.toDeadlineDays(): Int {
+    val deadlineDate = this?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
+        ?: return 0
+    return ChronoUnit.DAYS.between(LocalDate.now(), deadlineDate)
+        .coerceAtLeast(0)
+        .toInt()
+}
+
+private fun emptyOfferDetail(offerId: String) = OfferDetail(
+    id = offerId,
+    title = "",
+    company = "",
+    logoInitial = "?",
+    logoColor = Color(0xFF212121),
+    location = "",
+    duration = "",
+    type = "",
+    aboutCompany = "",
+    responsibilities = emptyList(),
+    requirements = emptyList(),
+    benefits = emptyList(),
+    deadlineDays = 0,
+    applicantsCount = 0,
+)
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -161,19 +163,22 @@ fun OfferDetailAlunoScreen(
     onBack: () -> Unit,
     onApply: (OfferDetail) -> Unit = {},
     offerViewModel: OfferViewModel = viewModel(
-        factory = OfferViewModelFactory(OfferRepository())
+        factory = OfferViewModelFactory(
+            OfferRepository(),
+            InstitutionRepository(),
+        )
     ),
-    fallbackOffer: OfferDetail = sampleOfferDetail
 ) {
     val offerUiState by offerViewModel.uiState.collectAsState()
 
     LaunchedEffect(offerId) {
-        offerViewModel.loadOfferById(offerId)
+        offerViewModel.loadOfferDetailsById(offerId)
     }
 
     val offer = when (val state = offerUiState) {
-        is OfferUiState.Success -> state.offer.toOfferDetail()
-        else -> fallbackOffer
+        is OfferUiState.SuccessDetails -> state.offer.toOfferDetail(state.institution)
+        is OfferUiState.Success -> state.offer.toOfferDetail(null)
+        else -> emptyOfferDetail(offerId)
     }
 
     var isFavourite by remember(offer.id) { mutableStateOf(offer.isFavourite) }
@@ -191,7 +196,13 @@ fun OfferDetailAlunoScreen(
         )
     }
 
-    val errorMessage = (offerUiState as? OfferUiState.Error)?.message
+    val errorMessage = when (val state = offerUiState) {
+        OfferUiState.Idle,
+        OfferUiState.Loading -> "A carregar oferta..."
+        OfferUiState.Empty -> "Oferta não encontrada."
+        is OfferUiState.Error -> state.message
+        else -> null
+    }
 
     Scaffold(
         topBar = { SecondaryTopBar(title = stringResource(R.string.offer_detail_title), onBack = onBack) },
@@ -201,7 +212,13 @@ fun OfferDetailAlunoScreen(
                 isFavourite = isFavourite,
                 deadlineDays = offer.deadlineDays,
                 applicantsCount = offer.applicantsCount,
-                onApply = { showApplyDialog = true },
+                onApply = {
+                    if (offerUiState is OfferUiState.SuccessDetails ||
+                        offerUiState is OfferUiState.Success
+                    ) {
+                        showApplyDialog = true
+                    }
+                },
                 onFavouriteToggle = { isFavourite = !isFavourite },
             )
         },
