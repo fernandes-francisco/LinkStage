@@ -30,6 +30,8 @@
     <string name="login_button">Iniciar Sessão</string>
     <string name="login_no_account">Não tem uma conta?</string>
     <string name="login_register_link">Registar</string>
+    <string name="login_loading">A iniciar sessão…</string>
+
 
     <!-- ==================== REGISTER ==================== -->
     <string name="register_title">Criar Conta</string>
