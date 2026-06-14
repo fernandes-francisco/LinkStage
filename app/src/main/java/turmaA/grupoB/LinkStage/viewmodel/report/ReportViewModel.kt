@@ -10,9 +10,12 @@ import turmaA.grupoB.LinkStage.data.remote.model.enums.ReportStatus
 import turmaA.grupoB.LinkStage.data.remote.model.report.CreateFinalReportInput
 import turmaA.grupoB.LinkStage.data.remote.model.report.UpdateFinalReportInput
 import turmaA.grupoB.LinkStage.data.repository.report.ReportRepositoryInterface
+import turmaA.grupoB.LinkStage.data.repository.storage.StorageRepositoryInterface
+import java.time.Instant
 
 class ReportViewModel(
-    private val reportRepository: ReportRepositoryInterface
+    private val reportRepository: ReportRepositoryInterface,
+    private val storageRepository: StorageRepositoryInterface? = null,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<ReportUiState>(ReportUiState.Idle)
@@ -158,6 +161,37 @@ class ReportViewModel(
             } catch (e: Exception) {
                 _uiState.value = ReportUiState.Error(
                     e.message ?: "Erro ao submeter relatório."
+                )
+            }
+        }
+    }
+
+    fun uploadAndSubmitReport(
+        reportId: String,
+        filePath: String,
+        fileBytes: ByteArray,
+    ) {
+        viewModelScope.launch {
+            _uiState.value = ReportUiState.Loading
+
+            try {
+                val uploadedPath = requireNotNull(storageRepository).uploadFile(
+                    bucket = "final-reports",
+                    path = filePath,
+                    bytes = fileBytes,
+                )
+                val report = reportRepository.updateReport(
+                    reportId = reportId,
+                    input = UpdateFinalReportInput(
+                        fileUrl = uploadedPath,
+                        status = ReportStatus.SUBMITTED,
+                        updatedAt = Instant.now().toString(),
+                    )
+                )
+                _uiState.value = ReportUiState.Success(report)
+            } catch (e: Exception) {
+                _uiState.value = ReportUiState.Error(
+                    e.message ?: "Erro ao submeter relatÃ³rio."
                 )
             }
         }

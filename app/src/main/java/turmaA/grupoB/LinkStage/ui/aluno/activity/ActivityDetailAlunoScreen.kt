@@ -258,80 +258,28 @@ fun ActivityDetailAlunoScreen(
                     Spacer(modifier = Modifier.height(12.dp))
                 }
 
-                // Anexos
-                ContentSection(title = stringResource(R.string.activity_attachments)) {
-                    Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
-                        if (hasSubmitted) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .border(1.dp, LightBlue, RoundedCornerShape(12.dp))
-                                    .clip(RoundedCornerShape(12.dp))
-                                    .background(Color.White)
-                                    .padding(12.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                Icon(Icons.Outlined.Description, contentDescription = null, tint = LightBlue)
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(stringResource(R.string.activity_doc_submitted), fontSize = 13.sp, color = DarkBlue, modifier = Modifier.weight(1f))
-                                Text(stringResource(R.string.activity_doc_status), fontSize = 12.sp, fontWeight = FontWeight.Bold, color = LightBlue)
-                            }
-                        } else if (fileUri != null) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .border(1.dp, LightBlue, RoundedCornerShape(12.dp))
-                                    .clip(RoundedCornerShape(12.dp))
-                                    .background(Color.White)
-                                    .padding(12.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier.weight(1f),
-                                ) {
-                                    Icon(Icons.Outlined.Description, contentDescription = null, tint = LightBlue)
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text(
-                                        fileName ?: stringResource(R.string.common_file),
-                                        fontSize = 13.sp,
-                                        color = DarkBlue,
-                                        fontWeight = FontWeight.Medium,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis,
-                                    )
-                                }
-                                IconButton(onClick = { fileUri = null; fileName = null }) {
-                                    Icon(Icons.Default.Close, contentDescription = stringResource(R.string.common_remove), tint = DarkGrey)
-                                }
-                            }
-                        } else {
-                            Card(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable(enabled = canSubmit) { launcher.launch("*/*") },
-                                shape = RoundedCornerShape(12.dp),
-                                colors = CardDefaults.cardColors(containerColor = Color.White),
-                                border = BorderStroke(1.dp, BorderGrey),
-                            ) {
-                                Column(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(20.dp),
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.spacedBy(6.dp),
-                                ) {
-                                    Icon(
-                                        Icons.Outlined.Description,
-                                        contentDescription = null,
-                                        tint = DarkGrey,
-                                        modifier = Modifier.size(40.dp),
-                                    )
-                                    Text(stringResource(R.string.activity_select_files), fontWeight = FontWeight.Bold, color = DarkBlue, fontSize = 14.sp)
-                                    Text(stringResource(R.string.apply_file_format), color = DarkGrey, fontSize = 12.sp)
-                                }
-                            }
+                resolvedActivityLog.attachmentUrl?.takeIf { it.isNotBlank() }?.let { attachmentPath ->
+                    ContentSection(title = stringResource(R.string.activity_attachments)) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 12.dp)
+                                .border(1.dp, LightBlue, RoundedCornerShape(12.dp))
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(Color.White)
+                                .padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Icon(Icons.Outlined.Description, contentDescription = null, tint = LightBlue)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = attachmentPath.substringAfterLast('/'),
+                                fontSize = 13.sp,
+                                color = DarkBlue,
+                                fontWeight = FontWeight.Medium,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
                         }
                     }
                 }
@@ -387,6 +335,7 @@ private fun ActivityLogModel.toActivityLog(): ActivityLog? {
         description = description,
         date = parsedDate,
         status = ActivityLogStatus.COMPLETED,
+        attachmentUrl = attachmentUrl,
     )
 }
 

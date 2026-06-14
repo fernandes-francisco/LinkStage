@@ -309,7 +309,7 @@
     <string name="apply_skills_count">competências adicionadas</string>
     <string name="apply_motivation_letter">Carta de Motivação</string>
     <string name="apply_select_file">Selecionar Ficheiro</string>
-    <string name="apply_file_format">PDF, DOCX até 10 MB</string>
+    <string name="apply_file_format">PDF, DOCX até 6 MB</string>
     <string name="apply_review_name">Nome</string>
     <string name="apply_review_course">Curso</string>
     <string name="apply_review_gpa">Média</string>

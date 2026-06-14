@@ -63,6 +63,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -75,10 +76,13 @@ import turmaA.grupoB.LinkStage.data.remote.model.application.CreateApplicationIn
 import turmaA.grupoB.LinkStage.data.repository.application.ApplicationRepository
 import turmaA.grupoB.LinkStage.data.repository.auth.AuthRepository
 import turmaA.grupoB.LinkStage.data.repository.student.StudentRepository
+import turmaA.grupoB.LinkStage.data.repository.storage.StorageRepository
 import turmaA.grupoB.LinkStage.ui.common.LinkStageButton
 import turmaA.grupoB.LinkStage.ui.common.SecondaryTopBar
 import turmaA.grupoB.LinkStage.ui.common.LinkStageDialog
 import turmaA.grupoB.LinkStage.ui.common.SectionLabel
+import turmaA.grupoB.LinkStage.ui.common.readUploadFile
+import turmaA.grupoB.LinkStage.ui.common.safeUploadFileName
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
@@ -116,7 +120,10 @@ fun ApplyScreen(
         factory = StudentViewModelFactory(StudentRepository())
     ),
     applicationViewModel: ApplicationViewModel = viewModel(
-        factory = ApplicationViewModelFactory(ApplicationRepository())
+        factory = ApplicationViewModelFactory(
+            ApplicationRepository(),
+            StorageRepository(),
+        )
     ),
 ) {
     val currentStep = viewModel.currentStep
@@ -281,13 +288,24 @@ fun ApplyScreen(
                             val studentId = currentStudentId
 
                             if (studentId != null) {
-                                applicationViewModel.createApplication(
-                                    CreateApplicationInput(
-                                        offerId = offerId,
-                                        studentId = studentId,
-                                        motivationLetter = viewModel.personalStatement.takeIf { it.isNotBlank() }
-                                    )
+                                val input = CreateApplicationInput(
+                                    offerId = offerId,
+                                    studentId = studentId,
                                 )
+                                val motivationFileBytes = viewModel.motivationFileBytes
+
+                                if (motivationFileBytes != null) {
+                                    val path = "students/$studentId/applications/$offerId/" +
+                                        "motivation-letter/${System.currentTimeMillis()}_" +
+                                        safeUploadFileName(viewModel.motivationFileName)
+                                    applicationViewModel.createApplication(
+                                        input = input,
+                                        motivationLetterPath = path,
+                                        motivationLetterBytes = motivationFileBytes,
+                                    )
+                                } else {
+                                    applicationViewModel.createApplication(input)
+                                }
                             }
                         }
                     }
@@ -521,12 +539,19 @@ private fun StepEssentialInfo(
     viewModel: ApplyViewModel,
     onEditSkills: () -> Unit,
 ) {
+    val context = LocalContext.current
     val filePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent(),
     ) { uri: Uri? ->
+        viewModel.motivationFile = null
+        viewModel.motivationFileName = ""
+        viewModel.motivationFileBytes = null
         if (uri != null) {
-            viewModel.motivationFile = uri
-            viewModel.motivationFileName = uri.lastPathSegment ?: "ficheiro.pdf"
+            context.contentResolver.readUploadFile(uri)?.let { selectedFile ->
+                viewModel.motivationFile = uri
+                viewModel.motivationFileName = selectedFile.name
+                viewModel.motivationFileBytes = selectedFile.bytes
+            }
         }
     }
 
@@ -619,6 +644,7 @@ private fun StepEssentialInfo(
                         onClick = {
                             viewModel.motivationFile = null
                             viewModel.motivationFileName = ""
+                            viewModel.motivationFileBytes = null
                         },
                     ) {
                         Icon(Icons.Default.Close, contentDescription = stringResource(R.string.common_remove), tint = DarkGrey)
