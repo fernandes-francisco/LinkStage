@@ -1,4 +1,4 @@
-package turmaA.grupoB.LinkStage.viewmodel
+package turmaA.grupoB.LinkStage.viewmodel.discover
 
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel

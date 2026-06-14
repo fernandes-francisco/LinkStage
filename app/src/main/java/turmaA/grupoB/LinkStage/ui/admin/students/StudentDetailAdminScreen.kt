@@ -44,6 +44,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import turmaA.grupoB.LinkStage.data.remote.model.enums.InternshipStatus
 import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.admin.sampleStudentsList
 import turmaA.grupoB.LinkStage.ui.common.ContentSection
@@ -73,6 +74,12 @@ fun StudentDetailAdminScreen(
     val student = when (val state = studentDetailUiState) {
         is AdminStudentDetailUiState.Success -> state.data.student
         else -> sampleStudentsList.first()
+    }
+    val activeInternshipId = when (val state = studentDetailUiState) {
+        is AdminStudentDetailUiState.Success -> state.data.internships
+            .firstOrNull { it.status == InternshipStatus.IN_PROGRESS }
+            ?.id
+        else -> null
     }
 
     LaunchedEffect(studentId) {
@@ -211,7 +218,8 @@ fun StudentDetailAdminScreen(
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                         Button(
-                            onClick = { onViewInternship(student.id) },
+                            enabled = !activeInternshipId.isNullOrBlank(),
+                            onClick = { activeInternshipId?.let { onViewInternship(it) } },
                             modifier = Modifier.fillMaxWidth().height(44.dp),
                             shape = RoundedCornerShape(10.dp),
                             colors = ButtonDefaults.buttonColors(

@@ -1,4 +1,4 @@
-package turmaA.grupoB.LinkStage.viewmodel
+package turmaA.grupoB.LinkStage.viewmodel.activity
 
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow

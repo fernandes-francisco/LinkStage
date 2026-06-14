@@ -1,4 +1,4 @@
-package turmaA.grupoB.LinkStage.viewmodel
+package turmaA.grupoB.LinkStage.viewmodel.home
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel

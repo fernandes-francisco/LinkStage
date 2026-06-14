@@ -89,7 +89,7 @@ import turmaA.grupoB.LinkStage.ui.theme.Fade1
 import turmaA.grupoB.LinkStage.ui.theme.Fade2
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.ui.theme.Red
-import turmaA.grupoB.LinkStage.viewmodel.SettingsViewModel
+import turmaA.grupoB.LinkStage.viewmodel.settings.SettingsViewModel
 import turmaA.grupoB.LinkStage.viewmodel.auth.AuthUiState
 import turmaA.grupoB.LinkStage.viewmodel.auth.AuthViewModel
 import turmaA.grupoB.LinkStage.viewmodel.auth.AuthViewModelFactory

@@ -1,4 +1,4 @@
-package turmaA.grupoB.LinkStage.viewmodel
+package turmaA.grupoB.LinkStage.viewmodel.offerform
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf

@@ -15,7 +15,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -29,8 +31,21 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import androidx.lifecycle.viewmodel.compose.viewModel
 import turmaA.grupoB.LinkStage.ui.common.PrivacyPolicyScreen
+import turmaA.grupoB.LinkStage.ui.chat.ChatDetailScreen
+import turmaA.grupoB.LinkStage.viewmodel.chat.ChatDataSource
+import turmaA.grupoB.LinkStage.viewmodel.chat.ChatUiState
+import turmaA.grupoB.LinkStage.viewmodel.chat.ChatViewModel
+import turmaA.grupoB.LinkStage.viewmodel.chat.ChatViewModelFactory
+import turmaA.grupoB.LinkStage.viewmodel.chat.InstituicaoChatDataSource
+import turmaA.grupoB.LinkStage.data.repository.application.ApplicationRepository
+import turmaA.grupoB.LinkStage.data.repository.auth.AuthRepository
+import turmaA.grupoB.LinkStage.data.repository.communication.CommunicationRepository
+import turmaA.grupoB.LinkStage.data.repository.institution.InstitutionRepository
+import turmaA.grupoB.LinkStage.data.repository.internship.InternshipRepository
+import turmaA.grupoB.LinkStage.data.repository.offer.OfferRepository
+import turmaA.grupoB.LinkStage.data.repository.profile.ProfileRepository
+import turmaA.grupoB.LinkStage.data.repository.student.StudentRepository
 import turmaA.grupoB.LinkStage.ui.aluno.chat.ChatScreen
 import turmaA.grupoB.LinkStage.ui.aluno.chat.Conversation
 import turmaA.grupoB.LinkStage.ui.aluno.chat.getSampleContacts
@@ -52,7 +67,6 @@ import turmaA.grupoB.LinkStage.ui.instituicao.settings.NotificationsInstituicaoS
 import turmaA.grupoB.LinkStage.ui.instituicao.settings.SettingsInstituicaoScreen
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
-import turmaA.grupoB.LinkStage.viewmodel.InstitutionHomeViewModel
 
 object InstituicaoRoutes {
     const val HOME = "instituicao_home"
@@ -101,13 +115,26 @@ private val instituicaoTabs = listOf(
 @Composable
 fun InstituicaoMainScreen(onLogout: () -> Unit = {}) {
     val navController = rememberNavController()
-    val institutionHomeViewModel: InstitutionHomeViewModel = viewModel()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
     val showBottomBar = instituicaoTabs.any { tab ->
         currentDestination?.hierarchy?.any { it.route == tab.route } == true
     }
+
+    val chatDataSource: ChatDataSource = remember {
+        InstituicaoChatDataSource(
+            authRepository = AuthRepository(),
+            institutionRepository = InstitutionRepository(),
+            offerRepository = OfferRepository(),
+            internshipRepository = InternshipRepository(),
+            applicationRepository = ApplicationRepository(),
+            studentRepository = StudentRepository(),
+            profileRepository = ProfileRepository(),
+            communicationRepository = CommunicationRepository(),
+        )
+    }
+    val chatViewModel = remember { ChatViewModel(chatDataSource) }
 
     Scaffold(
         bottomBar = {
@@ -152,7 +179,7 @@ fun InstituicaoMainScreen(onLogout: () -> Unit = {}) {
             composable(InstituicaoRoutes.HOME) {
                 HomeInstituicaoScreen(
                     navController = navController,
-                    institutionHomeViewModel = institutionHomeViewModel
+                    chatViewModel = chatViewModel,
                 )
             }
             composable(InstituicaoRoutes.OFFERS) {
@@ -163,6 +190,7 @@ fun InstituicaoMainScreen(onLogout: () -> Unit = {}) {
             }
             composable(InstituicaoRoutes.MESSAGES) {
                 ChatInstituicaoScreen(
+                    chatViewModel = chatViewModel,
                     onOpenChat = { conversationId ->
                         navController.navigate(InstituicaoRoutes.chatRoute(conversationId))
                     },
@@ -194,24 +222,15 @@ fun InstituicaoMainScreen(onLogout: () -> Unit = {}) {
                 arguments = listOf(navArgument("conversationId") { type = NavType.StringType }),
             ) { backStackEntry ->
                 val conversationId = backStackEntry.arguments?.getString("conversationId") ?: return@composable
+                val chatUiState by chatViewModel.chatUiState.collectAsState()
+                val conversation = (chatUiState as? ChatUiState.Success)
+                    ?.conversations
+                    ?.firstOrNull { it.id == conversationId }
 
-                // Primeiro procura nas conversas existentes
-                val existingConversation = sampleConversations.find { it.id == conversationId }
-
-                // Se não existir, procura nos contactos para criar uma nova conversa
-                val contacts = getSampleContacts()
-                val conversation = existingConversation ?: contacts.find { it.id == conversationId }?.let { contact ->
-                    Conversation(
-                        id = contact.id,
-                        name = contact.name,
-                        initials = contact.initials,
-                        lastMessage = "Inicia uma nova conversa.",
-                        time = "Agora",
-                        avatarColorIndex = contact.avatarColorIndex
-                    )
-                } ?: return@composable
-
-                ChatScreen(
+                ChatDetailScreen(
+                    threadId = conversationId,
+                    dataSource = chatDataSource,
+                    chatViewModel = chatViewModel,
                     conversation = conversation,
                     onBack = { navController.popBackStack() },
                 )
@@ -277,7 +296,6 @@ fun InstituicaoMainScreen(onLogout: () -> Unit = {}) {
                 InternshipDetailInstituicaoScreen(
                     internshipId = internshipId,
                     navController = navController,
-                    institutionHomeViewModel = institutionHomeViewModel
                 )
             }
             composable(

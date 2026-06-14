@@ -70,7 +70,7 @@ import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.ui.theme.Red
-import turmaA.grupoB.LinkStage.viewmodel.DiscoverViewModel
+import turmaA.grupoB.LinkStage.viewmodel.discover.DiscoverViewModel
 import turmaA.grupoB.LinkStage.viewmodel.offer.OfferUiState
 import turmaA.grupoB.LinkStage.viewmodel.offer.OfferViewModel
 import turmaA.grupoB.LinkStage.viewmodel.offer.OfferViewModelFactory

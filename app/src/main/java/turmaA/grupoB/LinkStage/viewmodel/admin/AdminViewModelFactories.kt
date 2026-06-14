@@ -69,6 +69,7 @@ class AdminStudentDetailViewModelFactory(
     private val internshipRepository: InternshipRepositoryInterface,
     private val applicationRepository: ApplicationRepositoryInterface,
     private val institutionRepository: InstitutionRepositoryInterface,
+    private val offerRepository: OfferRepositoryInterface,
 ) : ViewModelProvider.Factory {
     constructor() : this(
         turmaA.grupoB.LinkStage.data.repository.student.StudentRepository(),
@@ -76,6 +77,7 @@ class AdminStudentDetailViewModelFactory(
         turmaA.grupoB.LinkStage.data.repository.internship.InternshipRepository(),
         turmaA.grupoB.LinkStage.data.repository.application.ApplicationRepository(),
         turmaA.grupoB.LinkStage.data.repository.institution.InstitutionRepository(),
+        turmaA.grupoB.LinkStage.data.repository.offer.OfferRepository(),
     )
 
     @Suppress("UNCHECKED_CAST")
@@ -85,6 +87,7 @@ class AdminStudentDetailViewModelFactory(
         internshipRepository,
         applicationRepository,
         institutionRepository,
+        offerRepository,
     ) as T
 }
 

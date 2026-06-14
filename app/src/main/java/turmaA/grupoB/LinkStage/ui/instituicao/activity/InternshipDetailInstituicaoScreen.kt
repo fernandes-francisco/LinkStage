@@ -90,14 +90,15 @@ import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.Fade2
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.ui.theme.Red
-import turmaA.grupoB.LinkStage.viewmodel.InstitutionHomeViewModel
+import turmaA.grupoB.LinkStage.viewmodel.institutionhome.InstitutionHomeViewModel
+import turmaA.grupoB.LinkStage.viewmodel.institutionhome.InstitutionHomeViewModelFactory
 
 @Composable
 fun InternshipDetailInstituicaoScreen(
     internshipId: String,
     navController: NavController,
     modifier: Modifier = Modifier,
-    institutionHomeViewModel: InstitutionHomeViewModel = viewModel(),
+    institutionHomeViewModel: InstitutionHomeViewModel = viewModel(factory = InstitutionHomeViewModelFactory()),
 ) {
     val context = LocalContext.current
     val internship = sampleInstitutionInternships(context).find { it.id == internshipId }

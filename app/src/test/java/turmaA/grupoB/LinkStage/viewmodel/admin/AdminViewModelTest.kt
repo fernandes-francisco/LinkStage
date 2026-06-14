@@ -223,6 +223,7 @@ class AdminViewModelTest {
             internshipRepository,
             applicationRepository,
             institutionRepository,
+            offerRepository,
         )
 
         viewModel.loadStudent(testStudent.id)
@@ -230,6 +231,7 @@ class AdminViewModelTest {
 
         val state = viewModel.uiState.value as AdminStudentDetailUiState.Success
         assertEquals("Ana Silva", state.data.student.name)
+        assertEquals("Escola Superior de Tecnologia e Gestão", state.data.student.internshipCompany)
         assertEquals(listOf(testApplication), state.data.applications)
         assertEquals(listOf(testInternship), state.data.internships)
     }
@@ -243,6 +245,7 @@ class AdminViewModelTest {
             internshipRepository,
             applicationRepository,
             institutionRepository,
+            offerRepository,
         )
 
         viewModel.loadStudent("missing-student")
@@ -470,6 +473,7 @@ class AdminViewModelTest {
             internshipRepository,
             applicationRepository,
             institutionRepository,
+            offerRepository,
         )
 
         viewModel.loadStudent(testStudent.id)

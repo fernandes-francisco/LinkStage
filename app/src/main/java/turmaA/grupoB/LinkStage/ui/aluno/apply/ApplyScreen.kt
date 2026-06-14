@@ -85,7 +85,7 @@ import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.ui.theme.Red
-import turmaA.grupoB.LinkStage.viewmodel.ApplyViewModel
+import turmaA.grupoB.LinkStage.viewmodel.apply.ApplyViewModel
 import turmaA.grupoB.LinkStage.viewmodel.application.ApplicationUiState
 import turmaA.grupoB.LinkStage.viewmodel.application.ApplicationViewModel
 import turmaA.grupoB.LinkStage.viewmodel.application.ApplicationViewModelFactory

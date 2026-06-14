@@ -15,6 +15,7 @@ interface CommunicationRepositoryInterface {
     suspend fun getThreadsByUser(userId: String): List<MessageThreadModel> = emptyList()
     suspend fun getThreadsByInternship(internshipId: String): List<MessageThreadModel>
     suspend fun getThreadByApplication(applicationId: String): List<MessageThreadModel>
+    suspend fun getThreadsWithParticipants(userIds: List<String>): List<MessageThreadModel>
     suspend fun getParticipantsByThread(threadId: String): List<MessageThreadParticipantModel>
     suspend fun getMessagesByThread(threadId: String): List<MessageModel>
     suspend fun createThread(
@@ -23,4 +24,6 @@ interface CommunicationRepositoryInterface {
     ): MessageThreadModel
     suspend fun sendMessage(input: SendMessageInput): MessageModel?
     suspend fun markMessageAsRead(messageId: String): MessageModel?
+    suspend fun createThread(internshipId: String?, applicationId: String?): MessageThreadModel?
+    suspend fun createThreadParticipant(threadId: String, userId: String): MessageThreadParticipantModel?
 }

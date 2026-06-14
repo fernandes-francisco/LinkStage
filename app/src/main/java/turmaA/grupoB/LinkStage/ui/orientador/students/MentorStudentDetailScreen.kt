@@ -114,10 +114,13 @@ import turmaA.grupoB.LinkStage.ui.theme.Green
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.ui.theme.MediumBlue
 import turmaA.grupoB.LinkStage.ui.theme.Red
-import turmaA.grupoB.LinkStage.viewmodel.AdvisorHomeViewModel
+import turmaA.grupoB.LinkStage.viewmodel.advisorhome.AdvisorHomeViewModel
 import turmaA.grupoB.LinkStage.viewmodel.orientador.OrientadorStudentDetailUiState
 import turmaA.grupoB.LinkStage.viewmodel.orientador.OrientadorStudentDetailViewModel
 import turmaA.grupoB.LinkStage.viewmodel.orientador.OrientadorStudentDetailViewModelFactory
+import turmaA.grupoB.LinkStage.viewmodel.chat.ChatViewModel
+import turmaA.grupoB.LinkStage.viewmodel.chat.EnsureThreadResult
+import android.widget.Toast
 
 @Composable
 fun MentorStudentDetailScreen(
@@ -125,6 +128,7 @@ fun MentorStudentDetailScreen(
     navController: NavController,
     advisorHomeViewModel: AdvisorHomeViewModel = viewModel(),
     orientadorStudentDetailViewModel: OrientadorStudentDetailViewModel = viewModel(factory = OrientadorStudentDetailViewModelFactory()),
+    chatViewModel: ChatViewModel? = null,
 ) {
     val context = LocalContext.current
     val detailUiState by orientadorStudentDetailViewModel.uiState.collectAsState()
@@ -139,6 +143,16 @@ fun MentorStudentDetailScreen(
     var showCreateCheckpointDialog by remember { mutableStateOf(false) }
     LaunchedEffect(orientadorStudentDetailViewModel, studentId) {
         orientadorStudentDetailViewModel.loadStudent(studentId)
+    }
+
+    if (chatViewModel != null) {
+        val ensureResult by chatViewModel.ensureThreadResult.collectAsState()
+        LaunchedEffect(ensureResult) {
+            if (ensureResult != null) {
+                navController.navigate(OrientadorRoutes.chatRoute(ensureResult!!.threadId))
+                chatViewModel.clearEnsureThreadResult()
+            }
+        }
     }
 
     LaunchedEffect(selectedTab) {
@@ -203,7 +217,7 @@ fun MentorStudentDetailScreen(
                     LinkStageButton(
                         text = stringResource(R.string.common_send_message),
                         onClick = {
-                            navController.navigate(OrientadorRoutes.chatRoute(student.id))
+                            chatViewModel?.ensureThreadForStudent(student.id)
                         },
                         height = 50.dp,
                         brush = Fade2
