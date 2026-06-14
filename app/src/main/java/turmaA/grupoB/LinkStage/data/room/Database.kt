@@ -10,7 +10,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(
     entities = [ActivityLogEntity::class],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 abstract class AtDatabase: RoomDatabase(){
@@ -27,6 +27,14 @@ abstract class AtDatabase: RoomDatabase(){
                 )
             }
         }
+
+        private val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "ALTER TABLE atividades_aluno ADD COLUMN attachmentUrl TEXT"
+                )
+            }
+        }
         
         fun getDatabase(context: Context): AtDatabase{
             return INSTANCE ?: synchronized(this){
@@ -35,7 +43,7 @@ abstract class AtDatabase: RoomDatabase(){
                     AtDatabase::class.java,
                     "atividades_aluno"
                 )
-                    .addMigrations(MIGRATION_1_2)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
                     .build()
                 
                 INSTANCE = instance
