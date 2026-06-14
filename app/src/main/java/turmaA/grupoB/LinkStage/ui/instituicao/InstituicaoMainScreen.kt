@@ -79,10 +79,10 @@ object InstituicaoRoutes {
     const val OFFER_FORM = "instituicao_offer_form/{offerId}"
     const val OFFER_DETAIL = "instituicao_offer_detail/{offerId}"
     const val APPLICATION_DETAIL = "instituicao_application/{applicationId}"
-    const val OFFER_SUCCESS = "instituicao_offer_success/{offerId}"
+    const val OFFER_SUCCESS = "instituicao_offer_success/{offerId}?isNew={isNew}"
     const val MENTOR_DETAIL = "instituicao_mentor/{mentorId}"
-    const val ASSIGN_MENTOR = "assign_mentor/{mentorId}"
-    const val MENTOR_ASSIGNED_SUCCESS = "mentor_assigned_success"
+    const val ASSIGN_MENTOR = "assign_mentor/{internshipId}"
+    const val MENTOR_ASSIGNED_SUCCESS = "mentor_assigned_success/{internshipId}"
     const val INTERNSHIP_DETAIL = "instituicao_internship_detail/{internshipId}"
     const val EVALUATION_SUBMITTED = "evaluation_submitted/{internshipId}"
     const val PRIVACY_POLICY = "instituicao_privacy_policy"
@@ -90,10 +90,11 @@ object InstituicaoRoutes {
     fun chatRoute(conversationId: String) = "instituicao_chat/$conversationId"
     fun offerFormRoute(offerId: String) = "instituicao_offer_form/$offerId"
     fun offerDetailRoute(offerId: String) = "instituicao_offer_detail/$offerId"
-    fun offerSuccessRoute(offerId: String) = "instituicao_offer_success/$offerId"
+    fun offerSuccessRoute(offerId: String, isNew: Boolean = false) = "instituicao_offer_success/$offerId?isNew=$isNew"
     fun applicationDetailRoute(applicationId: String) = "instituicao_application/$applicationId"
     fun mentorDetailRoute(mentorId: String) = "instituicao_mentor/$mentorId"
-    fun assignMentorRoute(mentorId: String) = "assign_mentor/$mentorId"
+    fun assignMentorRoute(internshipId: String) = "assign_mentor/$internshipId"
+    fun mentorAssignedSuccessRoute(internshipId: String) = "mentor_assigned_success/$internshipId"
     fun internshipDetailRoute(internshipId: String) = "instituicao_internship_detail/$internshipId"
     fun evaluationSubmittedRoute(internshipId: String) = "evaluation_submitted/$internshipId"
 }
@@ -247,11 +248,16 @@ fun InstituicaoMainScreen(onLogout: () -> Unit = {}) {
             }
             composable(
                 route = InstituicaoRoutes.OFFER_SUCCESS,
-                arguments = listOf(navArgument("offerId") { type = NavType.StringType }),
+                arguments = listOf(
+                    navArgument("offerId") { type = NavType.StringType },
+                    navArgument("isNew") { type = NavType.BoolType; defaultValue = false },
+                ),
             ) { backStackEntry ->
                 val offerId = backStackEntry.arguments?.getString("offerId") ?: ""
+                val isNew = backStackEntry.arguments?.getBoolean("isNew") ?: false
                 OfferSuccessInstituicaoScreen(
                     offerId = offerId,
+                    isNew = isNew,
                     navController = navController,
                 )
             }
@@ -277,16 +283,23 @@ fun InstituicaoMainScreen(onLogout: () -> Unit = {}) {
             }
             composable(
                 route = InstituicaoRoutes.ASSIGN_MENTOR,
-                arguments = listOf(navArgument("mentorId") { type = NavType.StringType }),
+                arguments = listOf(navArgument("internshipId") { type = NavType.StringType }),
             ) { backStackEntry ->
-                val mentorId = backStackEntry.arguments?.getString("mentorId") ?: return@composable
+                val internshipId = backStackEntry.arguments?.getString("internshipId") ?: return@composable
                 AssignMentorInstituicaoScreen(
-                    mentorId = mentorId,
+                    internshipId = internshipId,
                     navController = navController,
                 )
             }
-            composable(InstituicaoRoutes.MENTOR_ASSIGNED_SUCCESS) {
-                MentorAssignedSuccessScreen(navController = navController)
+            composable(
+                route = InstituicaoRoutes.MENTOR_ASSIGNED_SUCCESS,
+                arguments = listOf(navArgument("internshipId") { type = NavType.StringType }),
+            ) { backStackEntry ->
+                val internshipId = backStackEntry.arguments?.getString("internshipId") ?: return@composable
+                MentorAssignedSuccessScreen(
+                    internshipId = internshipId,
+                    navController = navController,
+                )
             }
             composable(
                 route = InstituicaoRoutes.INTERNSHIP_DETAIL,

@@ -35,6 +35,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -51,12 +52,15 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -90,8 +94,9 @@ import turmaA.grupoB.LinkStage.ui.instituicao.internshipStatusColor
 import turmaA.grupoB.LinkStage.ui.instituicao.internshipStatusLabel
 import turmaA.grupoB.LinkStage.ui.instituicao.mentorStatusColor
 import turmaA.grupoB.LinkStage.ui.instituicao.mentorStatusLabel
-import turmaA.grupoB.LinkStage.ui.instituicao.sampleInstitutionInternships
-import turmaA.grupoB.LinkStage.ui.instituicao.sampleInstitutionMentors
+import turmaA.grupoB.LinkStage.viewmodel.instituicao.activity.InstitutionActivityUiState
+import turmaA.grupoB.LinkStage.viewmodel.instituicao.activity.InstitutionActivityViewModel
+import turmaA.grupoB.LinkStage.viewmodel.instituicao.activity.InstitutionActivityViewModelFactory
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
@@ -103,6 +108,7 @@ import turmaA.grupoB.LinkStage.ui.theme.Red
 fun ActivityInstituicaoScreen(
     navController: NavController,
     modifier: Modifier = Modifier,
+    activityViewModel: InstitutionActivityViewModel = viewModel(factory = InstitutionActivityViewModelFactory()),
 ) {
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
     var searchQuery by rememberSaveable { mutableStateOf("") }
@@ -116,6 +122,16 @@ fun ActivityInstituicaoScreen(
     // Mentor filters
     var filterMentorStatus by rememberSaveable { mutableStateOf("") }
     var filterMentorInstitution by rememberSaveable { mutableStateOf("") }
+
+    val activityUiState by activityViewModel.uiState.collectAsState()
+
+    LaunchedEffect(Unit) {
+        activityViewModel.loadActivityForCurrentInstitution()
+    }
+
+    val internships = (activityUiState as? InstitutionActivityUiState.Success)?.data?.internships.orEmpty()
+    val mentors = (activityUiState as? InstitutionActivityUiState.Success)?.data?.mentors.orEmpty()
+    val isLoading = activityUiState is InstitutionActivityUiState.Loading
 
     if (showCreateMentorDialog) {
         CreateMentorDialog(
@@ -204,19 +220,27 @@ fun ActivityInstituicaoScreen(
                 onTabSelected = { selectedTab = it },
             )
 
-            when (selectedTab) {
-                0 -> InternshipsTab(
-                    searchQuery = searchQuery,
-                    filterStatus = filterInternshipStatus,
-                    filterMentor = filterInternshipMentor,
-                    navController = navController,
-                )
-                1 -> MentorsTab(
-                    searchQuery = searchQuery,
-                    filterStatus = filterMentorStatus,
-                    filterInstitution = filterMentorInstitution,
-                    navController = navController,
-                )
+            if (isLoading) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = LightBlue)
+                }
+            } else {
+                when (selectedTab) {
+                    0 -> InternshipsTab(
+                        internships = internships,
+                        searchQuery = searchQuery,
+                        filterStatus = filterInternshipStatus,
+                        filterMentor = filterInternshipMentor,
+                        navController = navController,
+                    )
+                    1 -> MentorsTab(
+                        mentors = mentors,
+                        searchQuery = searchQuery,
+                        filterStatus = filterMentorStatus,
+                        filterInstitution = filterMentorInstitution,
+                        navController = navController,
+                    )
+                }
             }
         }
     }
@@ -468,13 +492,13 @@ private fun MentorFilterDialog(
 
 @Composable
 private fun InternshipsTab(
+    internships: List<InstitutionInternship>,
     searchQuery: String,
     filterStatus: String,
     filterMentor: String,
     navController: NavController,
 ) {
-    val context = LocalContext.current
-    val filtered = sampleInstitutionInternships(context).filter { internship ->
+    val filtered = internships.filter { internship ->
         val matchesSearch = searchQuery.isEmpty() ||
             internship.studentName.contains(searchQuery, ignoreCase = true) ||
             internship.offerTitle.contains(searchQuery, ignoreCase = true)
@@ -587,12 +611,13 @@ private fun InternshipCard(internship: InstitutionInternship, onClick: () -> Uni
 
 @Composable
 private fun MentorsTab(
+    mentors: List<InstitutionMentorItem>,
     searchQuery: String,
     filterStatus: String,
     filterInstitution: String,
     navController: NavController,
 ) {
-    val filtered = sampleInstitutionMentors.filter { mentor ->
+    val filtered = mentors.filter { mentor ->
         val matchesSearch = searchQuery.isEmpty() ||
             mentor.name.contains(searchQuery, ignoreCase = true) ||
             mentor.institution.contains(searchQuery, ignoreCase = true)
