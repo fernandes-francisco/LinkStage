@@ -74,13 +74,11 @@ import turmaA.grupoB.LinkStage.ui.theme.MediumBlue
 import turmaA.grupoB.LinkStage.viewmodel.internships.InternshipUiState
 import turmaA.grupoB.LinkStage.viewmodel.internships.InternshipViewModel
 import turmaA.grupoB.LinkStage.viewmodel.internships.InternshipViewModelFactory
-import android.content.Context
-import androidx.compose.ui.platform.LocalContext
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
-private fun formatDateUppercase(date: LocalDate, context: Context): String {
-    val monthNames = context.resources.getStringArray(R.array.months_short)
-    return "${monthNames[date.monthValue - 1].uppercase()},${date.dayOfMonth}"
+private fun formatDate(date: LocalDate): String {
+    return date.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
 }
 
 @Composable
@@ -97,7 +95,6 @@ fun ActivityDetailAlunoScreen(
         )
     ),
 ) {
-    val context = LocalContext.current
     val internshipUiState by internshipViewModel.uiState.collectAsState()
 
     LaunchedEffect(checkpointId, activityLog) {
@@ -229,7 +226,7 @@ fun ActivityDetailAlunoScreen(
                     Text(stringResource(R.string.activity_delivery_date), fontSize = 13.sp, color = DarkGrey)
                     Spacer(modifier = Modifier.weight(1f))
                     Text(
-                        formatDateUppercase(resolvedActivityLog.date, context),
+                        formatDate(resolvedActivityLog.date),
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,
                         color = DarkBlue,
