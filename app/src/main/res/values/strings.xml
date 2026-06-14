@@ -160,7 +160,7 @@
     <string name="common_close">Close</string>
     <string name="common_search">Search…</string>
     <string name="common_write_here">Write here.</string>
-    <string name="common_view_all">View all →</string>
+    <string name="common_view_all">View all</string>
     <string name="common_more">More</string>
     <string name="common_in_development">Under development</string>
     <string name="common_required_field">Required field</string>

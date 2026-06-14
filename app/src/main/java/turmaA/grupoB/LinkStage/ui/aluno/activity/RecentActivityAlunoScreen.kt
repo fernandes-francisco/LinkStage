@@ -118,10 +118,13 @@ import turmaA.grupoB.LinkStage.viewmodel.student.StudentUiState
 import turmaA.grupoB.LinkStage.viewmodel.student.StudentViewModel
 import turmaA.grupoB.LinkStage.viewmodel.student.StudentViewModelFactory
 import turmaA.grupoB.LinkStage.data.remote.model.enums.ApplicationStatus as RemoteApplicationStatus
+import java.time.Instant
 import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.OffsetDateTime
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
-import java.util.Locale
 
 // region Data models
 
@@ -184,8 +187,20 @@ fun calculateInternshipProgress(startDate: LocalDate, endDate: LocalDate): Float
 }
 
 private fun formatDate(date: LocalDate): String {
-    val formatter = DateTimeFormatter.ofPattern("MMM d", Locale.getDefault())
-    return date.format(formatter)
+    return date.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+}
+
+private fun formatTimestamp(timestamp: String): String {
+    val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
+
+    return runCatching { LocalDateTime.parse(timestamp).format(formatter) }
+        .recoverCatching { OffsetDateTime.parse(timestamp).format(formatter) }
+        .recoverCatching {
+            Instant.parse(timestamp)
+                .atZone(ZoneId.systemDefault())
+                .format(formatter)
+        }
+        .getOrDefault(timestamp)
 }
 
 // endregion
@@ -900,7 +915,7 @@ fun ActivityLogCard(
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = "${formatDate(activityLog.date)}, ${activityLog.date.year}",
+                        text = formatDate(activityLog.date),
                         style = MaterialTheme.typography.labelSmall,
                         color = DarkGrey,
                     )
@@ -1248,7 +1263,7 @@ private fun StudentApplicationDetails.toApplicationItem(): ApplicationItem {
         id = application.id,
         offerTitle = offerTitle,
         company = institutionName,
-        appliedAgo = application.createdAt,
+        appliedAgo = formatTimestamp(application.createdAt),
         status = application.status.toUiApplicationStatus()
     )
 }
