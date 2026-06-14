@@ -65,18 +65,23 @@ import turmaA.grupoB.LinkStage.ui.admin.AdminStudent
 import turmaA.grupoB.LinkStage.ui.admin.avatarColors
 import turmaA.grupoB.LinkStage.ui.admin.sampleMentorsList
 import turmaA.grupoB.LinkStage.ui.admin.sampleStudentsList
+import turmaA.grupoB.LinkStage.viewmodel.admin.AdminAccountUiState
+import turmaA.grupoB.LinkStage.viewmodel.admin.AdminAccountViewModel
+import turmaA.grupoB.LinkStage.viewmodel.admin.AdminAccountViewModelFactory
 import turmaA.grupoB.LinkStage.viewmodel.admin.AdminUsersUiState
 import turmaA.grupoB.LinkStage.viewmodel.admin.AdminUsersViewModel
 import turmaA.grupoB.LinkStage.viewmodel.admin.AdminUsersViewModelFactory
 import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
 import turmaA.grupoB.LinkStage.ui.common.LinkStageDialog
 import turmaA.grupoB.LinkStage.ui.common.LinkStageTabRow
+import turmaA.grupoB.LinkStage.ui.common.TemporaryPasswordDialog
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.ui.theme.MediumBlue
+import turmaA.grupoB.LinkStage.ui.theme.Red
 
 @Composable
 fun StudentsAdminScreen(
@@ -231,8 +236,12 @@ private fun StudentsTabContent(
     modifier: Modifier = Modifier,
 ) {
     var showAddDialog by remember { mutableStateOf(false) }
+    var newAccountEmail by remember { mutableStateOf("") }
 
-    val usersUiState by viewModel<AdminUsersViewModel>(factory = AdminUsersViewModelFactory()).uiState.collectAsState()
+    val usersViewModel = viewModel<AdminUsersViewModel>(factory = AdminUsersViewModelFactory())
+    val usersUiState by usersViewModel.uiState.collectAsState()
+    val accountViewModel = viewModel<AdminAccountViewModel>(factory = AdminAccountViewModelFactory())
+    val accountUiState by accountViewModel.uiState.collectAsState()
     val filtered = when (val state = usersUiState) {
         is AdminUsersUiState.StudentsSuccess -> state.students
         is AdminUsersUiState.Success -> state.students
@@ -247,8 +256,31 @@ private fun StudentsTabContent(
         filtered.map { it.institution }.distinct().map { it to true }.toMutableStateMap()
     }
 
-    if (showAddDialog) {
-        AddStudentDialog(onDismiss = { showAddDialog = false })
+    val accountSuccess = accountUiState as? AdminAccountUiState.Success
+    if (showAddDialog && accountSuccess == null) {
+        AddStudentDialog(
+            onDismiss = {
+                showAddDialog = false
+                accountViewModel.resetState()
+            },
+            onConfirm = { name, email, course, studentNumber ->
+                newAccountEmail = email
+                accountViewModel.createStudentAccount(name, email, course, studentNumber)
+            },
+            isSubmitting = accountUiState is AdminAccountUiState.Loading,
+            errorMessage = (accountUiState as? AdminAccountUiState.Error)?.message,
+        )
+    }
+    if (accountSuccess != null) {
+        TemporaryPasswordDialog(
+            email = newAccountEmail,
+            password = accountSuccess.temporaryPassword,
+            onDismiss = {
+                showAddDialog = false
+                accountViewModel.resetState()
+                usersViewModel.loadUsers()
+            },
+        )
     }
 
     Scaffold(
@@ -411,8 +443,12 @@ private fun MentorsTabContent(
     modifier: Modifier = Modifier,
 ) {
     var showAddDialog by remember { mutableStateOf(false) }
+    var newAccountEmail by remember { mutableStateOf("") }
 
-    val usersUiState by viewModel<AdminUsersViewModel>(factory = AdminUsersViewModelFactory()).uiState.collectAsState()
+    val usersViewModel = viewModel<AdminUsersViewModel>(factory = AdminUsersViewModelFactory())
+    val usersUiState by usersViewModel.uiState.collectAsState()
+    val accountViewModel = viewModel<AdminAccountViewModel>(factory = AdminAccountViewModelFactory())
+    val accountUiState by accountViewModel.uiState.collectAsState()
     val filtered = when (val state = usersUiState) {
         is AdminUsersUiState.MentorsSuccess -> state.mentors
         is AdminUsersUiState.Success -> state.mentors
@@ -425,8 +461,31 @@ private fun MentorsTabContent(
         filtered.map { it.institution }.distinct().map { it to true }.toMutableStateMap()
     }
 
-    if (showAddDialog) {
-        AddMentorDialog(onDismiss = { showAddDialog = false })
+    val accountSuccess = accountUiState as? AdminAccountUiState.Success
+    if (showAddDialog && accountSuccess == null) {
+        AddMentorDialog(
+            onDismiss = {
+                showAddDialog = false
+                accountViewModel.resetState()
+            },
+            onConfirm = { name, email, department ->
+                newAccountEmail = email
+                accountViewModel.createMentorAccount(name, email, department)
+            },
+            isSubmitting = accountUiState is AdminAccountUiState.Loading,
+            errorMessage = (accountUiState as? AdminAccountUiState.Error)?.message,
+        )
+    }
+    if (accountSuccess != null) {
+        TemporaryPasswordDialog(
+            email = newAccountEmail,
+            password = accountSuccess.temporaryPassword,
+            onDismiss = {
+                showAddDialog = false
+                accountViewModel.resetState()
+                usersViewModel.loadUsers()
+            },
+        )
     }
 
     Scaffold(
@@ -879,25 +938,25 @@ private fun MentorFilterDialog(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun AddStudentDialog(onDismiss: () -> Unit) {
+private fun AddStudentDialog(
+    onDismiss: () -> Unit,
+    onConfirm: (name: String, email: String, course: String, studentNumber: String) -> Unit,
+    isSubmitting: Boolean,
+    errorMessage: String?,
+) {
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
-    var selectedInstitution by remember { mutableStateOf("") }
     var course by remember { mutableStateOf("") }
-    var institutionExpanded by remember { mutableStateOf(false) }
-
-    val institutions = listOf(
-        "ESTG-IPVC" to stringResource(R.string.mock_institution_estg),
-        "ESE-IPVC" to stringResource(R.string.mock_institution_ese),
-        "ESDL-IPVC" to stringResource(R.string.mock_institution_esdl),
-    )
+    var studentNumber by remember { mutableStateOf("") }
 
     LinkStageDialog(
         onDismiss = onDismiss,
         title = stringResource(R.string.admin_users_add_student_title),
-        onConfirm = onDismiss,
+        onConfirm = { onConfirm(name, email, course, studentNumber) },
         confirmText = stringResource(R.string.admin_inst_add_button),
         dismissText = stringResource(R.string.common_cancel),
+        confirmEnabled = !isSubmitting &&
+            name.isNotBlank() && email.isNotBlank() && course.isNotBlank() && studentNumber.isNotBlank(),
         content = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 OutlinedTextField(
@@ -916,36 +975,6 @@ private fun AddStudentDialog(onDismiss: () -> Unit) {
                     shape = RoundedCornerShape(10.dp),
                     singleLine = true,
                 )
-                ExposedDropdownMenuBox(
-                    expanded = institutionExpanded,
-                    onExpandedChange = { institutionExpanded = it },
-                ) {
-                    OutlinedTextField(
-                        value = institutions.firstOrNull { it.first == selectedInstitution }?.second ?: "",
-                        onValueChange = {},
-                        readOnly = true,
-                        label = { Text(stringResource(R.string.admin_inst_filter_institution)) },
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = institutionExpanded) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .menuAnchor(MenuAnchorType.PrimaryNotEditable),
-                        shape = RoundedCornerShape(10.dp),
-                    )
-                    ExposedDropdownMenu(
-                        expanded = institutionExpanded,
-                        onDismissRequest = { institutionExpanded = false },
-                    ) {
-                        institutions.forEach { (key, label) ->
-                            DropdownMenuItem(
-                                text = { Text(label) },
-                                onClick = {
-                                    selectedInstitution = key
-                                    institutionExpanded = false
-                                },
-                            )
-                        }
-                    }
-                }
                 OutlinedTextField(
                     value = course,
                     onValueChange = { course = it },
@@ -954,32 +983,44 @@ private fun AddStudentDialog(onDismiss: () -> Unit) {
                     shape = RoundedCornerShape(10.dp),
                     singleLine = true,
                 )
+                OutlinedTextField(
+                    value = studentNumber,
+                    onValueChange = { studentNumber = it },
+                    label = { Text(stringResource(R.string.admin_users_student_number)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(10.dp),
+                    singleLine = true,
+                )
+                if (errorMessage != null) {
+                    Text(
+                        text = errorMessage,
+                        color = Red,
+                        fontSize = 12.sp,
+                    )
+                }
             }
         }
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun AddMentorDialog(onDismiss: () -> Unit) {
+private fun AddMentorDialog(
+    onDismiss: () -> Unit,
+    onConfirm: (name: String, email: String, department: String) -> Unit,
+    isSubmitting: Boolean,
+    errorMessage: String?,
+) {
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
-    var selectedInstitution by remember { mutableStateOf("") }
     var department by remember { mutableStateOf("") }
-    var institutionExpanded by remember { mutableStateOf(false) }
-
-    val institutions = listOf(
-        "ESTG-IPVC" to stringResource(R.string.mock_institution_estg),
-        "ESE-IPVC" to stringResource(R.string.mock_institution_ese),
-        "ESDL-IPVC" to stringResource(R.string.mock_institution_esdl),
-    )
 
     LinkStageDialog(
         onDismiss = onDismiss,
         title = stringResource(R.string.admin_users_add_mentor_title),
-        onConfirm = onDismiss,
+        onConfirm = { onConfirm(name, email, department) },
         confirmText = stringResource(R.string.admin_inst_add_button),
         dismissText = stringResource(R.string.common_cancel),
+        confirmEnabled = !isSubmitting && name.isNotBlank() && email.isNotBlank() && department.isNotBlank(),
         content = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 OutlinedTextField(
@@ -998,36 +1039,6 @@ private fun AddMentorDialog(onDismiss: () -> Unit) {
                     shape = RoundedCornerShape(10.dp),
                     singleLine = true,
                 )
-                ExposedDropdownMenuBox(
-                    expanded = institutionExpanded,
-                    onExpandedChange = { institutionExpanded = it },
-                ) {
-                    OutlinedTextField(
-                        value = institutions.firstOrNull { it.first == selectedInstitution }?.second ?: "",
-                        onValueChange = {},
-                        readOnly = true,
-                        label = { Text(stringResource(R.string.admin_inst_filter_institution)) },
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = institutionExpanded) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .menuAnchor(MenuAnchorType.PrimaryNotEditable),
-                        shape = RoundedCornerShape(10.dp),
-                    )
-                    ExposedDropdownMenu(
-                        expanded = institutionExpanded,
-                        onDismissRequest = { institutionExpanded = false },
-                    ) {
-                        institutions.forEach { (key, label) ->
-                            DropdownMenuItem(
-                                text = { Text(label) },
-                                onClick = {
-                                    selectedInstitution = key
-                                    institutionExpanded = false
-                                },
-                            )
-                        }
-                    }
-                }
                 OutlinedTextField(
                     value = department,
                     onValueChange = { department = it },
@@ -1036,6 +1047,13 @@ private fun AddMentorDialog(onDismiss: () -> Unit) {
                     shape = RoundedCornerShape(10.dp),
                     singleLine = true,
                 )
+                if (errorMessage != null) {
+                    Text(
+                        text = errorMessage,
+                        color = Red,
+                        fontSize = 12.sp,
+                    )
+                }
             }
         }
     )

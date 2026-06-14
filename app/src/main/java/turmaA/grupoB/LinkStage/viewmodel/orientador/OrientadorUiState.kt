@@ -23,3 +23,10 @@ sealed class OrientadorInternshipDetailUiState {
     data object Empty : OrientadorInternshipDetailUiState()
     data class Error(val message: String) : OrientadorInternshipDetailUiState()
 }
+
+sealed class SubmitFinalGradeUiState {
+    data object Idle : SubmitFinalGradeUiState()
+    data object Loading : SubmitFinalGradeUiState()
+    data object Success : SubmitFinalGradeUiState()
+    data class Error(val message: String) : SubmitFinalGradeUiState()
+}

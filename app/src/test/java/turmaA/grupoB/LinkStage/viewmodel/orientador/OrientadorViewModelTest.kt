@@ -15,6 +15,7 @@ import turmaA.grupoB.LinkStage.data.remote.model.enums.EvaluationType
 import turmaA.grupoB.LinkStage.data.remote.model.enums.InternshipStatus
 import turmaA.grupoB.LinkStage.data.remote.model.enums.UserRole
 import turmaA.grupoB.LinkStage.data.remote.model.evaluation.EvaluationModel
+import turmaA.grupoB.LinkStage.data.remote.model.institution.CreateInstitutionInput
 import turmaA.grupoB.LinkStage.data.remote.model.institution.InstitutionModel
 import turmaA.grupoB.LinkStage.data.remote.model.internship.ActivityLogModel
 import turmaA.grupoB.LinkStage.data.remote.model.internship.InternshipModel
@@ -231,6 +232,7 @@ private class TestInstitutionRepository(
     override suspend fun getInstitutions(): List<InstitutionModel> = institutions
     override suspend fun getInstitutionById(institutionId: String): InstitutionModel? = institutions.firstOrNull { it.id == institutionId }
     override suspend fun getInstitutionByUserId(userId: String): InstitutionModel? = institutions.firstOrNull { it.userId == userId }
+    override suspend fun createInstitution(input: CreateInstitutionInput): InstitutionModel = error("not implemented")
 }
 
 private fun internshipModel(

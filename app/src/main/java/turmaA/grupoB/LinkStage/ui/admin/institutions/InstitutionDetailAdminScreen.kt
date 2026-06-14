@@ -105,7 +105,7 @@ fun InstitutionDetailAdminScreen(
             title = stringResource(R.string.admin_institution_remove),
             onConfirm = {
                 showDeleteDialog = false
-                onBack()
+                institutionDetailViewModel.removeAccount(institution.userId, onBack)
             },
             onDismiss = { showDeleteDialog = false },
             confirmText = stringResource(R.string.common_remove),
