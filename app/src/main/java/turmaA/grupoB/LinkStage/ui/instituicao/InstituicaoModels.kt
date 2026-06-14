@@ -5,18 +5,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import turmaA.grupoB.LinkStage.R
-import turmaA.grupoB.LinkStage.data.remote.model.enums.ApplicationStatus as RemoteApplicationStatus
-import turmaA.grupoB.LinkStage.data.remote.model.enums.InternshipStatus as RemoteInternshipStatus
-import turmaA.grupoB.LinkStage.data.remote.model.internship.InternshipModel
-import turmaA.grupoB.LinkStage.data.remote.model.offer.InternshipOfferModel
-import turmaA.grupoB.LinkStage.data.remote.model.user.ProfileModel
-import turmaA.grupoB.LinkStage.data.remote.model.user.SupervisorModel
-import turmaA.grupoB.LinkStage.ui.admin.AdminMentor
-import turmaA.grupoB.LinkStage.ui.aluno.chat.avatarColors
 import turmaA.grupoB.LinkStage.ui.aluno.home.ApplicationStatus
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.ui.theme.Red
-import turmaA.grupoB.LinkStage.viewmodel.application.InstitutionApplicationDetails
 
 enum class InternshipOrigin { SCHOOL, COMPANY }
 
@@ -184,117 +175,3 @@ fun sampleInstitutionApplications(context: Context) = listOf(
         true, ApplicationStatus.PENDING,
     ),
 )
-
-fun RemoteApplicationStatus.toUiApplicationStatus(): ApplicationStatus = when (this) {
-    RemoteApplicationStatus.PENDING -> ApplicationStatus.PENDING
-    RemoteApplicationStatus.ACCEPTED -> ApplicationStatus.ACCEPTED
-    RemoteApplicationStatus.REJECTED -> ApplicationStatus.REJECTED
-}
-
-fun InstitutionApplicationDetails.toInstitutionApplication(): InstitutionApplication {
-    val name = profile?.name ?: "Estudante"
-    return InstitutionApplication(
-        id = application.id,
-        studentName = name,
-        studentAvatarInitials = name.initials().ifBlank { "?" },
-        studentAvatarColorIndex = application.studentId.hashCode().absMod(avatarColors.size),
-        institution = "",
-        course = student?.course.orEmpty(),
-        gpa = student?.averageGrade?.let { "%.1f".format(it).replace('.', ',') } ?: "-",
-        email = profile?.email.orEmpty(),
-        phone = profile?.phone.orEmpty(),
-        skills = student?.cvData?.keys?.toList().orEmpty(),
-        personalStatement = "",
-        motivationLetterTitle = "",
-        motivationLetterBody = application.motivationLetter.orEmpty(),
-        hasMotivationLetter = !application.motivationLetter.isNullOrBlank(),
-        status = application.status.toUiApplicationStatus(),
-    )
-}
-
-fun InternshipModel.toInstitutionInternship(
-    studentProfile: ProfileModel?,
-    offer: InternshipOfferModel?,
-    supervisorProfile: ProfileModel?,
-): InstitutionInternship {
-    val studentName = studentProfile?.name ?: "Aluno"
-    val origin = if (companySupervisorName.isNullOrBlank()) InternshipOrigin.SCHOOL else InternshipOrigin.COMPANY
-    val uiStatus = when {
-        supervisorId == null -> InternshipStatus.NO_MENTOR
-        status == RemoteInternshipStatus.IN_PROGRESS -> InternshipStatus.IN_PROGRESS
-        status == RemoteInternshipStatus.COMPLETED -> InternshipStatus.PENDING_REVIEW
-        status == RemoteInternshipStatus.EVALUATED -> InternshipStatus.COMPLETED
-        status == RemoteInternshipStatus.CANCELED -> InternshipStatus.COMPLETED
-        else -> InternshipStatus.NO_MENTOR
-    }
-    val progress = when (status) {
-        RemoteInternshipStatus.PENDING_SUPERVISOR -> 0
-        RemoteInternshipStatus.IN_PROGRESS -> 50
-        RemoteInternshipStatus.COMPLETED -> 90
-        RemoteInternshipStatus.EVALUATED -> 100
-        RemoteInternshipStatus.CANCELED -> 100
-    }
-    return InstitutionInternship(
-        id = id,
-        studentName = studentName,
-        studentAvatarInitials = studentName.initials().ifBlank { "?" },
-        studentAvatarColorIndex = studentId.hashCode().absMod(avatarColors.size),
-        offerTitle = offer?.title ?: title,
-        origin = origin,
-        schoolMentorName = supervisorProfile?.name.orEmpty(),
-        companyMentorName = companySupervisorName.orEmpty(),
-        progressPercent = progress,
-        status = uiStatus,
-    )
-}
-
-fun SupervisorModel.toInstitutionMentorItem(
-    profile: ProfileModel?,
-    activeInternshipsCount: Int,
-): InstitutionMentorItem {
-    val name = profile?.name ?: "Mentor"
-    val status = when {
-        !acceptsNewInternships -> MentorStatus.INACTIVE
-        activeInternshipsCount > 0 -> MentorStatus.ACTIVE
-        else -> MentorStatus.NO_STUDENTS
-    }
-    return InstitutionMentorItem(
-        id = id,
-        name = name,
-        avatarInitials = name.initials().ifBlank { "?" },
-        avatarColorIndex = userId.hashCode().absMod(avatarColors.size),
-        institution = "IPVC",
-        status = status,
-    )
-}
-
-fun SupervisorModel.toAdminMentor(
-    profile: ProfileModel?,
-    activeInternshipsCount: Int,
-    skills: List<String> = emptyList(),
-): AdminMentor {
-    val name = profile?.name ?: "Mentor"
-    return AdminMentor(
-        id = id,
-        name = name,
-        email = profile?.email.orEmpty(),
-        phone = profile?.phone.orEmpty(),
-        institution = "IPVC",
-        department = department.orEmpty(),
-        registeredAgo = "",
-        activeStudentsCount = activeInternshipsCount,
-        avatarInitials = name.initials().ifBlank { "?" },
-        avatarColorIndex = userId.hashCode().absMod(avatarColors.size),
-        skills = skills,
-        supervisionAreas = listOfNotNull(specialty),
-        internalNote = "",
-        isAvailable = acceptsNewInternships,
-    )
-}
-
-private fun String.initials(): String = split(' ')
-    .filter { it.isNotBlank() }
-    .take(2)
-    .joinToString("") { it.first().uppercase() }
-
-private fun Int.absMod(modulus: Int): Int = if (modulus == 0) 0 else kotlin.math.abs(this) % modulus

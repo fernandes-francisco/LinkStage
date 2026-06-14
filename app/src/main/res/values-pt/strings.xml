@@ -405,8 +405,6 @@
     <string name="settings_new_password">Nova Palavra-passe</string>
     <string name="settings_confirm_password">Confirmar Palavra-passe</string>
     <string name="settings_update_button">Atualizar</string>
-    <string name="settings_password_change_success">Palavra-passe atualizada com sucesso.</string>
-    <string name="settings_password_change_error">Não foi possível atualizar a palavra-passe. Tente novamente.</string>
     <string name="settings_save_changes">Guardar Alterações</string>
 
     <!-- ==================== ADMIN ==================== -->
@@ -827,9 +825,6 @@
     <string name="admin_inst_add_code">Código</string>
     <string name="admin_inst_add_type">Tipo</string>
     <string name="admin_inst_add_button">Adicionar</string>
-    <string name="admin_temp_password_title">Senha Temporária</string>
-    <string name="admin_temp_password_message">Conta criada para %1$s. Partilhe esta senha temporária com o utilizador para que possa iniciar sessão e definir uma nova:</string>
-    <string name="admin_users_student_number">Número de Estudante</string>
 
     <!-- ==================== EVALUATION NOTIFICATION ==================== -->
     <string name="eval_notification_close">Fechar</string>
@@ -891,8 +886,6 @@
     <string name="app_detail_accepted_desc">Marcar esta candidatura como aceite.</string>
     <string name="app_detail_rejected">Rejeitada</string>
     <string name="app_detail_rejected_desc">Marcar esta candidatura como rejeitada.</string>
-    <string name="app_detail_rejection_reason_label">Motivo da rejeição</string>
-    <string name="app_detail_rejection_reason_placeholder">Indique o motivo da rejeição…</string>
     <string name="app_detail_info_notice">A decisão apenas será registada no momento de fecho da candidatura.</string>
     <string name="app_detail_status_accepted">Aceite</string>
     <string name="app_detail_status_rejected">Rejeitada</string>

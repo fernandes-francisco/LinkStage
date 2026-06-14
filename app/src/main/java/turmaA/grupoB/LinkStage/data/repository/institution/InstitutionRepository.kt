@@ -1,7 +1,6 @@
 package turmaA.grupoB.LinkStage.data.repository.institution
 
 import io.github.jan.supabase.postgrest.from
-import turmaA.grupoB.LinkStage.data.remote.model.institution.CreateInstitutionInput
 import turmaA.grupoB.LinkStage.data.remote.model.institution.InstitutionModel
 import turmaA.grupoB.LinkStage.data.remote.supabase.SupabaseClientProvider
 
@@ -37,14 +36,5 @@ class InstitutionRepository : InstitutionRepositoryInterface{
             }
             .decodeList<InstitutionModel>()
             .firstOrNull()
-    }
-
-    override suspend fun createInstitution(input: CreateInstitutionInput): InstitutionModel {
-        return supabase
-            .from("institutions")
-            .insert(input) {
-                select()
-            }
-            .decodeSingle<InstitutionModel>()
     }
 }

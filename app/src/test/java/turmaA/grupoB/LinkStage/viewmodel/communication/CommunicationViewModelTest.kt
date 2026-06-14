@@ -14,7 +14,6 @@ import org.junit.runner.Description
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestWatcher
-import turmaA.grupoB.LinkStage.data.remote.model.communication.CreateMessageThreadInput
 import turmaA.grupoB.LinkStage.data.remote.model.communication.MessageModel
 import turmaA.grupoB.LinkStage.data.remote.model.communication.MessageThreadModel
 import turmaA.grupoB.LinkStage.data.remote.model.communication.MessageThreadParticipantModel
@@ -624,16 +623,6 @@ private class FakeCommunicationRepository : CommunicationRepositoryInterface {
         if (returnNullMessageOnMarkRead) return null
         return defaultMessage.copy(id = messageId, isRead = true)
     }
-
-    override suspend fun createThread(
-        input: CreateMessageThreadInput,
-        participantUserIds: List<String>,
-    ): MessageThreadModel = MessageThreadModel(
-        id = "new-thread",
-        internshipId = input.internshipId,
-        applicationId = input.applicationId,
-        createdAt = "2026-01-01T00:00:00Z",
-    )
 
     override suspend fun createThread(
         internshipId: String?,

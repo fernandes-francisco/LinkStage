@@ -402,8 +402,6 @@
     <string name="settings_new_password">New Password</string>
     <string name="settings_confirm_password">Confirm Password</string>
     <string name="settings_update_button">Update</string>
-    <string name="settings_password_change_success">Password updated successfully.</string>
-    <string name="settings_password_change_error">Could not update password. Please try again.</string>
     <string name="settings_save_changes">Save Changes</string>
 
     <!-- ==================== ADMIN ==================== -->
@@ -824,9 +822,6 @@
     <string name="admin_inst_add_code">Code</string>
     <string name="admin_inst_add_type">Type</string>
     <string name="admin_inst_add_button">Add</string>
-    <string name="admin_temp_password_title">Temporary Password</string>
-    <string name="admin_temp_password_message">Account created for %1$s. Share this temporary password with the user so they can sign in and set a new one:</string>
-    <string name="admin_users_student_number">Student Number</string>
 
     <!-- ==================== EVALUATION NOTIFICATION ==================== -->
     <string name="eval_notification_close">Close</string>
@@ -888,8 +883,6 @@
     <string name="app_detail_accepted_desc">Mark this application as accepted.</string>
     <string name="app_detail_rejected">Rejected</string>
     <string name="app_detail_rejected_desc">Mark this application as rejected.</string>
-    <string name="app_detail_rejection_reason_label">Rejection reason</string>
-    <string name="app_detail_rejection_reason_placeholder">Enter the rejection reason…</string>
     <string name="app_detail_info_notice">The decision will only be recorded when the application is closed.</string>
     <string name="app_detail_status_accepted">Accepted</string>
     <string name="app_detail_status_rejected">Rejected</string>

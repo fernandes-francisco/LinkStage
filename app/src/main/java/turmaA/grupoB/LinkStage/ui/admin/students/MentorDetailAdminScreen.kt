@@ -86,7 +86,7 @@ fun MentorDetailAdminScreen(
             title = stringResource(R.string.admin_mentor_remove),
             onConfirm = {
                 showDeleteDialog = false
-                mentorDetailViewModel.removeAccount(mentor.userId, onBack)
+                onBack()
             },
             onDismiss = { showDeleteDialog = false },
             confirmText = stringResource(R.string.common_remove),

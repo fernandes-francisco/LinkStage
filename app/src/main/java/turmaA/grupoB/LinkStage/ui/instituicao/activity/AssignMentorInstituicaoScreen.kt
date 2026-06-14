@@ -31,8 +31,6 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -46,7 +44,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import turmaA.grupoB.LinkStage.R
@@ -65,45 +62,17 @@ import turmaA.grupoB.LinkStage.ui.theme.Fade1
 import turmaA.grupoB.LinkStage.ui.theme.Fade2
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.ui.theme.Red
-import turmaA.grupoB.LinkStage.viewmodel.instituicao.activity.AssignSupervisorUiState
-import turmaA.grupoB.LinkStage.viewmodel.instituicao.activity.InstitutionActivityUiState
-import turmaA.grupoB.LinkStage.viewmodel.instituicao.activity.InstitutionActivityViewModel
-import turmaA.grupoB.LinkStage.viewmodel.instituicao.activity.InstitutionActivityViewModelFactory
 
 @Composable
 fun AssignMentorInstituicaoScreen(
-    internshipId: String,
+    mentorId: String,
     navController: NavController,
     modifier: Modifier = Modifier,
-    activityViewModel: InstitutionActivityViewModel = viewModel(factory = InstitutionActivityViewModelFactory()),
 ) {
     val context = LocalContext.current
-    val activityUiState by activityViewModel.uiState.collectAsState()
-    val assignState by activityViewModel.assignState.collectAsState()
-
-    val internship = (activityUiState as? InstitutionActivityUiState.Success)?.data?.internships?.find { it.id == internshipId }
-        ?: sampleInstitutionInternships(context).find { it.id == internshipId }
-        ?: sampleInstitutionInternships(context).first()
-
-    val mentors = (activityUiState as? InstitutionActivityUiState.Success)?.data?.adminMentors
-        ?.takeIf { it.isNotEmpty() }
-        ?: sampleMentors(context)
-
+    val internship = sampleInstitutionInternships(context).firstOrNull() ?: return
     var selectedMentor by remember { mutableStateOf<AdminMentor?>(null) }
     var showConfirmDialog by remember { mutableStateOf(false) }
-
-    LaunchedEffect(Unit) {
-        activityViewModel.loadActivityForCurrentInstitution()
-    }
-
-    LaunchedEffect(assignState) {
-        if (assignState is AssignSupervisorUiState.Success) {
-            activityViewModel.resetAssignState()
-            navController.navigate(InstituicaoRoutes.mentorAssignedSuccessRoute(internshipId)) {
-                popUpTo(InstituicaoRoutes.assignMentorRoute(internshipId)) { inclusive = true }
-            }
-        }
-    }
 
     if (showConfirmDialog && selectedMentor != null) {
         ConfirmationDialog(
@@ -112,7 +81,9 @@ fun AssignMentorInstituicaoScreen(
             confirmLabel = stringResource(R.string.assign_mentor_confirm_button),
             onConfirm = {
                 showConfirmDialog = false
-                activityViewModel.assignSupervisor(internshipId, selectedMentor!!.id)
+                navController.navigate(InstituicaoRoutes.MENTOR_ASSIGNED_SUCCESS) {
+                    popUpTo(InstituicaoRoutes.assignMentorRoute(mentorId)) { inclusive = true }
+                }
             },
             onDismiss = { showConfirmDialog = false },
         )
@@ -158,7 +129,7 @@ fun AssignMentorInstituicaoScreen(
                 LinkStageButton(
                     text = stringResource(R.string.assign_mentor_confirm_button),
                     onClick = { showConfirmDialog = true },
-                    enabled = selectedMentor != null && assignState != AssignSupervisorUiState.Loading,
+                    enabled = selectedMentor != null,
                     height = 50.dp,
                     brush = Fade2
                 )
@@ -213,7 +184,7 @@ fun AssignMentorInstituicaoScreen(
                 modifier = Modifier.weight(1f),
                 contentPadding = PaddingValues(bottom = 8.dp),
             ) {
-                items(mentors, key = { it.id }) { mentor ->
+                items(sampleMentors(context), key = { it.id }) { mentor ->
                     MentorSelectionCard(
                         mentor = mentor,
                         isSelected = selectedMentor?.id == mentor.id,
@@ -300,7 +271,7 @@ private fun MentorSelectionCard(
 @Composable
 private fun AssignMentorInstituicaoScreenPreview() {
     MaterialTheme {
-        AssignMentorInstituicaoScreen(internshipId = "int1", navController = rememberNavController())
+        AssignMentorInstituicaoScreen(mentorId = "m1", navController = rememberNavController())
     }
 }
 
@@ -308,7 +279,7 @@ private fun AssignMentorInstituicaoScreenPreview() {
 @Composable
 private fun AssignMentorInstituicaoScreenLandscapePreview() {
     MaterialTheme {
-        AssignMentorInstituicaoScreen(internshipId = "int1", navController = rememberNavController())
+        AssignMentorInstituicaoScreen(mentorId = "m1", navController = rememberNavController())
     }
 }
 

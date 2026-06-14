@@ -2,7 +2,6 @@ package turmaA.grupoB.LinkStage.viewmodel.orientador
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import turmaA.grupoB.LinkStage.data.repository.auth.AuthRepository
 import turmaA.grupoB.LinkStage.data.repository.evaluation.EvaluationRepository
 import turmaA.grupoB.LinkStage.data.repository.institution.InstitutionRepository
 import turmaA.grupoB.LinkStage.data.repository.institution.InstitutionRepositoryInterface
@@ -43,7 +42,6 @@ class OrientadorStudentDetailViewModelFactory(
     private val offerRepository: OfferRepository = OfferRepository(),
     private val institutionRepository: InstitutionRepository = InstitutionRepository(),
     private val evaluationRepository: EvaluationRepository = EvaluationRepository(),
-    private val authRepository: AuthRepository = AuthRepository(),
 ) : ViewModelProvider.Factory {
 
     @Suppress("UNCHECKED_CAST")
@@ -56,7 +54,6 @@ class OrientadorStudentDetailViewModelFactory(
                 offerRepository = offerRepository,
                 institutionRepository = institutionRepository,
                 evaluationRepository = evaluationRepository,
-                authRepository = authRepository,
             ) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")

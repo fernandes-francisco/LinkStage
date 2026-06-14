@@ -43,7 +43,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -93,9 +92,6 @@ import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.ui.theme.Red
 import turmaA.grupoB.LinkStage.viewmodel.institutionhome.InstitutionHomeViewModel
 import turmaA.grupoB.LinkStage.viewmodel.institutionhome.InstitutionHomeViewModelFactory
-import turmaA.grupoB.LinkStage.viewmodel.instituicao.activity.InstitutionActivityUiState
-import turmaA.grupoB.LinkStage.viewmodel.instituicao.activity.InstitutionActivityViewModel
-import turmaA.grupoB.LinkStage.viewmodel.instituicao.activity.InstitutionActivityViewModelFactory
 
 @Composable
 fun InternshipDetailInstituicaoScreen(
@@ -103,17 +99,10 @@ fun InternshipDetailInstituicaoScreen(
     navController: NavController,
     modifier: Modifier = Modifier,
     institutionHomeViewModel: InstitutionHomeViewModel = viewModel(factory = InstitutionHomeViewModelFactory()),
-    activityViewModel: InstitutionActivityViewModel = viewModel(factory = InstitutionActivityViewModelFactory()),
 ) {
     val context = LocalContext.current
-    val activityUiState by activityViewModel.uiState.collectAsState()
-    val internship = (activityUiState as? InstitutionActivityUiState.Success)?.data?.internships?.find { it.id == internshipId }
-        ?: sampleInstitutionInternships(context).find { it.id == internshipId }
+    val internship = sampleInstitutionInternships(context).find { it.id == internshipId }
         ?: sampleInstitutionInternships(context).first()
-
-    LaunchedEffect(Unit) {
-        activityViewModel.loadActivityForCurrentInstitution()
-    }
 
     val evaluation: InternshipEvaluation? = remember {
         InternshipEvaluation(
@@ -218,15 +207,6 @@ fun InternshipDetailInstituicaoScreen(
                         .padding(horizontal = 16.dp, vertical = 12.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    if (!internship.hasMentor) {
-                        LinkStageButton(
-                            text = stringResource(R.string.assign_mentor_title),
-                            onClick = { navController.navigate(InstituicaoRoutes.assignMentorRoute(internship.id)) },
-                            height = 48.dp,
-                            brush = Fade2,
-                        )
-                    }
-
                     if (evaluation?.state == EvaluationState.PENDING) {
                         LinkStageButton(
                             text = stringResource(R.string.institution_eval_submit_grade),
