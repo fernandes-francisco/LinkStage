@@ -12,6 +12,13 @@ import turmaA.grupoB.LinkStage.data.remote.model.user.ProfileModel
 import turmaA.grupoB.LinkStage.data.repository.auth.AuthRepository
 import turmaA.grupoB.LinkStage.ui.aluno.settings.LoggedUser
 
+sealed class PasswordChangeState {
+    data object Idle : PasswordChangeState()
+    data object Loading : PasswordChangeState()
+    data object Success : PasswordChangeState()
+    data class Error(val message: String) : PasswordChangeState()
+}
+
 class SettingsViewModel : ViewModel() {
 
     private val authRepository = AuthRepository()
@@ -64,6 +71,9 @@ class SettingsViewModel : ViewModel() {
     )
     val user: StateFlow<LoggedUser> = _user.asStateFlow()
 
+    private val _passwordChangeState = MutableStateFlow<PasswordChangeState>(PasswordChangeState.Idle)
+    val passwordChangeState: StateFlow<PasswordChangeState> = _passwordChangeState.asStateFlow()
+
     fun changeLanguage(lang: String) {
         _currentLanguage.value = lang
         val tag = when (lang) {
@@ -100,6 +110,24 @@ class SettingsViewModel : ViewModel() {
 
     fun toggleNotifAtividade(enabled: Boolean) {
         _notifAtividade.value = enabled
+    }
+
+    fun changePassword(newPassword: String) {
+        viewModelScope.launch {
+            _passwordChangeState.value = PasswordChangeState.Loading
+            try {
+                authRepository.updatePassword(newPassword)
+                _passwordChangeState.value = PasswordChangeState.Success
+            } catch (e: Exception) {
+                _passwordChangeState.value = PasswordChangeState.Error(
+                    e.message ?: "Não foi possível alterar a password."
+                )
+            }
+        }
+    }
+
+    fun resetPasswordChangeState() {
+        _passwordChangeState.value = PasswordChangeState.Idle
     }
 
     fun logout() {

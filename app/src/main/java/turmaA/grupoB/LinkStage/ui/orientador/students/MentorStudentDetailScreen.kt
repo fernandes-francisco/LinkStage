@@ -118,6 +118,7 @@ import turmaA.grupoB.LinkStage.viewmodel.advisorhome.AdvisorHomeViewModel
 import turmaA.grupoB.LinkStage.viewmodel.orientador.OrientadorStudentDetailUiState
 import turmaA.grupoB.LinkStage.viewmodel.orientador.OrientadorStudentDetailViewModel
 import turmaA.grupoB.LinkStage.viewmodel.orientador.OrientadorStudentDetailViewModelFactory
+import turmaA.grupoB.LinkStage.viewmodel.orientador.SubmitFinalGradeUiState
 import turmaA.grupoB.LinkStage.viewmodel.chat.ChatViewModel
 import turmaA.grupoB.LinkStage.viewmodel.chat.EnsureThreadResult
 import android.widget.Toast
@@ -163,7 +164,14 @@ fun MentorStudentDetailScreen(
 
     if (showCreateCheckpointDialog) {
         CreateCheckpointDialog(
-            onSave = { _, _, _ ->
+            onSave = { title, description, date ->
+                orientadorStudentDetailViewModel.createCheckpoint(
+                    internshipId = internship.id,
+                    studentId = student.id,
+                    title = title,
+                    description = description,
+                    date = date,
+                )
                 showCreateCheckpointDialog = false
             },
             onDismiss = { showCreateCheckpointDialog = false },
@@ -248,7 +256,7 @@ fun MentorStudentDetailScreen(
             when (tab) {
                 0 -> StudentDetailsTab(student, navController)
                 1 -> StudentWorkTab(internship, activityLogs, navController)
-                2 -> StudentEvaluateTab(student, evaluation, internship, navController)
+                2 -> StudentEvaluateTab(student, evaluation, internship, navController, orientadorStudentDetailViewModel)
             }
         }
     }
@@ -421,6 +429,7 @@ private fun StudentEvaluateTab(
     evaluation: InternshipEvaluation,
     internship: ActiveInternship,
     navController: NavController,
+    orientadorStudentDetailViewModel: OrientadorStudentDetailViewModel,
 ) {
     val context = LocalContext.current
     val progress = calculateInternshipProgress(internship.startDate, internship.endDate)
@@ -450,7 +459,7 @@ private fun StudentEvaluateTab(
         when (evaluation.state) {
             EvaluationState.PENDING -> PendingStateCard()
             EvaluationState.PARTIAL -> PartialStateContent(evaluation)
-            EvaluationState.READY_FOR_FINAL -> ReadyForFinalContent(student, evaluation, navController)
+            EvaluationState.READY_FOR_FINAL -> ReadyForFinalContent(student, evaluation, navController, orientadorStudentDetailViewModel)
             EvaluationState.COMPLETED -> CompletedStateContent(evaluation)
         }
 
@@ -560,6 +569,7 @@ private fun ReadyForFinalContent(
     student: AdminStudent,
     evaluation: InternshipEvaluation,
     navController: NavController,
+    orientadorStudentDetailViewModel: OrientadorStudentDetailViewModel,
 ) {
     var observation by remember { mutableStateOf("") }
     var gradeText by remember { mutableStateOf("") }
@@ -567,6 +577,14 @@ private fun ReadyForFinalContent(
     var showConfirmDialog by remember { mutableStateOf(false) }
 
     val parsedGrade = validateGrade(gradeText)
+    val submitGradeState by orientadorStudentDetailViewModel.submitGradeState.collectAsState()
+
+    LaunchedEffect(submitGradeState) {
+        if (submitGradeState is SubmitFinalGradeUiState.Success) {
+            orientadorStudentDetailViewModel.resetSubmitGradeState()
+            navController.navigate(OrientadorRoutes.finalGradeSubmittedRoute(evaluation.internshipId))
+        }
+    }
 
     if (showConfirmDialog && parsedGrade != null) {
         ConfirmationDialog(
@@ -576,7 +594,11 @@ private fun ReadyForFinalContent(
             isDanger = false,
             onConfirm = {
                 showConfirmDialog = false
-                navController.navigate(OrientadorRoutes.finalGradeSubmittedRoute(evaluation.internshipId))
+                orientadorStudentDetailViewModel.submitFinalGrade(
+                    internshipId = evaluation.internshipId,
+                    grade = parsedGrade.toDouble(),
+                    comment = observation,
+                )
             },
             onDismiss = { showConfirmDialog = false },
         )

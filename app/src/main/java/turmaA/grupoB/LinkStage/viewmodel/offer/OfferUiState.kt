@@ -11,7 +11,10 @@ sealed class OfferUiState {
         val offer: InternshipOfferModel,
         val institution: InstitutionModel?,
     ) : OfferUiState()
-    data class SuccessList(val offers: List<InternshipOfferModel>) : OfferUiState()
+    data class SuccessList(
+        val offers: List<InternshipOfferModel>,
+        val institution: InstitutionModel? = null,
+    ) : OfferUiState()
     data object Empty : OfferUiState()
     data class Error(val message: String) : OfferUiState()
 }

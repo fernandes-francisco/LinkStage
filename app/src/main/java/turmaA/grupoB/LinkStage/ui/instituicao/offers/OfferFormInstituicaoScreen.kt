@@ -43,6 +43,8 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -63,6 +65,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import turmaA.grupoB.LinkStage.R
+import turmaA.grupoB.LinkStage.data.repository.auth.AuthRepository
+import turmaA.grupoB.LinkStage.data.repository.institution.InstitutionRepository
+import turmaA.grupoB.LinkStage.data.repository.offer.OfferRepository
 import turmaA.grupoB.LinkStage.ui.admin.sampleMentors
 import androidx.compose.ui.platform.LocalContext
 import turmaA.grupoB.LinkStage.ui.aluno.apply.getSkillCategories
@@ -79,7 +84,9 @@ import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.ui.theme.Red
+import turmaA.grupoB.LinkStage.viewmodel.offerform.OfferFormUiState
 import turmaA.grupoB.LinkStage.viewmodel.offerform.OfferFormViewModel
+import turmaA.grupoB.LinkStage.viewmodel.offerform.OfferFormViewModelFactory
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -87,10 +94,17 @@ fun OfferFormInstituicaoScreen(
     offerId: String,
     navController: NavController,
     modifier: Modifier = Modifier,
-    viewModel: OfferFormViewModel = viewModel(),
+    viewModel: OfferFormViewModel = viewModel(
+        factory = OfferFormViewModelFactory(
+            offerRepository = OfferRepository(),
+            institutionRepository = InstitutionRepository(),
+            authRepository = AuthRepository(),
+        )
+    ),
 ) {
     val context = LocalContext.current
     val currentStep = viewModel.currentStep
+    val formUiState by viewModel.uiState.collectAsState()
 
     // Validation errors
     var titleError by rememberSaveable { mutableStateOf(false) }
@@ -101,6 +115,20 @@ fun OfferFormInstituicaoScreen(
 
     var showPublishDialog by remember { mutableStateOf(false) }
 
+    LaunchedEffect(offerId) {
+        viewModel.loadOfferForEdit(offerId)
+    }
+
+    LaunchedEffect(formUiState) {
+        val state = formUiState
+        if (state is OfferFormUiState.Success) {
+            viewModel.resetState()
+            navController.navigate(InstituicaoRoutes.offerSuccessRoute(state.offerId, isNew = offerId == "new")) {
+                popUpTo(InstituicaoRoutes.offerFormRoute(offerId)) { inclusive = true }
+            }
+        }
+    }
+
     if (showPublishDialog) {
         ConfirmationDialog(
             title = if (offerId == "new") stringResource(R.string.offer_form_publish_title) else stringResource(R.string.offer_form_save_title),
@@ -110,10 +138,7 @@ fun OfferFormInstituicaoScreen(
             confirmLabel = if (offerId == "new") stringResource(R.string.offer_form_publish_button) else stringResource(R.string.common_save),
             onConfirm = {
                 showPublishDialog = false
-                viewModel.createOffer()
-                navController.navigate(InstituicaoRoutes.offerSuccessRoute(offerId)) {
-                    popUpTo(InstituicaoRoutes.offerFormRoute(offerId)) { inclusive = true }
-                }
+                viewModel.submitOffer(offerId)
             },
             onDismiss = { showPublishDialog = false },
         )
@@ -208,8 +233,18 @@ fun OfferFormInstituicaoScreen(
                     .padding(horizontal = 20.dp, vertical = 12.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
+                if (formUiState is OfferFormUiState.Error) {
+                    Text(
+                        text = (formUiState as OfferFormUiState.Error).message,
+                        color = Red,
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(bottom = 8.dp),
+                    )
+                }
+
                 LinkStageButton(
                     text = if (currentStep == 2) stringResource(R.string.offer_form_publish_offer) else stringResource(R.string.offer_form_next),
+                    enabled = formUiState !is OfferFormUiState.Loading,
                     onClick = {
                         when (currentStep) {
                             0 -> {

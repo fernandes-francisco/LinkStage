@@ -6,6 +6,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import turmaA.grupoB.LinkStage.data.remote.model.enums.EvaluationType
+import turmaA.grupoB.LinkStage.data.remote.model.evaluation.CreateEvaluationInput
+import turmaA.grupoB.LinkStage.data.remote.model.internship.CreateActivityLogInput
+import turmaA.grupoB.LinkStage.data.repository.auth.AuthRepositoryInterface
 import turmaA.grupoB.LinkStage.data.repository.evaluation.EvaluationRepositoryInterface
 import turmaA.grupoB.LinkStage.data.repository.institution.InstitutionRepositoryInterface
 import turmaA.grupoB.LinkStage.data.repository.internship.InternshipRepositoryInterface
@@ -22,6 +26,7 @@ import turmaA.grupoB.LinkStage.viewmodel.orientador.toInternshipEvaluation
 import turmaA.grupoB.LinkStage.viewmodel.orientador.toMentorActivityLogs
 import turmaA.grupoB.LinkStage.viewmodel.orientador.toMentorInternships
 import turmaA.grupoB.LinkStage.viewmodel.orientador.toMentorStudents
+import java.time.LocalDate
 
 class OrientadorDashboardViewModel(
     private val internshipRepository: InternshipRepositoryInterface,
@@ -95,16 +100,67 @@ class OrientadorStudentDetailViewModel(
     private val offerRepository: OfferRepositoryInterface,
     private val institutionRepository: InstitutionRepositoryInterface,
     private val evaluationRepository: EvaluationRepositoryInterface,
+    private val authRepository: AuthRepositoryInterface,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<OrientadorStudentDetailUiState>(OrientadorStudentDetailUiState.Idle)
     val uiState: StateFlow<OrientadorStudentDetailUiState> = _uiState.asStateFlow()
+
+    private val _submitGradeState = MutableStateFlow<SubmitFinalGradeUiState>(SubmitFinalGradeUiState.Idle)
+    val submitGradeState: StateFlow<SubmitFinalGradeUiState> = _submitGradeState.asStateFlow()
 
     fun loadStudent(studentId: String) {
         viewModelScope.launch {
             _uiState.value = OrientadorStudentDetailUiState.Loading
             _uiState.value = OrientadorStudentDetailUiState.Success(loadStudentData(studentId))
         }
+    }
+
+    fun createCheckpoint(internshipId: String, studentId: String, title: String, description: String, date: LocalDate) {
+        viewModelScope.launch {
+            try {
+                internshipRepository.createActivityLog(
+                    CreateActivityLogInput(
+                        internshipId = internshipId,
+                        studentId = studentId,
+                        description = if (description.isBlank()) title else "$title: $description",
+                        activityDate = date.toString(),
+                        type = "MENTOR",
+                    )
+                )
+                loadStudent(studentId)
+            } catch (_: Exception) {
+                // Ignore - checkpoint creation is best-effort from the UI.
+            }
+        }
+    }
+
+    fun submitFinalGrade(internshipId: String, grade: Double, comment: String?) {
+        viewModelScope.launch {
+            _submitGradeState.value = SubmitFinalGradeUiState.Loading
+            try {
+                val evaluatorUserId = authRepository.getCurrentUserId()
+                    ?: throw IllegalStateException("Utilizador não autenticado.")
+                evaluationRepository.createEvaluation(
+                    CreateEvaluationInput(
+                        internshipId = internshipId,
+                        evaluatorUserId = evaluatorUserId,
+                        evaluatorType = EvaluationType.SUPERVISOR,
+                        grade = grade,
+                        comment = comment?.takeIf { it.isNotBlank() },
+                    )
+                )
+                _submitGradeState.value = SubmitFinalGradeUiState.Success
+            } catch (e: Exception) {
+                _submitGradeState.value = SubmitFinalGradeUiState.Error(
+                    e.message ?: "Erro ao submeter a nota final."
+                )
+            }
+        }
+    }
+
+    fun resetSubmitGradeState() {
+        _submitGradeState.value = SubmitFinalGradeUiState.Idle
     }
 
     private suspend fun loadStudentData(studentId: String): OrientadorStudentDetailData {

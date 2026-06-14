@@ -37,9 +37,13 @@ class RetrofitIntegrationTest {
     @Test
     fun fetchFlagShouldReturnPngUrl() = runTest {
         val mockJsonResponse = """
-            {
-                "png": "https://flagcdn.com/w320/pt.png"
-            }
+            [
+                {
+                    "flags": {
+                        "png": "https://flagcdn.com/w320/pt.png"
+                    }
+                }
+            ]
         """.trimIndent()
 
         mockWebServer.enqueue(
@@ -50,6 +54,6 @@ class RetrofitIntegrationTest {
 
         val response = countriesService.getFlagByName("portugal")
 
-        assertEquals("https://flagcdn.com/w320/pt.png", response.png)
+        assertEquals("https://flagcdn.com/w320/pt.png", response.first().flags.png)
     }
 }
