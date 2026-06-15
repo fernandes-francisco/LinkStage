@@ -12,7 +12,6 @@ import turmaA.grupoB.LinkStage.data.remote.model.internship.CreateActivityLogInp
 import turmaA.grupoB.LinkStage.data.remote.model.internship.CreateInternshipInput
 import turmaA.grupoB.LinkStage.data.repository.internship.InternshipRepositoryInterface
 import turmaA.grupoB.LinkStage.data.repository.internship.LocalActivityRepositoryInterface
-import turmaA.grupoB.LinkStage.data.repository.storage.StorageRepositoryInterface
 import turmaA.grupoB.LinkStage.data.remote.model.internship.ActivityLogModel
 import java.time.Instant
 import java.util.UUID
@@ -20,7 +19,6 @@ import java.util.UUID
 class InternshipViewModel(
     private val internshipRepository: InternshipRepositoryInterface,
     private val localActivityRepository: LocalActivityRepositoryInterface? = null,
-    private val storageRepository: StorageRepositoryInterface? = null,
 ) : ViewModel (){
     private val _uiState = MutableStateFlow<InternshipUiState>(InternshipUiState.Idle)
     val uiState: StateFlow<InternshipUiState> = _uiState.asStateFlow()
@@ -210,51 +208,6 @@ class InternshipViewModel(
         }
     }
 
-    fun createActivityLog(
-        input: CreateActivityLogInput,
-        attachmentPath: String,
-        attachmentBytes: ByteArray,
-    ) {
-        viewModelScope.launch {
-            _activityCreationUiState.value = ActivityCreationUiState.Loading
-
-            val uploadedInput = try {
-                val uploadedPath = requireNotNull(storageRepository).uploadFile(
-                    bucket = "activity-attachments",
-                    path = attachmentPath,
-                    bytes = attachmentBytes,
-                )
-                input.copy(attachmentUrl = uploadedPath)
-            } catch (e: Exception) {
-                _activityCreationUiState.value = ActivityCreationUiState.Error(
-                    e.message ?: "Erro ao carregar anexo."
-                )
-                return@launch
-            }
-
-            try {
-                syncPendingActivities()
-                val activity = internshipRepository.createActivityLog(uploadedInput)
-                localActivityRepository?.save(activity)
-                appendCreatedActivity(activity)
-                _activityCreationUiState.value = ActivityCreationUiState.Success(activity)
-            } catch (e: Exception) {
-                val localRepository = localActivityRepository
-                if (localRepository == null) {
-                    _activityCreationUiState.value = ActivityCreationUiState.Error(
-                        e.message ?: "Erro ao criar atividade."
-                    )
-                    return@launch
-                }
-
-                val pendingActivity = uploadedInput.toPendingActivityLog()
-                localRepository.save(pendingActivity, pendingSync = true)
-                appendCreatedActivity(pendingActivity)
-                _activityCreationUiState.value = ActivityCreationUiState.Success(pendingActivity)
-            }
-        }
-    }
-
     fun resetActivityCreationState() {
         _activityCreationUiState.value = ActivityCreationUiState.Idle
     }
@@ -349,6 +302,5 @@ private fun CreateActivityLogInput.toPendingActivityLog() = ActivityLogModel(
     hours = hours,
     type = type,
     location = location,
-    attachmentUrl = attachmentUrl,
     createdAt = Instant.now().toString(),
 )

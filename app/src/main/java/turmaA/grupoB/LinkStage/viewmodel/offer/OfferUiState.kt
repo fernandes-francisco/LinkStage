@@ -13,7 +13,7 @@ sealed class OfferUiState {
     ) : OfferUiState()
     data class SuccessList(
         val offers: List<InternshipOfferModel>,
-        val institutionsById: Map<String, InstitutionModel> = emptyMap(),
+        val institution: InstitutionModel? = null,
     ) : OfferUiState()
     data object Empty : OfferUiState()
     data class Error(val message: String) : OfferUiState()

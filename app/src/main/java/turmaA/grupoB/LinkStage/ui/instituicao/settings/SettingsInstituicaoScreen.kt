@@ -69,6 +69,7 @@ import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.Fade1
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.ui.theme.Red
+import turmaA.grupoB.LinkStage.viewmodel.settings.PasswordChangeState
 import turmaA.grupoB.LinkStage.viewmodel.settings.SettingsViewModel
 import turmaA.grupoB.LinkStage.viewmodel.flags.FlagsUIState
 import turmaA.grupoB.LinkStage.viewmodel.flags.FlagsViewModel
@@ -106,12 +107,26 @@ fun SettingsInstituicaoScreen(
         )
     }
 
+    val passwordChangeState by settingsViewModel.passwordChangeState.collectAsState()
+
+    LaunchedEffect(passwordChangeState) {
+        if (passwordChangeState is PasswordChangeState.Success) {
+            showPasswordDialog = false
+            settingsViewModel.resetPasswordChangeState()
+        }
+    }
+
     if (showPasswordDialog) {
         ChangePasswordDialog(
-            onDismiss = { showPasswordDialog = false },
-            onConfirm = { _ ->
+            onDismiss = {
                 showPasswordDialog = false
-            }
+                settingsViewModel.resetPasswordChangeState()
+            },
+            onConfirm = { newPassword -> settingsViewModel.changePassword(newPassword) },
+            isLoading = passwordChangeState is PasswordChangeState.Loading,
+            errorMessage = (passwordChangeState as? PasswordChangeState.Error)?.let {
+                stringResource(R.string.settings_password_change_error)
+            },
         )
     }
 
@@ -470,6 +485,8 @@ private fun LogoutConfirmDialog(
 fun ChangePasswordDialog(
     onDismiss: () -> Unit,
     onConfirm: (String) -> Unit,
+    isLoading: Boolean = false,
+    errorMessage: String? = null,
 ) {
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
@@ -486,7 +503,7 @@ fun ChangePasswordDialog(
     val isPasswordValid by remember { derivedStateOf { hasNumber && hasUpperAndLower && hasMinLength } }
     val isConfirmValid by remember { derivedStateOf { confirmPassword == password && confirmPassword.isNotEmpty() } }
 
-    val isEnabled = isPasswordValid && isConfirmValid
+    val isEnabled = isPasswordValid && isConfirmValid && !isLoading
 
     LinkStageDialog(
         onDismiss = onDismiss,
@@ -497,6 +514,13 @@ fun ChangePasswordDialog(
         confirmEnabled = isEnabled,
         content = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                if (errorMessage != null) {
+                    Text(
+                        text = errorMessage,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
                 Column {
                     Text(stringResource(R.string.settings_new_password), style = MaterialTheme.typography.labelMedium, color = DarkGrey)
                     Spacer(modifier = Modifier.height(4.dp))

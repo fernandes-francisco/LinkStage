@@ -41,6 +41,8 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -56,9 +58,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import turmaA.grupoB.LinkStage.R
+import turmaA.grupoB.LinkStage.data.remote.model.offer.InternshipOfferModel
+import turmaA.grupoB.LinkStage.data.repository.auth.AuthRepository
+import turmaA.grupoB.LinkStage.data.repository.institution.InstitutionRepository
+import turmaA.grupoB.LinkStage.data.repository.offer.OfferRepository
 import turmaA.grupoB.LinkStage.ui.aluno.offers.OfferItem
 import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
 import turmaA.grupoB.LinkStage.ui.common.LinkStageDialog
@@ -70,18 +77,37 @@ import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.ui.theme.Red
+import turmaA.grupoB.LinkStage.viewmodel.offer.OfferUiState
+import turmaA.grupoB.LinkStage.viewmodel.offer.OfferViewModel
+import turmaA.grupoB.LinkStage.viewmodel.offer.OfferViewModelFactory
 
-private val sampleOffers = listOf(
-    OfferItem("1", "Designer de Produto", "ESTG-IPVC", "Tempo Inteiro", "5h atras", Color(0xFF1565C0), "E", duration = "6 Meses", area = "Design", location = "Porto"),
-    OfferItem("2", "UI/UX Designer", "ESTG-IPVC", "Remoto", "2d atras", Color(0xFF1565C0), "E", duration = "3 Meses", area = "Design", location = "Remoto"),
-    OfferItem("3", "Programador Full-Stack", "ESTG-IPVC", "Remoto", "1w atras", Color(0xFF1565C0), "E", duration = "9 Meses", area = "Tecnologia", location = "Remoto"),
-    OfferItem("4", "Recepcionista", "ESTG-IPVC", "Tempo Inteiro", "2w atras", Color(0xFF1565C0), "E", duration = "6 Meses", area = "Hotelaria", location = "Braga"),
-)
+private fun InternshipOfferModel.toOfferItem(institutionName: String): OfferItem {
+    return OfferItem(
+        id = id,
+        title = title,
+        company = institutionName,
+        type = modality.orEmpty(),
+        publishedAgo = (publishDate ?: createdAt).take(10),
+        logoColor = Color(0xFF1565C0),
+        logoInitial = institutionName.firstOrNull()?.uppercaseChar()?.toString() ?: "?",
+        duration = "",
+        area = area,
+        location = location.orEmpty(),
+        deadline = deadline.orEmpty(),
+    )
+}
 
 @Composable
 fun OffersInstituicaoScreen(
     navController: NavController,
     modifier: Modifier = Modifier,
+    offerViewModel: OfferViewModel = viewModel(
+        factory = OfferViewModelFactory(
+            offerRepository = OfferRepository(),
+            institutionRepository = InstitutionRepository(),
+            authRepository = AuthRepository(),
+        )
+    ),
 ) {
     var searchQuery by rememberSaveable { mutableStateOf("") }
     var offerToDelete by remember { mutableStateOf<OfferItem?>(null) }
@@ -90,7 +116,20 @@ fun OffersInstituicaoScreen(
     var filterArea by rememberSaveable { mutableStateOf("") }
     var filterLocation by rememberSaveable { mutableStateOf("") }
 
-    val filteredOffers = sampleOffers.filter { offer ->
+    val offerUiState by offerViewModel.uiState.collectAsState()
+
+    LaunchedEffect(Unit) {
+        offerViewModel.loadOffersForCurrentInstitution()
+    }
+
+    val institutionName = (offerUiState as? OfferUiState.SuccessList)?.institution?.name.orEmpty()
+
+    val offers = when (val state = offerUiState) {
+        is OfferUiState.SuccessList -> state.offers.map { it.toOfferItem(institutionName) }
+        else -> emptyList()
+    }
+
+    val filteredOffers = offers.filter { offer ->
         val matchesSearch = searchQuery.isEmpty() ||
             offer.title.contains(searchQuery, ignoreCase = true) ||
             offer.company.contains(searchQuery, ignoreCase = true)
@@ -106,7 +145,11 @@ fun OffersInstituicaoScreen(
     if (offerToDelete != null) {
         DeleteOfferDialog(
             offerTitle = offerToDelete!!.title,
-            onConfirm = { offerToDelete = null },
+            onConfirm = {
+                offerViewModel.markOfferAsRemoved(offerToDelete!!.id)
+                offerToDelete = null
+                offerViewModel.loadOffersForCurrentInstitution()
+            },
             onDismiss = { offerToDelete = null },
         )
     }

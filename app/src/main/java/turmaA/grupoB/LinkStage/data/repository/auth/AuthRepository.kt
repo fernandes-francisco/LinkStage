@@ -110,6 +110,34 @@ class AuthRepository : AuthRepositoryInterface {
             .decodeSingle<ProfileModel>()
     }
 
+    override suspend fun updatePassword(newPassword: String) {
+        supabase.auth.updateUser {
+            password = newPassword
+        }
+    }
+
+    override suspend fun createManagedAccount(input: SignUpInput): ProfileModel {
+        val adminSession = supabase.auth.currentSessionOrNull()
+
+        val profile = signUp(input)
+
+        if (adminSession != null) {
+            supabase.auth.importSession(adminSession)
+        }
+
+        return profile
+    }
+
+    override suspend fun setProfileActive(userId: String, active: Boolean) {
+        supabase
+            .from("profiles")
+            .update(mapOf("active" to active)) {
+                filter {
+                    eq("id", userId)
+                }
+            }
+    }
+
     private fun UpdateProfileInput.toJsonObject(): JsonObject {
         return buildJsonObject {
             name?.let { put("name", JsonPrimitive(it)) }
