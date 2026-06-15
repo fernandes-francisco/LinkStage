@@ -46,9 +46,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -67,10 +71,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import androidx.compose.ui.res.stringResource
 import turmaA.grupoB.LinkStage.R
+import turmaA.grupoB.LinkStage.data.repository.application.ApplicationRepository
+import turmaA.grupoB.LinkStage.data.repository.profile.ProfileRepository
+import turmaA.grupoB.LinkStage.data.repository.student.StudentRepository
 import turmaA.grupoB.LinkStage.ui.aluno.chat.avatarColors
 import turmaA.grupoB.LinkStage.ui.aluno.home.ApplicationStatus
 import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
@@ -80,8 +88,7 @@ import turmaA.grupoB.LinkStage.ui.common.LinkStageOutlinedButton
 import turmaA.grupoB.LinkStage.ui.common.LinkStageTabRow
 import turmaA.grupoB.LinkStage.ui.common.SectionLabel
 import turmaA.grupoB.LinkStage.ui.instituicao.InstitutionApplication
-import turmaA.grupoB.LinkStage.ui.instituicao.sampleInstitutionApplications
-import androidx.compose.ui.platform.LocalContext
+import turmaA.grupoB.LinkStage.ui.instituicao.toInstitutionApplication
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
@@ -90,16 +97,46 @@ import turmaA.grupoB.LinkStage.ui.theme.Fade1
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.ui.theme.MediumBlue
 import turmaA.grupoB.LinkStage.ui.theme.Red
+import turmaA.grupoB.LinkStage.viewmodel.application.InstitutionApplicationDetails
+import turmaA.grupoB.LinkStage.viewmodel.application.InstitutionApplicationsUiState
+import turmaA.grupoB.LinkStage.viewmodel.application.InstitutionApplicationsViewModel
+import turmaA.grupoB.LinkStage.viewmodel.application.InstitutionApplicationsViewModelFactory
+
+private fun emptyInstitutionApplication(applicationId: String) = InstitutionApplication(
+    id = applicationId, studentName = "", studentAvatarInitials = "?", studentAvatarColorIndex = 0,
+    institution = "", course = "", gpa = "-", email = "", phone = "",
+    skills = emptyList(), personalStatement = "", motivationLetterTitle = "",
+    motivationLetterBody = "", hasMotivationLetter = false, status = ApplicationStatus.PENDING,
+)
 
 @Composable
 fun ApplicationDetailInstituicaoScreen(
     applicationId: String,
     navController: NavController,
     modifier: Modifier = Modifier,
+    viewModel: InstitutionApplicationsViewModel = viewModel(
+        factory = InstitutionApplicationsViewModelFactory(
+            applicationRepository = ApplicationRepository(),
+            studentRepository = StudentRepository(),
+            profileRepository = ProfileRepository(),
+        )
+    ),
 ) {
-    val context = LocalContext.current
-    val application = sampleInstitutionApplications(context).find { it.id == applicationId }
-        ?: sampleInstitutionApplications(context).first()
+    val uiState by viewModel.uiState.collectAsState()
+
+    LaunchedEffect(applicationId) {
+        viewModel.loadApplicationById(applicationId)
+    }
+
+    var lastDetails by remember { mutableStateOf<InstitutionApplicationDetails?>(null) }
+    LaunchedEffect(uiState) {
+        val state = uiState
+        if (state is InstitutionApplicationsUiState.SuccessDetails) {
+            lastDetails = state.details
+        }
+    }
+
+    val application = lastDetails?.toInstitutionApplication() ?: emptyInstitutionApplication(applicationId)
 
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
 
@@ -168,7 +205,11 @@ fun ApplicationDetailInstituicaoScreen(
             when (selectedTab) {
                 0 -> ApplicationDetailsTab(application)
                 1 -> ApplicationSkillsTab(application)
-                2 -> ApplicationManageTab(application)
+                2 -> ApplicationManageTab(
+                    application = application,
+                    onAccept = { viewModel.acceptApplication(applicationId) },
+                    onReject = { reason -> viewModel.rejectApplication(applicationId, reason) },
+                )
             }
         }
     }
@@ -465,8 +506,13 @@ private fun MotivationLetterDialog(
 // region Tab 2 — Manage
 
 @Composable
-private fun ApplicationManageTab(application: InstitutionApplication) {
+private fun ApplicationManageTab(
+    application: InstitutionApplication,
+    onAccept: () -> Unit,
+    onReject: (String) -> Unit,
+) {
     var selectedStatus by remember { mutableStateOf(application.status) }
+    var rejectionReason by remember { mutableStateOf("") }
     var showConfirmDialog by remember { mutableStateOf(false) }
 
     val statusLabel = when (selectedStatus) {
@@ -480,7 +526,14 @@ private fun ApplicationManageTab(application: InstitutionApplication) {
             title = stringResource(R.string.app_detail_update_title),
             body = stringResource(R.string.app_detail_update_body, statusLabel),
             confirmLabel = stringResource(R.string.common_confirm),
-            onConfirm = { showConfirmDialog = false },
+            onConfirm = {
+                showConfirmDialog = false
+                when (selectedStatus) {
+                    ApplicationStatus.ACCEPTED -> onAccept()
+                    ApplicationStatus.REJECTED -> onReject(rejectionReason)
+                    ApplicationStatus.PENDING -> {}
+                }
+            },
             onDismiss = { showConfirmDialog = false },
         )
     }
@@ -593,6 +646,30 @@ private fun ApplicationManageTab(application: InstitutionApplication) {
             }
         }
 
+        AnimatedVisibility(
+            visible = rejectSelected,
+            enter = fadeIn() + slideInVertically { -it },
+        ) {
+            Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+                SectionLabel(stringResource(R.string.app_detail_rejection_reason_label))
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = rejectionReason,
+                    onValueChange = { rejectionReason = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    placeholder = { Text(stringResource(R.string.app_detail_rejection_reason_placeholder), color = DarkGrey) },
+                    shape = RoundedCornerShape(12.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        unfocusedBorderColor = BorderGrey,
+                        focusedBorderColor = DarkBlue,
+                        unfocusedContainerColor = Color.White,
+                        focusedContainerColor = Color.White,
+                    ),
+                    minLines = 2,
+                )
+            }
+        }
+
         Spacer(modifier = Modifier.height(12.dp))
 
         // Info notice
@@ -629,6 +706,7 @@ private fun ApplicationManageTab(application: InstitutionApplication) {
             LinkStageButton(
                 text = stringResource(R.string.app_detail_update_button),
                 onClick = { showConfirmDialog = true },
+                enabled = selectedStatus != ApplicationStatus.REJECTED || rejectionReason.isNotBlank(),
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp),

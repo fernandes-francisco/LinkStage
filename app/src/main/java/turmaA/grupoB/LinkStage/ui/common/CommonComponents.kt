@@ -155,6 +155,39 @@ fun SuccessDialog(
 }
 
 @Composable
+fun TemporaryPasswordDialog(
+    email: String,
+    password: String,
+    onDismiss: () -> Unit,
+) {
+    LinkStageDialog(
+        title = stringResource(R.string.admin_temp_password_title),
+        onConfirm = onDismiss,
+        onDismiss = onDismiss,
+        confirmText = stringResource(R.string.common_close),
+        content = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(
+                    text = stringResource(R.string.admin_temp_password_message, email),
+                    color = Color.DarkGray,
+                    fontSize = 14.sp,
+                )
+                Text(
+                    text = password,
+                    color = DarkBlue,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color(0xFFF2F2F2), RoundedCornerShape(8.dp))
+                        .padding(12.dp),
+                )
+            }
+        }
+    )
+}
+
+@Composable
 fun LinkStageButton(
     text: String,
     onClick: () -> Unit,

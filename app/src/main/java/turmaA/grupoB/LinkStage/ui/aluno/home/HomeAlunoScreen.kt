@@ -92,12 +92,9 @@ import turmaA.grupoB.LinkStage.viewmodel.student.StudentUiState
 import turmaA.grupoB.LinkStage.viewmodel.student.StudentViewModel
 import turmaA.grupoB.LinkStage.viewmodel.student.StudentViewModelFactory
 import turmaA.grupoB.LinkStage.data.remote.model.enums.ApplicationStatus as RemoteApplicationStatus
-import java.time.Instant
 import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.OffsetDateTime
-import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 // region Data models
 
@@ -417,7 +414,7 @@ private fun ActivityLogModel.toEntrega(): DatedEntrega? {
     return DatedEntrega(
         date = date,
         entrega = Entrega(
-            deadline = date.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+            deadline = date.format(DateTimeFormatter.ofPattern("MMM d", Locale.getDefault())),
             title = type?.takeIf { it.isNotBlank() } ?: description,
             company = location.orEmpty(),
         ),
@@ -429,7 +426,7 @@ private fun StudentApplicationDetails.toApplicationItem(): ApplicationItem {
         id = application.id,
         offerTitle = offerTitle,
         company = institutionName,
-        appliedAgo = application.createdAt.toHomeTimestamp(),
+        appliedAgo = application.createdAt,
         status = application.status.toUiApplicationStatus(),
     )
 }
@@ -440,19 +437,6 @@ private fun RemoteApplicationStatus.toUiApplicationStatus(): ApplicationStatus {
         RemoteApplicationStatus.ACCEPTED -> ApplicationStatus.ACCEPTED
         RemoteApplicationStatus.REJECTED -> ApplicationStatus.REJECTED
     }
-}
-
-private fun String.toHomeTimestamp(): String {
-    val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
-
-    return runCatching { LocalDateTime.parse(this).format(formatter) }
-        .recoverCatching { OffsetDateTime.parse(this).format(formatter) }
-        .recoverCatching {
-            Instant.parse(this)
-                .atZone(ZoneId.systemDefault())
-                .format(formatter)
-        }
-        .getOrDefault(this)
 }
 
 private fun InternshipModel.toActiveInternship(): ActiveInternship? {

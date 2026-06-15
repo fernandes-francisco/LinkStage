@@ -10,10 +10,12 @@ import turmaA.grupoB.LinkStage.data.remote.model.offer.CreateOfferInput
 import turmaA.grupoB.LinkStage.data.remote.model.offer.UpdateOfferInput
 import turmaA.grupoB.LinkStage.data.repository.offer.OfferRepositoryInterface
 import turmaA.grupoB.LinkStage.data.repository.institution.InstitutionRepositoryInterface
+import turmaA.grupoB.LinkStage.data.repository.auth.AuthRepositoryInterface
 
 class OfferViewModel(
     private val offerRepository: OfferRepositoryInterface,
     private val institutionRepository: InstitutionRepositoryInterface? = null,
+    private val authRepository: AuthRepositoryInterface? = null,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<OfferUiState>(OfferUiState.Idle)
@@ -25,21 +27,11 @@ class OfferViewModel(
 
             try {
                 val offers = offerRepository.getPublishedOffers()
-                val institutionsById = institutionRepository?.let { repository ->
-                    offers.map { it.institutionId }
-                        .distinct()
-                        .mapNotNull { institutionId ->
-                            runCatching { repository.getInstitutionById(institutionId) }
-                                .getOrNull()
-                                ?.let { institutionId to it }
-                        }
-                        .toMap()
-                }.orEmpty()
 
                 _uiState.value = if (offers.isEmpty()) {
                     OfferUiState.Empty
                 } else {
-                    OfferUiState.SuccessList(offers, institutionsById)
+                    OfferUiState.SuccessList(offers)
                 }
 
             } catch (e: Exception) {
@@ -61,6 +53,36 @@ class OfferViewModel(
                     OfferUiState.Empty
                 } else {
                     OfferUiState.SuccessList(offers)
+                }
+            } catch (e: Exception) {
+                _uiState.value = OfferUiState.Error(
+                    e.message ?: "Erro ao carregar ofertas da instituição."
+                )
+            }
+        }
+    }
+
+    fun loadOffersForCurrentInstitution() {
+        viewModelScope.launch {
+            _uiState.value = OfferUiState.Loading
+
+            try {
+                val userId = authRepository?.getCurrentUserId()
+                val institution = userId?.let { institutionRepository?.getInstitutionByUserId(it) }
+
+                if (institution == null) {
+                    _uiState.value = OfferUiState.Error(
+                        "Não foi possível identificar a instituição."
+                    )
+                    return@launch
+                }
+
+                val offers = offerRepository.getOffersByInstitution(institution.id)
+
+                _uiState.value = if (offers.isEmpty()) {
+                    OfferUiState.Empty
+                } else {
+                    OfferUiState.SuccessList(offers, institution)
                 }
             } catch (e: Exception) {
                 _uiState.value = OfferUiState.Error(

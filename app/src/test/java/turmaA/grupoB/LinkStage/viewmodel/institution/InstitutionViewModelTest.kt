@@ -14,6 +14,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestWatcher
 import org.junit.runner.Description
+import turmaA.grupoB.LinkStage.data.remote.model.institution.CreateInstitutionInput
 import turmaA.grupoB.LinkStage.data.remote.model.institution.InstitutionModel
 import turmaA.grupoB.LinkStage.data.repository.institution.InstitutionRepositoryInterface
 import turmaA.grupoB.LinkStage.viewmodel.Institution.InstitutionUiState
@@ -174,6 +175,10 @@ private class FakeInstitutionRepository: InstitutionRepositoryInterface {
         }
 
         return institutions.firstOrNull { it.userId == userId }
+    }
+
+    override suspend fun createInstitution(input: CreateInstitutionInput): InstitutionModel {
+        throw NotImplementedError("Not used in these tests.")
     }
 }
 

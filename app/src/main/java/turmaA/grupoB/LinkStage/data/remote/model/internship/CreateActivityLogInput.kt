@@ -20,8 +20,5 @@ data class CreateActivityLogInput(
 
     val type: String? = null,
 
-    val location: String? = null,
-
-    @SerialName("attachment_url")
-    val attachmentUrl: String? = null,
+    val location: String? = null
 )

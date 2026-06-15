@@ -22,6 +22,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,24 +38,34 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import turmaA.grupoB.LinkStage.R
+import turmaA.grupoB.LinkStage.data.repository.institution.InstitutionRepository
+import turmaA.grupoB.LinkStage.data.repository.offer.OfferRepository
 import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
 import turmaA.grupoB.LinkStage.ui.common.LinkStageButton
 import turmaA.grupoB.LinkStage.ui.instituicao.InstituicaoRoutes
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
+import turmaA.grupoB.LinkStage.viewmodel.offer.OfferUiState
+import turmaA.grupoB.LinkStage.viewmodel.offer.OfferViewModel
+import turmaA.grupoB.LinkStage.viewmodel.offer.OfferViewModelFactory
 
 @Composable
 fun OfferSuccessInstituicaoScreen(
     offerId: String,
     navController: NavController,
-    offerTitle: String = "Nova Oferta",
-    offerCompany: String = "ESTG-IPVC",
-    offerLogoInitial: String = "E",
+    isNew: Boolean = true,
     offerLogoColor: Color = Color(0xFF1565C0),
+    offerViewModel: OfferViewModel = viewModel(
+        factory = OfferViewModelFactory(
+            offerRepository = OfferRepository(),
+            institutionRepository = InstitutionRepository(),
+        )
+    ),
 ) {
     var animationStarted by remember { mutableStateOf(false) }
     val scale by animateFloatAsState(
@@ -63,9 +74,17 @@ fun OfferSuccessInstituicaoScreen(
         label = "check_scale",
     )
 
-    LaunchedEffect(Unit) {
+    val offerUiState by offerViewModel.uiState.collectAsState()
+
+    LaunchedEffect(offerId) {
         animationStarted = true
+        offerViewModel.loadOfferDetailsById(offerId)
     }
+
+    val details = offerUiState as? OfferUiState.SuccessDetails
+    val offerTitle = details?.offer?.title ?: stringResource(R.string.offer_form_create_title)
+    val offerCompany = details?.institution?.name.orEmpty()
+    val offerLogoInitial = offerCompany.firstOrNull()?.uppercaseChar()?.toString() ?: "?"
 
     Column(
         modifier = Modifier
@@ -137,7 +156,7 @@ fun OfferSuccessInstituicaoScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = if (offerId == "new") stringResource(R.string.offer_success_created) else stringResource(R.string.offer_success_updated),
+            text = if (isNew) stringResource(R.string.offer_success_created) else stringResource(R.string.offer_success_updated),
             color = DarkBlue,
             fontWeight = FontWeight.Bold,
             fontSize = 20.sp,
