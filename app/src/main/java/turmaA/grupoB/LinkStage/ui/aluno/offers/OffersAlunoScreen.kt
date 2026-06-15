@@ -60,6 +60,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.data.remote.model.offer.InternshipOfferModel
+import turmaA.grupoB.LinkStage.data.repository.institution.InstitutionRepository
 import turmaA.grupoB.LinkStage.data.repository.offer.OfferRepository
 import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
 import turmaA.grupoB.LinkStage.ui.common.LinkStageDialog
@@ -74,6 +75,8 @@ import turmaA.grupoB.LinkStage.viewmodel.discover.DiscoverViewModel
 import turmaA.grupoB.LinkStage.viewmodel.offer.OfferUiState
 import turmaA.grupoB.LinkStage.viewmodel.offer.OfferViewModel
 import turmaA.grupoB.LinkStage.viewmodel.offer.OfferViewModelFactory
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 // region Data models
 
@@ -109,7 +112,10 @@ fun OffersAlunoScreen(
     onOfferClick: (String) -> Unit = {},
     discoverViewModel: DiscoverViewModel = viewModel(),
     offerViewModel: OfferViewModel = viewModel(
-        factory = OfferViewModelFactory(OfferRepository())
+        factory = OfferViewModelFactory(
+            OfferRepository(),
+            InstitutionRepository(),
+        )
     ),
 ) {
     var searchQuery by remember { mutableStateOf("") }
@@ -120,7 +126,7 @@ fun OffersAlunoScreen(
 
     val allOffers: List<OfferItem> = when (val state = offerUiState) {
         is OfferUiState.SuccessList -> state.offers.map { offer: InternshipOfferModel ->
-            offer.toOfferItem()
+            offer.toOfferItem(state.institutionsById[offer.institutionId]?.name)
         }
 
         else -> emptyList()
@@ -615,20 +621,30 @@ private fun OfferCard(
     }
 }
 
-private fun InternshipOfferModel.toOfferItem(): OfferItem {
+private fun InternshipOfferModel.toOfferItem(institutionName: String?): OfferItem {
+    val resolvedInstitutionName = institutionName.orEmpty()
+
     return OfferItem(
         id = id,
         title = title,
-        company = institutionId,
+        company = resolvedInstitutionName,
         type = modality.orEmpty(),
-        publishedAgo = publishDate.orEmpty(),
+        publishedAgo = publishDate.toDisplayDate(),
         logoColor = Color(0xFF212121),
-        logoInitial = institutionId.firstOrNull()?.uppercaseChar()?.toString() ?: "?",
+        logoInitial = resolvedInstitutionName.firstOrNull()?.uppercaseChar()?.toString() ?: "?",
         duration = "",
         area = area,
         location = location.orEmpty(),
         deadline = deadline.orEmpty()
     )
+}
+
+private fun String?.toDisplayDate(): String {
+    if (this.isNullOrBlank()) return ""
+
+    return runCatching {
+        LocalDate.parse(this).format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+    }.getOrDefault(this)
 }
 
 // endregion

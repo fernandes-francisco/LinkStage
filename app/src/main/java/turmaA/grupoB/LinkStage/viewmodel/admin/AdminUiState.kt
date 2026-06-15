@@ -67,10 +67,3 @@ sealed class AdminInternshipDetailUiState {
     data object Empty : AdminInternshipDetailUiState()
     data class Error(val message: String) : AdminInternshipDetailUiState()
 }
-
-sealed class AdminAccountUiState {
-    data object Idle : AdminAccountUiState()
-    data object Loading : AdminAccountUiState()
-    data class Success(val temporaryPassword: String) : AdminAccountUiState()
-    data class Error(val message: String) : AdminAccountUiState()
-}

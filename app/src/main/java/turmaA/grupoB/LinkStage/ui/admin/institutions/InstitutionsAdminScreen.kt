@@ -68,23 +68,18 @@ import turmaA.grupoB.LinkStage.ui.admin.AdminRoutes
 import turmaA.grupoB.LinkStage.ui.admin.InstitutionStatus
 import turmaA.grupoB.LinkStage.ui.admin.sampleInstitutionsList
 import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
-import turmaA.grupoB.LinkStage.viewmodel.admin.AdminAccountUiState
-import turmaA.grupoB.LinkStage.viewmodel.admin.AdminAccountViewModel
-import turmaA.grupoB.LinkStage.viewmodel.admin.AdminAccountViewModelFactory
 import turmaA.grupoB.LinkStage.viewmodel.admin.AdminInstitutionsUiState
 import turmaA.grupoB.LinkStage.viewmodel.admin.AdminInstitutionsViewModel
 import turmaA.grupoB.LinkStage.viewmodel.admin.AdminInstitutionsViewModelFactory
 import turmaA.grupoB.LinkStage.ui.common.LinkStageDialog
 import turmaA.grupoB.LinkStage.ui.common.LinkStageTabRow
 import turmaA.grupoB.LinkStage.ui.common.SectionLabel
-import turmaA.grupoB.LinkStage.ui.common.TemporaryPasswordDialog
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.ui.theme.MediumBlue
-import turmaA.grupoB.LinkStage.ui.theme.Red
 
 @Composable
 fun InstitutionsAdminScreen(
@@ -93,7 +88,6 @@ fun InstitutionsAdminScreen(
 ) {
     var searchQuery by rememberSaveable { mutableStateOf("") }
     var showAddDialog by remember { mutableStateOf(false) }
-    var newAccountEmail by remember { mutableStateOf("") }
     var showFilterDialog by remember { mutableStateOf(false) }
     var filterType by rememberSaveable { mutableStateOf("") }
     var filterLocation by rememberSaveable { mutableStateOf("") }
@@ -101,8 +95,6 @@ fun InstitutionsAdminScreen(
 
     val institutionsViewModel: AdminInstitutionsViewModel = viewModel(factory = AdminInstitutionsViewModelFactory())
     val institutionsUiState by institutionsViewModel.uiState.collectAsState()
-    val accountViewModel: AdminAccountViewModel = viewModel(factory = AdminAccountViewModelFactory())
-    val accountUiState by accountViewModel.uiState.collectAsState()
     val approvedInstitutions = when (val state = institutionsUiState) {
         is AdminInstitutionsUiState.Success -> state.approvedInstitutions
         else -> emptyList()
@@ -137,31 +129,8 @@ fun InstitutionsAdminScreen(
         matchesSearch && matchesType && matchesLocation
     }
 
-    val accountSuccess = accountUiState as? AdminAccountUiState.Success
-    if (showAddDialog && accountSuccess == null) {
-        AddInstitutionDialog(
-            onDismiss = {
-                showAddDialog = false
-                accountViewModel.resetState()
-            },
-            onConfirm = { name, email, sector, location ->
-                newAccountEmail = email
-                accountViewModel.createInstitutionAccount(name, email, sector, location)
-            },
-            isSubmitting = accountUiState is AdminAccountUiState.Loading,
-            errorMessage = (accountUiState as? AdminAccountUiState.Error)?.message,
-        )
-    }
-    if (accountSuccess != null) {
-        TemporaryPasswordDialog(
-            email = newAccountEmail,
-            password = accountSuccess.temporaryPassword,
-            onDismiss = {
-                showAddDialog = false
-                accountViewModel.resetState()
-                institutionsViewModel.loadInstitutions()
-            },
-        )
+    if (showAddDialog) {
+        AddInstitutionDialog(onDismiss = { showAddDialog = false })
     }
 
     if (showFilterDialog) {
@@ -587,13 +556,9 @@ private fun PendingInstitutionListItem(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun AddInstitutionDialog(
-    onDismiss: () -> Unit,
-    onConfirm: (name: String, email: String, sector: String, location: String) -> Unit,
-    isSubmitting: Boolean,
-    errorMessage: String?,
-) {
+private fun AddInstitutionDialog(onDismiss: () -> Unit) {
     var name by remember { mutableStateOf("") }
+    var code by remember { mutableStateOf("") }
     var selectedType by remember { mutableStateOf("") }
     var location by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
@@ -607,16 +572,23 @@ private fun AddInstitutionDialog(
     LinkStageDialog(
         onDismiss = onDismiss,
         title = stringResource(R.string.admin_inst_add_title),
-        onConfirm = { onConfirm(name, email, selectedType, location) },
+        onConfirm = onDismiss,
         confirmText = stringResource(R.string.admin_inst_add_button),
         dismissText = stringResource(R.string.common_cancel),
-        confirmEnabled = !isSubmitting && name.isNotBlank() && email.isNotBlank() && selectedType.isNotBlank(),
         content = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
                     label = { Text(stringResource(R.string.admin_users_name)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(10.dp),
+                    singleLine = true,
+                )
+                OutlinedTextField(
+                    value = code,
+                    onValueChange = { code = it },
+                    label = { Text(stringResource(R.string.admin_inst_add_code)) },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(10.dp),
                     singleLine = true,
@@ -667,13 +639,6 @@ private fun AddInstitutionDialog(
                     shape = RoundedCornerShape(10.dp),
                     singleLine = true,
                 )
-                if (errorMessage != null) {
-                    Text(
-                        text = errorMessage,
-                        color = Red,
-                        fontSize = 12.sp,
-                    )
-                }
             }
         }
     )

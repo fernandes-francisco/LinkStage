@@ -29,9 +29,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -41,10 +38,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import turmaA.grupoB.LinkStage.R
+import turmaA.grupoB.LinkStage.ui.admin.sampleMentors
 import turmaA.grupoB.LinkStage.ui.instituicao.InstituicaoRoutes
 import turmaA.grupoB.LinkStage.ui.instituicao.sampleInstitutionInternships
 import androidx.compose.ui.platform.LocalContext
@@ -53,26 +50,15 @@ import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
 import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.Fade1
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
-import turmaA.grupoB.LinkStage.viewmodel.instituicao.activity.InstitutionActivityUiState
-import turmaA.grupoB.LinkStage.viewmodel.instituicao.activity.InstitutionActivityViewModel
-import turmaA.grupoB.LinkStage.viewmodel.instituicao.activity.InstitutionActivityViewModelFactory
 
 @Composable
 fun MentorAssignedSuccessScreen(
-    internshipId: String,
     navController: NavController,
     modifier: Modifier = Modifier,
-    activityViewModel: InstitutionActivityViewModel = viewModel(factory = InstitutionActivityViewModelFactory()),
 ) {
     val context = LocalContext.current
-    val activityUiState by activityViewModel.uiState.collectAsState()
-    val internship = (activityUiState as? InstitutionActivityUiState.Success)?.data?.internships?.find { it.id == internshipId }
-        ?: sampleInstitutionInternships(context).find { it.id == internshipId }
-        ?: sampleInstitutionInternships(context).first()
-
-    LaunchedEffect(Unit) {
-        activityViewModel.loadActivityForCurrentInstitution()
-    }
+    val internship = sampleInstitutionInternships(context).first()
+    val mentor = sampleMentors(context).first()
 
     Column(
         modifier = modifier
@@ -146,7 +132,7 @@ fun MentorAssignedSuccessScreen(
 
                 Row {
                     Text(stringResource(R.string.mentor_success_advisor_label), color = DarkGrey, fontSize = 13.sp, modifier = Modifier.weight(1f))
-                    Text(internship.mentorName, color = DarkBlue, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+                    Text(mentor.name, color = DarkBlue, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
                 }
 
                 Spacer(modifier = Modifier.height(4.dp))
@@ -236,7 +222,7 @@ fun MentorAssignedSuccessScreen(
 @Composable
 private fun MentorAssignedSuccessScreenPreview() {
     MaterialTheme {
-        MentorAssignedSuccessScreen(internshipId = "int1", navController = rememberNavController())
+        MentorAssignedSuccessScreen(navController = rememberNavController())
     }
 }
 
@@ -244,6 +230,6 @@ private fun MentorAssignedSuccessScreenPreview() {
 @Composable
 private fun MentorAssignedSuccessScreenLandscapePreview() {
     MaterialTheme {
-        MentorAssignedSuccessScreen(internshipId = "int1", navController = rememberNavController())
+        MentorAssignedSuccessScreen(navController = rememberNavController())
     }
 }

@@ -160,7 +160,7 @@
     <string name="common_close">Close</string>
     <string name="common_search">Search…</string>
     <string name="common_write_here">Write here.</string>
-    <string name="common_view_all">View all →</string>
+    <string name="common_view_all">View all</string>
     <string name="common_more">More</string>
     <string name="common_in_development">Under development</string>
     <string name="common_required_field">Required field</string>
@@ -306,7 +306,7 @@
     <string name="apply_skills_count">skills added</string>
     <string name="apply_motivation_letter">Motivation Letter</string>
     <string name="apply_select_file">Select File</string>
-    <string name="apply_file_format">PDF, DOCX up to 10 MB</string>
+    <string name="apply_file_format">PDF, DOCX up to 6 MB</string>
     <string name="apply_review_name">Name</string>
     <string name="apply_review_course">Course</string>
     <string name="apply_review_gpa">GPA</string>
@@ -402,8 +402,6 @@
     <string name="settings_new_password">New Password</string>
     <string name="settings_confirm_password">Confirm Password</string>
     <string name="settings_update_button">Update</string>
-    <string name="settings_password_change_success">Password updated successfully.</string>
-    <string name="settings_password_change_error">Could not update password. Please try again.</string>
     <string name="settings_save_changes">Save Changes</string>
 
     <!-- ==================== ADMIN ==================== -->
@@ -824,9 +822,6 @@
     <string name="admin_inst_add_code">Code</string>
     <string name="admin_inst_add_type">Type</string>
     <string name="admin_inst_add_button">Add</string>
-    <string name="admin_temp_password_title">Temporary Password</string>
-    <string name="admin_temp_password_message">Account created for %1$s. Share this temporary password with the user so they can sign in and set a new one:</string>
-    <string name="admin_users_student_number">Student Number</string>
 
     <!-- ==================== EVALUATION NOTIFICATION ==================== -->
     <string name="eval_notification_close">Close</string>
@@ -888,8 +883,6 @@
     <string name="app_detail_accepted_desc">Mark this application as accepted.</string>
     <string name="app_detail_rejected">Rejected</string>
     <string name="app_detail_rejected_desc">Mark this application as rejected.</string>
-    <string name="app_detail_rejection_reason_label">Rejection reason</string>
-    <string name="app_detail_rejection_reason_placeholder">Enter the rejection reason…</string>
     <string name="app_detail_info_notice">The decision will only be recorded when the application is closed.</string>
     <string name="app_detail_status_accepted">Accepted</string>
     <string name="app_detail_status_rejected">Rejected</string>

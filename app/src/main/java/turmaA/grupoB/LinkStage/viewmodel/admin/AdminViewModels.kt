@@ -6,25 +6,18 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import turmaA.grupoB.LinkStage.data.remote.model.auth.SignUpInput
 import turmaA.grupoB.LinkStage.data.remote.model.enums.ApplicationStatus
 import turmaA.grupoB.LinkStage.data.remote.model.enums.InternshipStatus
-import turmaA.grupoB.LinkStage.data.remote.model.enums.UserRole
-import turmaA.grupoB.LinkStage.data.remote.model.institution.CreateInstitutionInput
 import turmaA.grupoB.LinkStage.data.remote.model.institution.InstitutionModel
-import turmaA.grupoB.LinkStage.data.remote.model.user.CreateStudentInput
-import turmaA.grupoB.LinkStage.data.remote.model.user.CreateSupervisorInput
 import turmaA.grupoB.LinkStage.data.remote.model.user.StudentModel
 import turmaA.grupoB.LinkStage.data.remote.model.user.SupervisorModel
 import turmaA.grupoB.LinkStage.data.repository.application.ApplicationRepositoryInterface
-import turmaA.grupoB.LinkStage.data.repository.auth.AuthRepositoryInterface
 import turmaA.grupoB.LinkStage.data.repository.institution.InstitutionRepositoryInterface
 import turmaA.grupoB.LinkStage.data.repository.internship.InternshipRepositoryInterface
 import turmaA.grupoB.LinkStage.data.repository.offer.OfferRepositoryInterface
 import turmaA.grupoB.LinkStage.data.repository.profile.ProfileRepositoryInterface
 import turmaA.grupoB.LinkStage.data.repository.student.StudentRepositoryInterface
 import turmaA.grupoB.LinkStage.data.repository.supervisor.SupervisorRepositoryInterface
-import turmaA.grupoB.LinkStage.data.util.generateTemporaryPassword
 import turmaA.grupoB.LinkStage.ui.admin.AdminInstitution
 import turmaA.grupoB.LinkStage.ui.admin.AdminMentor
 import turmaA.grupoB.LinkStage.ui.admin.AdminStudent
@@ -176,7 +169,6 @@ class AdminUsersViewModel(
         val offersById = emptyMap<String, turmaA.grupoB.LinkStage.data.remote.model.offer.InternshipOfferModel>()
 
         studentRepository.getStudents()
-            .filter { profilesByUserId[it.userId]?.active != false }
             .toAdminStudents(
                 profilesByUserId = profilesByUserId,
                 applicationsByStudentId = emptyMap(),
@@ -198,7 +190,6 @@ class AdminUsersViewModel(
             .groupBy { it.supervisorId ?: "" }
 
         supervisorRepository.getSupervisors()
-            .filter { profilesByUserId[it.userId]?.active != false }
             .toAdminMentors(
                 profilesByUserId = profilesByUserId,
                 activeInternshipsBySupervisorId = activeInternshipsBySupervisorId,
@@ -218,7 +209,6 @@ class AdminStudentDetailViewModel(
     private val applicationRepository: ApplicationRepositoryInterface,
     private val institutionRepository: InstitutionRepositoryInterface,
     private val offerRepository: OfferRepositoryInterface,
-    private val authRepository: AuthRepositoryInterface,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<AdminStudentDetailUiState>(AdminStudentDetailUiState.Idle)
@@ -235,20 +225,14 @@ class AdminStudentDetailViewModel(
         _uiState.value = AdminStudentDetailUiState.Idle
     }
 
-    fun removeAccount(userId: String, onComplete: () -> Unit) {
-        viewModelScope.launch {
-            authRepository.setProfileActive(userId, false)
-            onComplete()
-        }
-    }
-
     private suspend fun loadStudentData(studentId: String): AdminStudentDetailData = try {
         val student = studentRepository.getStudentById(studentId) ?: return fallbackStudentDetail(studentId)
         val profile = profileRepository.getProfileById(student.userId)
         val applications = applicationRepository.getApplicationsByStudent(student.id)
         val internships = internshipRepository.getInternshipsByStudent(student.id)
         val offersById = runCatching {
-            (internships.map { it.offerId } + applications.map { it.offerId })
+            internships
+                .map { it.offerId }
                 .distinct()
                 .mapNotNull { offerRepository.getOfferById(it) }
                 .associateBy { it.id }
@@ -270,11 +254,6 @@ class AdminStudentDetailViewModel(
             student = adminStudent,
             applications = applications,
             internships = internships,
-            applicationSummaries = applications.toApplicationSummaries(
-                offersById = offersById,
-                institutionsById = institutions,
-                internships = internships,
-            ),
         )
     } catch (_: Exception) {
         fallbackStudentDetail(studentId)
@@ -286,7 +265,6 @@ class AdminMentorDetailViewModel(
     private val profileRepository: ProfileRepositoryInterface,
     private val internshipRepository: InternshipRepositoryInterface,
     private val studentRepository: StudentRepositoryInterface,
-    private val authRepository: AuthRepositoryInterface,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<AdminMentorDetailUiState>(AdminMentorDetailUiState.Idle)
@@ -301,13 +279,6 @@ class AdminMentorDetailViewModel(
 
     fun resetState() {
         _uiState.value = AdminMentorDetailUiState.Idle
-    }
-
-    fun removeAccount(userId: String, onComplete: () -> Unit) {
-        viewModelScope.launch {
-            authRepository.setProfileActive(userId, false)
-            onComplete()
-        }
     }
 
     private suspend fun loadMentorData(mentorId: String): AdminMentorDetailData = try {
@@ -398,7 +369,6 @@ class AdminInstitutionsViewModel(
             .groupBy { it.institutionId }
 
         institutionRepository.getInstitutions()
-            .filter { profilesByUserId[it.userId]?.active != false }
             .map { institution ->
                 institution.toAdminInstitution(
                     profile = profilesByUserId[institution.userId],
@@ -420,7 +390,6 @@ class AdminInstitutionDetailViewModel(
     private val studentRepository: StudentRepositoryInterface,
     private val supervisorRepository: SupervisorRepositoryInterface,
     private val internshipRepository: InternshipRepositoryInterface,
-    private val authRepository: AuthRepositoryInterface,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<AdminInstitutionDetailUiState>(AdminInstitutionDetailUiState.Idle)
@@ -435,13 +404,6 @@ class AdminInstitutionDetailViewModel(
 
     fun resetState() {
         _uiState.value = AdminInstitutionDetailUiState.Idle
-    }
-
-    fun removeAccount(userId: String, onComplete: () -> Unit) {
-        viewModelScope.launch {
-            authRepository.setProfileActive(userId, false)
-            onComplete()
-        }
     }
 
     private suspend fun loadInstitutionData(institutionId: String): AdminInstitutionDetailData = try {
@@ -543,114 +505,6 @@ class AdminInternshipDetailViewModel(
         )
     } catch (_: Exception) {
         fallbackInternshipDetail(internshipId)
-    }
-}
-
-class AdminAccountViewModel(
-    private val authRepository: AuthRepositoryInterface,
-    private val studentRepository: StudentRepositoryInterface,
-    private val supervisorRepository: SupervisorRepositoryInterface,
-    private val institutionRepository: InstitutionRepositoryInterface,
-) : ViewModel() {
-
-    private val _uiState = MutableStateFlow<AdminAccountUiState>(AdminAccountUiState.Idle)
-    val uiState: StateFlow<AdminAccountUiState> = _uiState.asStateFlow()
-
-    fun createStudentAccount(name: String, email: String, course: String, studentNumber: String) {
-        viewModelScope.launch {
-            _uiState.value = AdminAccountUiState.Loading
-
-            try {
-                val password = generateTemporaryPassword()
-                val profile = authRepository.createManagedAccount(
-                    SignUpInput(
-                        name = name,
-                        email = email,
-                        password = password,
-                        role = UserRole.STUDENT,
-                        rgpdConsent = true,
-                    )
-                )
-
-                studentRepository.createStudent(
-                    CreateStudentInput(
-                        userId = profile.id,
-                        studentNumber = studentNumber,
-                        course = course,
-                    )
-                )
-
-                _uiState.value = AdminAccountUiState.Success(password)
-            } catch (e: Exception) {
-                _uiState.value = AdminAccountUiState.Error(e.message ?: "Erro ao criar conta de estudante.")
-            }
-        }
-    }
-
-    fun createMentorAccount(name: String, email: String, department: String) {
-        viewModelScope.launch {
-            _uiState.value = AdminAccountUiState.Loading
-
-            try {
-                val password = generateTemporaryPassword()
-                val profile = authRepository.createManagedAccount(
-                    SignUpInput(
-                        name = name,
-                        email = email,
-                        password = password,
-                        role = UserRole.SUPERVISOR,
-                        rgpdConsent = true,
-                    )
-                )
-
-                supervisorRepository.createSupervisor(
-                    CreateSupervisorInput(
-                        userId = profile.id,
-                        department = department.ifBlank { null },
-                    )
-                )
-
-                _uiState.value = AdminAccountUiState.Success(password)
-            } catch (e: Exception) {
-                _uiState.value = AdminAccountUiState.Error(e.message ?: "Erro ao criar conta de orientador.")
-            }
-        }
-    }
-
-    fun createInstitutionAccount(name: String, email: String, sector: String, address: String) {
-        viewModelScope.launch {
-            _uiState.value = AdminAccountUiState.Loading
-
-            try {
-                val password = generateTemporaryPassword()
-                val profile = authRepository.createManagedAccount(
-                    SignUpInput(
-                        name = name,
-                        email = email,
-                        password = password,
-                        role = UserRole.INSTITUTION,
-                        rgpdConsent = true,
-                    )
-                )
-
-                institutionRepository.createInstitution(
-                    CreateInstitutionInput(
-                        userId = profile.id,
-                        name = name,
-                        address = address.ifBlank { null },
-                        sector = sector.ifBlank { null },
-                    )
-                )
-
-                _uiState.value = AdminAccountUiState.Success(password)
-            } catch (e: Exception) {
-                _uiState.value = AdminAccountUiState.Error(e.message ?: "Erro ao criar conta de instituição.")
-            }
-        }
-    }
-
-    fun resetState() {
-        _uiState.value = AdminAccountUiState.Idle
     }
 }
 

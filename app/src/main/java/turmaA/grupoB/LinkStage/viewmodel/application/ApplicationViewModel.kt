@@ -10,9 +10,11 @@ import turmaA.grupoB.LinkStage.data.remote.model.application.CreateApplicationIn
 import turmaA.grupoB.LinkStage.data.remote.model.application.UpdateApplicationDecisionInput
 import turmaA.grupoB.LinkStage.data.remote.model.enums.ApplicationStatus
 import turmaA.grupoB.LinkStage.data.repository.application.ApplicationRepositoryInterface
+import turmaA.grupoB.LinkStage.data.repository.storage.StorageRepositoryInterface
 
 class ApplicationViewModel(
-    private val applicationRepository: ApplicationRepositoryInterface
+    private val applicationRepository: ApplicationRepositoryInterface,
+    private val storageRepository: StorageRepositoryInterface? = null,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow<ApplicationUiState>(ApplicationUiState.Idle)
     val uiState: StateFlow<ApplicationUiState> = _uiState.asStateFlow()
@@ -104,6 +106,32 @@ class ApplicationViewModel(
             try {
                 val application = applicationRepository.createApplication(input)
 
+                _uiState.value = ApplicationUiState.Success(application)
+            } catch (e: Exception) {
+                _uiState.value = ApplicationUiState.Error(
+                    e.message ?: "Erro ao criar candidatura."
+                )
+            }
+        }
+    }
+
+    fun createApplication(
+        input: CreateApplicationInput,
+        motivationLetterPath: String,
+        motivationLetterBytes: ByteArray,
+    ) {
+        viewModelScope.launch {
+            _uiState.value = ApplicationUiState.Loading
+
+            try {
+                val uploadedPath = requireNotNull(storageRepository).uploadFile(
+                    bucket = "motivation-letters",
+                    path = motivationLetterPath,
+                    bytes = motivationLetterBytes,
+                )
+                val application = applicationRepository.createApplication(
+                    input.copy(motivationLetter = uploadedPath)
+                )
                 _uiState.value = ApplicationUiState.Success(application)
             } catch (e: Exception) {
                 _uiState.value = ApplicationUiState.Error(

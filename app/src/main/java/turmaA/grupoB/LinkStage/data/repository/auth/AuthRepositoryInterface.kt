@@ -17,10 +17,4 @@ interface AuthRepositoryInterface {
         userId: String,
         input: UpdateProfileInput
     ): ProfileModel
-
-    suspend fun updatePassword(newPassword: String)
-
-    suspend fun createManagedAccount(input: SignUpInput): ProfileModel
-
-    suspend fun setProfileActive(userId: String, active: Boolean)
 }

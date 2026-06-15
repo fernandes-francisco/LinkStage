@@ -23,7 +23,6 @@ data class AdminStudent(
     val avatarInitials: String,
     val avatarColorIndex: Int = 0,
     val skills: List<String> = emptyList(),
-    val userId: String = "",
 )
 
 data class AdminMentor(
@@ -41,7 +40,6 @@ data class AdminMentor(
     val supervisionAreas: List<String> = emptyList(),
     val internalNote: String = "",
     val isAvailable: Boolean = true,
-    val userId: String = "",
 )
 
 enum class InstitutionStatus {
@@ -66,7 +64,6 @@ data class AdminInstitution(
     val website: String = "",
     val status: InstitutionStatus = InstitutionStatus.APPROVED,
     val submittedAt: String = "",
-    val userId: String = "",
 )
 
 val avatarColors = listOf(LightBlue, DarkBlue, MediumBlue)

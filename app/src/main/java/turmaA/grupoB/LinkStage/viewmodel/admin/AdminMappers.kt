@@ -1,7 +1,6 @@
 package turmaA.grupoB.LinkStage.viewmodel.admin
 
 import turmaA.grupoB.LinkStage.data.remote.model.application.ApplicationModel
-import turmaA.grupoB.LinkStage.data.remote.model.enums.ApplicationStatus
 import turmaA.grupoB.LinkStage.data.remote.model.institution.InstitutionModel
 import turmaA.grupoB.LinkStage.data.remote.model.internship.InternshipModel
 import turmaA.grupoB.LinkStage.data.remote.model.offer.InternshipOfferModel
@@ -33,19 +32,10 @@ data class AdminDashboardData(
     val activeInternships: Int,
 )
 
-data class AdminApplicationSummary(
-    val id: String,
-    val offerTitle: String,
-    val companyName: String,
-    val status: ApplicationStatus,
-    val internshipId: String?,
-)
-
 data class AdminStudentDetailData(
     val student: AdminStudent,
     val applications: List<ApplicationModel>,
     val internships: List<InternshipModel>,
-    val applicationSummaries: List<AdminApplicationSummary> = emptyList(),
 )
 
 data class AdminMentorDetailData(
@@ -106,7 +96,6 @@ internal fun List<StudentModel>.toAdminStudents(
         avatarInitials = profile?.name?.initials() ?: student.studentNumber.take(2).uppercase(),
         avatarColorIndex = student.id.hashCode().absMod(avatarColors.size),
         skills = student.cvData?.keys?.toList().orEmpty(),
-        userId = student.userId,
     )
 }
 
@@ -130,7 +119,6 @@ internal fun SupervisorModel.toAdminMentor(
     supervisionAreas = listOfNotNull(department, specialty).distinct(),
     internalNote = if (acceptsNewInternships) "Disponível para novos estágios." else "Não aceita novos estágios.",
     isAvailable = acceptsNewInternships,
-    userId = userId,
 )
 
 internal fun List<SupervisorModel>.toAdminMentors(
@@ -233,7 +221,6 @@ internal fun InstitutionModel.toAdminInstitution(
     website = website ?: "",
     status = InstitutionStatus.APPROVED,
     submittedAt = createdAt.relativeTime(),
-    userId = userId,
 )
 
 internal fun InternshipOfferModel.toOfferDetail(
@@ -273,21 +260,6 @@ internal fun fallbackInstitutions(): List<AdminInstitution> = sampleInstitutions
 internal fun fallbackStudents(): List<AdminStudent> = sampleStudentsList
 
 internal fun fallbackMentors(): List<AdminMentor> = sampleMentorsList
-
-internal fun List<ApplicationModel>.toApplicationSummaries(
-    offersById: Map<String, InternshipOfferModel>,
-    institutionsById: Map<String, InstitutionModel>,
-    internships: List<InternshipModel>,
-): List<AdminApplicationSummary> = mapNotNull { application ->
-    val offer = offersById[application.offerId] ?: return@mapNotNull null
-    AdminApplicationSummary(
-        id = application.id,
-        offerTitle = offer.title,
-        companyName = institutionsById[offer.institutionId]?.name ?: "",
-        status = application.status,
-        internshipId = internships.firstOrNull { it.applicationId == application.id }?.id,
-    )
-}
 
 internal fun fallbackStudentDetail(studentId: String): AdminStudentDetailData {
     val student = sampleStudentsList.firstOrNull { it.id == studentId } ?: sampleStudentsList.first()

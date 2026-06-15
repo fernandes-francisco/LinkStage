@@ -63,7 +63,6 @@ import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.Fade1
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
 import turmaA.grupoB.LinkStage.ui.theme.Red
-import turmaA.grupoB.LinkStage.viewmodel.settings.PasswordChangeState
 import turmaA.grupoB.LinkStage.viewmodel.settings.SettingsViewModel
 import turmaA.grupoB.LinkStage.viewmodel.flags.FlagsUIState
 import turmaA.grupoB.LinkStage.viewmodel.flags.FlagsViewModel
@@ -103,26 +102,12 @@ fun SettingsOrientadorScreen(
         )
     }
 
-    val passwordChangeState by settingsViewModel.passwordChangeState.collectAsState()
-
-    LaunchedEffect(passwordChangeState) {
-        if (passwordChangeState is PasswordChangeState.Success) {
-            showPasswordDialog = false
-            settingsViewModel.resetPasswordChangeState()
-        }
-    }
-
     if (showPasswordDialog) {
         ChangePasswordDialog(
-            onDismiss = {
+            onDismiss = { showPasswordDialog = false },
+            onConfirm = { newPassword ->
                 showPasswordDialog = false
-                settingsViewModel.resetPasswordChangeState()
-            },
-            onConfirm = { newPassword -> settingsViewModel.changePassword(newPassword) },
-            isLoading = passwordChangeState is PasswordChangeState.Loading,
-            errorMessage = (passwordChangeState as? PasswordChangeState.Error)?.let {
-                stringResource(R.string.settings_password_change_error)
-            },
+            }
         )
     }
 

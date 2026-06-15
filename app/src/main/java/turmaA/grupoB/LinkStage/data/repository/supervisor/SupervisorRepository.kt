@@ -1,7 +1,6 @@
 package turmaA.grupoB.LinkStage.data.repository.supervisor
 
 import io.github.jan.supabase.postgrest.from
-import turmaA.grupoB.LinkStage.data.remote.model.user.CreateSupervisorInput
 import turmaA.grupoB.LinkStage.data.remote.model.user.SupervisorModel
 import turmaA.grupoB.LinkStage.data.remote.model.user.SupervisorSkillModel
 import turmaA.grupoB.LinkStage.data.remote.supabase.SupabaseClientProvider
@@ -72,15 +71,6 @@ class SupervisorRepository : SupervisorRepositoryInterface{
                 }
             }
             .decodeList<SupervisorSkillModel>()
-    }
-
-    override suspend fun createSupervisor(input: CreateSupervisorInput): SupervisorModel {
-        return supabase
-            .from("supervisors")
-            .insert(input) {
-                select()
-            }
-            .decodeSingle<SupervisorModel>()
     }
 
 }

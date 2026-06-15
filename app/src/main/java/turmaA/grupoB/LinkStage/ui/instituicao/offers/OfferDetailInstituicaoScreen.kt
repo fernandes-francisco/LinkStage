@@ -46,8 +46,6 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -66,18 +64,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import turmaA.grupoB.LinkStage.R
-import turmaA.grupoB.LinkStage.data.remote.model.enums.OfferStatus
-import turmaA.grupoB.LinkStage.data.remote.model.institution.InstitutionModel
-import turmaA.grupoB.LinkStage.data.remote.model.offer.InternshipOfferModel
-import turmaA.grupoB.LinkStage.data.repository.application.ApplicationRepository
-import turmaA.grupoB.LinkStage.data.repository.institution.InstitutionRepository
-import turmaA.grupoB.LinkStage.data.repository.offer.OfferRepository
-import turmaA.grupoB.LinkStage.data.repository.profile.ProfileRepository
-import turmaA.grupoB.LinkStage.data.repository.student.StudentRepository
 import turmaA.grupoB.LinkStage.ui.aluno.chat.avatarColors
 import turmaA.grupoB.LinkStage.ui.aluno.home.ApplicationStatus
 import turmaA.grupoB.LinkStage.ui.aluno.offers.OfferDetail
@@ -91,7 +80,8 @@ import turmaA.grupoB.LinkStage.ui.common.LinkStageOutlinedButton
 import turmaA.grupoB.LinkStage.ui.common.LinkStageTabRow
 import turmaA.grupoB.LinkStage.ui.instituicao.InstituicaoRoutes
 import turmaA.grupoB.LinkStage.ui.instituicao.InstitutionApplication
-import turmaA.grupoB.LinkStage.ui.instituicao.toInstitutionApplication
+import turmaA.grupoB.LinkStage.ui.instituicao.sampleInstitutionApplications
+import androidx.compose.ui.platform.LocalContext
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
@@ -101,45 +91,30 @@ import turmaA.grupoB.LinkStage.ui.theme.Fade1
 import turmaA.grupoB.LinkStage.ui.theme.Fade2
 import turmaA.grupoB.LinkStage.ui.theme.MediumBlue
 import turmaA.grupoB.LinkStage.ui.theme.Red
-import turmaA.grupoB.LinkStage.viewmodel.application.InstitutionApplicationsUiState
-import turmaA.grupoB.LinkStage.viewmodel.application.InstitutionApplicationsViewModel
-import turmaA.grupoB.LinkStage.viewmodel.application.InstitutionApplicationsViewModelFactory
-import turmaA.grupoB.LinkStage.viewmodel.offer.OfferUiState
-import turmaA.grupoB.LinkStage.viewmodel.offer.OfferViewModel
-import turmaA.grupoB.LinkStage.viewmodel.offer.OfferViewModelFactory
-import java.time.LocalDate
-import java.time.temporal.ChronoUnit
 
-private fun InternshipOfferModel.toOfferDetail(institution: InstitutionModel?, applicantsCount: Int): OfferDetail {
-    val requirementsList = requirements?.split("\n", ";")?.map { it.trim() }?.filter { it.isNotBlank() }.orEmpty()
-    return OfferDetail(
-        id = id,
-        title = title,
-        company = institution?.name.orEmpty(),
-        logoInitial = institution?.name?.firstOrNull()?.uppercaseChar()?.toString() ?: "?",
-        logoColor = Color(0xFF1565C0),
-        location = location.orEmpty(),
-        duration = "",
-        type = modality.orEmpty(),
-        aboutCompany = institution?.description.orEmpty(),
-        responsibilities = listOfNotNull(description.takeIf { it.isNotBlank() }),
-        requirements = requirementsList,
-        benefits = emptyList(),
-        deadlineDays = deadline.toDeadlineDays(),
-        applicantsCount = applicantsCount,
-    )
-}
-
-private fun String?.toDeadlineDays(): Int {
-    val deadlineDate = this?.let { runCatching { LocalDate.parse(it) }.getOrNull() } ?: return 0
-    return ChronoUnit.DAYS.between(LocalDate.now(), deadlineDate).coerceAtLeast(0).toInt()
-}
-
-private fun emptyOfferDetail(offerId: String) = OfferDetail(
-    id = offerId, title = "", company = "", logoInitial = "?", logoColor = Color(0xFF1565C0),
-    location = "", duration = "", type = "", aboutCompany = "",
-    responsibilities = emptyList(), requirements = emptyList(), benefits = emptyList(),
-    deadlineDays = 0, applicantsCount = 0,
+private val sampleOfferDetail = OfferDetail(
+    id = "1",
+    title = "Designer de Produto",
+    company = "ESTG-IPVC",
+    logoInitial = "E",
+    logoColor = Color(0xFF1565C0),
+    location = "Porto, PT",
+    duration = "6 Meses",
+    type = "Tempo Inteiro",
+    aboutCompany = "A ESTG-IPVC é uma escola superior de tecnologia e gestão que promove a inovação e o desenvolvimento regional.",
+    responsibilities = listOf(
+        "Realizar a prototipagem da aplicação web.",
+        "Colaborar com a equipa, com o objetivo de cruzar competências.",
+        "Desenvolver o sistema de criação de dashboards.",
+    ),
+    requirements = listOf(
+        "Experiência com Figma e prototipagem interativa.",
+        "Portfólio de UI para demonstração.",
+        "Comunicação excelente, escrita e verbal, em inglês.",
+    ),
+    benefits = listOf("Passe de Transporte Público", "Programa de Mentoria", "Mercado Competitivo"),
+    deadlineDays = 4,
+    applicantsCount = 12,
 )
 
 @Composable
@@ -147,45 +122,8 @@ fun OfferDetailInstituicaoScreen(
     offerId: String,
     navController: NavController,
     modifier: Modifier = Modifier,
-    offerViewModel: OfferViewModel = viewModel(
-        factory = OfferViewModelFactory(
-            offerRepository = OfferRepository(),
-            institutionRepository = InstitutionRepository(),
-        )
-    ),
-    applicationsViewModel: InstitutionApplicationsViewModel = viewModel(
-        factory = InstitutionApplicationsViewModelFactory(
-            applicationRepository = ApplicationRepository(),
-            studentRepository = StudentRepository(),
-            profileRepository = ProfileRepository(),
-        )
-    ),
 ) {
-    val offerUiState by offerViewModel.uiState.collectAsState()
-    val applicationsUiState by applicationsViewModel.uiState.collectAsState()
-
-    LaunchedEffect(offerId) {
-        offerViewModel.loadOfferDetailsById(offerId)
-        applicationsViewModel.loadApplicationsByOffer(offerId)
-    }
-
-    LaunchedEffect(offerUiState) {
-        val state = offerUiState
-        if (state is OfferUiState.Success) {
-            if (state.offer.status == OfferStatus.REMOVED) {
-                navController.popBackStack()
-            } else {
-                offerViewModel.loadOfferDetailsById(offerId)
-            }
-        }
-    }
-
-    val applications = (applicationsUiState as? InstitutionApplicationsUiState.SuccessList)
-        ?.applications?.map { it.toInstitutionApplication() }.orEmpty()
-
-    val details = offerUiState as? OfferUiState.SuccessDetails
-    val offer = details?.offer?.toOfferDetail(details.institution, applications.size) ?: emptyOfferDetail(offerId)
-
+    val offer = sampleOfferDetail
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
     var showCloseDialog by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
@@ -195,10 +133,7 @@ fun OfferDetailInstituicaoScreen(
             title = stringResource(R.string.offer_detail_close_title),
             body = stringResource(R.string.offer_detail_close_body),
             confirmLabel = stringResource(R.string.offer_detail_close_confirm),
-            onConfirm = {
-                showCloseDialog = false
-                offerViewModel.closeOffer(offerId)
-            },
+            onConfirm = { showCloseDialog = false },
             onDismiss = { showCloseDialog = false },
         )
     }
@@ -211,7 +146,7 @@ fun OfferDetailInstituicaoScreen(
             isDanger = false,
             onConfirm = {
                 showDeleteDialog = false
-                offerViewModel.markOfferAsRemoved(offerId)
+                navController.popBackStack()
             },
             onDismiss = { showDeleteDialog = false },
         )
@@ -288,7 +223,7 @@ fun OfferDetailInstituicaoScreen(
         ) {
             when (selectedTab) {
                 0 -> DetailsTab(offer = offer)
-                1 -> ApplicationsTab(navController = navController, applications = applications)
+                1 -> ApplicationsTab(navController = navController)
                 2 -> ManageTab(
                     onEdit = { navController.navigate(InstituicaoRoutes.offerFormRoute(offer.id)) },
                     onClose = { showCloseDialog = true },
@@ -388,7 +323,7 @@ private fun MetaChipSmall(
 // region Tab 1 — Applications
 
 @Composable
-private fun ApplicationsTab(navController: NavController, applications: List<InstitutionApplication>) {
+private fun ApplicationsTab(navController: NavController) {
     val filterAll = stringResource(R.string.applications_filter_all)
     val filterPending = stringResource(R.string.applications_filter_pending)
     val filterAccepted = stringResource(R.string.applications_filter_accepted)
@@ -398,7 +333,8 @@ private fun ApplicationsTab(navController: NavController, applications: List<Ins
     var searchQuery by rememberSaveable { mutableStateOf("") }
     var selectedFilter by rememberSaveable { mutableStateOf(filterAll) }
 
-    val filtered = applications.filter { app ->
+    val context = LocalContext.current
+    val filtered = sampleInstitutionApplications(context).filter { app ->
         val matchesSearch = searchQuery.isEmpty() ||
             app.studentName.contains(searchQuery, ignoreCase = true)
 

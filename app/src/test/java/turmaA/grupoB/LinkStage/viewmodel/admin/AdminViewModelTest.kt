@@ -20,13 +20,11 @@ import turmaA.grupoB.LinkStage.data.remote.model.application.ApplicationModel
 import turmaA.grupoB.LinkStage.data.remote.model.enums.ApplicationStatus
 import turmaA.grupoB.LinkStage.data.remote.model.enums.InternshipStatus
 import turmaA.grupoB.LinkStage.data.remote.model.enums.UserRole
-import turmaA.grupoB.LinkStage.data.remote.model.institution.CreateInstitutionInput
 import turmaA.grupoB.LinkStage.data.remote.model.institution.InstitutionModel
 import turmaA.grupoB.LinkStage.data.remote.model.internship.InternshipModel
 import turmaA.grupoB.LinkStage.data.remote.model.offer.InternshipOfferModel
 import turmaA.grupoB.LinkStage.data.remote.model.user.ProfileModel
 import turmaA.grupoB.LinkStage.data.remote.model.user.StudentModel
-import turmaA.grupoB.LinkStage.data.remote.model.user.CreateSupervisorInput
 import turmaA.grupoB.LinkStage.data.remote.model.user.SupervisorModel
 import turmaA.grupoB.LinkStage.data.remote.model.user.SupervisorSkillModel
 import turmaA.grupoB.LinkStage.data.repository.application.ApplicationRepositoryInterface
@@ -51,7 +49,6 @@ class AdminViewModelTest {
     private lateinit var applicationRepository: FakeApplicationRepository
     private lateinit var internshipRepository: FakeInternshipRepository
     private lateinit var offerRepository: FakeOfferRepository
-    private lateinit var authRepository: FakeAuthRepository
 
     @Before
     fun setup() {
@@ -62,7 +59,6 @@ class AdminViewModelTest {
         applicationRepository = FakeApplicationRepository()
         internshipRepository = FakeInternshipRepository()
         offerRepository = FakeOfferRepository()
-        authRepository = FakeAuthRepository()
 
         studentRepository.students = listOf(testStudent)
         supervisorRepository.supervisors = listOf(testSupervisor)
@@ -228,7 +224,6 @@ class AdminViewModelTest {
             applicationRepository,
             institutionRepository,
             offerRepository,
-            authRepository,
         )
 
         viewModel.loadStudent(testStudent.id)
@@ -251,7 +246,6 @@ class AdminViewModelTest {
             applicationRepository,
             institutionRepository,
             offerRepository,
-            authRepository,
         )
 
         viewModel.loadStudent("missing-student")
@@ -268,7 +262,6 @@ class AdminViewModelTest {
             profileRepository,
             internshipRepository,
             studentRepository,
-            authRepository,
         )
 
         viewModel.loadMentor(testSupervisor.id)
@@ -288,7 +281,6 @@ class AdminViewModelTest {
             profileRepository,
             internshipRepository,
             studentRepository,
-            authRepository,
         )
 
         viewModel.loadMentor("missing-mentor")
@@ -363,7 +355,6 @@ class AdminViewModelTest {
             studentRepository,
             supervisorRepository,
             internshipRepository,
-            authRepository,
         )
 
         viewModel.loadInstitution(testInstitution.id)
@@ -384,7 +375,6 @@ class AdminViewModelTest {
             studentRepository,
             supervisorRepository,
             internshipRepository,
-            authRepository,
         )
 
         viewModel.loadInstitution("missing-institution")
@@ -484,7 +474,6 @@ class AdminViewModelTest {
             applicationRepository,
             institutionRepository,
             offerRepository,
-            authRepository,
         )
 
         viewModel.loadStudent(testStudent.id)
@@ -544,7 +533,6 @@ class AdminViewModelTest {
             studentRepository,
             supervisorRepository,
             internshipRepository,
-            authRepository,
         )
 
         viewModel.loadInstitution(testInstitution.id)
@@ -726,8 +714,6 @@ private class FakeSupervisorRepository : SupervisorRepositoryInterface {
     override suspend fun getSupervisorsByDepartment(department: String): List<SupervisorModel> = supervisors.filter { it.department == department }
 
     override suspend fun getSupervisorSkills(supervisorId: String): List<SupervisorSkillModel> = skillsBySupervisorId[supervisorId].orEmpty()
-
-    override suspend fun createSupervisor(input: CreateSupervisorInput): SupervisorModel = error("not implemented")
 }
 
 private class FakeInstitutionRepository : InstitutionRepositoryInterface {
@@ -746,8 +732,6 @@ private class FakeInstitutionRepository : InstitutionRepositoryInterface {
     }
 
     override suspend fun getInstitutionByUserId(userId: String): InstitutionModel? = institutions.firstOrNull { it.userId == userId }
-
-    override suspend fun createInstitution(input: CreateInstitutionInput): InstitutionModel = error("not implemented")
 }
 
 private class FakeProfileRepository : ProfileRepositoryInterface {
@@ -838,30 +822,4 @@ private class FakeOfferRepository : OfferRepositoryInterface {
     override suspend fun closeOffer(offerId: String): InternshipOfferModel = error("not implemented")
 
     override suspend fun markOfferAsRemoved(offerId: String): InternshipOfferModel = error("not implemented")
-}
-
-private class FakeAuthRepository : turmaA.grupoB.LinkStage.data.repository.auth.AuthRepositoryInterface {
-    val deactivatedUserIds = mutableListOf<String>()
-
-    override suspend fun signUp(input: turmaA.grupoB.LinkStage.data.remote.model.auth.SignUpInput): ProfileModel = error("not implemented")
-
-    override suspend fun signIn(input: turmaA.grupoB.LinkStage.data.remote.model.auth.SignInInput) = error("not implemented")
-
-    override suspend fun signOut() = error("not implemented")
-
-    override fun getCurrentUserId(): String? = null
-
-    override fun isUserLoggedIn(): Boolean = false
-
-    override suspend fun getCurrentUserProfile(): ProfileModel? = null
-
-    override suspend fun updateProfile(userId: String, input: turmaA.grupoB.LinkStage.data.remote.model.user.UpdateProfileInput): ProfileModel = error("not implemented")
-
-    override suspend fun updatePassword(newPassword: String) = error("not implemented")
-
-    override suspend fun createManagedAccount(input: turmaA.grupoB.LinkStage.data.remote.model.auth.SignUpInput): ProfileModel = error("not implemented")
-
-    override suspend fun setProfileActive(userId: String, active: Boolean) {
-        if (!active) deactivatedUserIds.add(userId)
-    }
 }

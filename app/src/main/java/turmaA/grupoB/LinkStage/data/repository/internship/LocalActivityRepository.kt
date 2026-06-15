@@ -42,6 +42,7 @@ class LocalActivityRepository(
             hours = activityLog.hours,
             type = activityLog.type,
             location = activityLog.location,
+            attachmentUrl = activityLog.attachmentUrl,
         )
     }
 }
@@ -55,6 +56,7 @@ private fun ActivityLogEntity.toModel() = ActivityLogModel(
     hours = hours,
     type = type,
     location = location,
+    attachmentUrl = attachmentUrl,
     createdAt = createdAt,
 )
 
@@ -67,6 +69,7 @@ private fun ActivityLogModel.toEntity(pendingSync: Boolean) = ActivityLogEntity(
     hours = hours,
     type = type,
     location = location,
+    attachmentUrl = attachmentUrl,
     createdAt = createdAt,
     pendingSync = pendingSync,
 )

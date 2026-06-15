@@ -14,7 +14,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestWatcher
 import org.junit.runner.Description
-import turmaA.grupoB.LinkStage.data.remote.model.user.CreateSupervisorInput
 import turmaA.grupoB.LinkStage.data.remote.model.user.SupervisorModel
 import turmaA.grupoB.LinkStage.data.remote.model.user.SupervisorSkillModel
 import turmaA.grupoB.LinkStage.data.repository.supervisor.SupervisorRepositoryInterface
@@ -391,8 +390,6 @@ private class FakeSupervisorRepository : SupervisorRepositoryInterface {
 
         return skills.filter { it.supervisorId == supervisorId }
     }
-
-    override suspend fun createSupervisor(input: CreateSupervisorInput): SupervisorModel = error("not implemented")
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)

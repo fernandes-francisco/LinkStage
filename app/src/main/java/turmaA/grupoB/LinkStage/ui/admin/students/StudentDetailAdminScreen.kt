@@ -1,7 +1,6 @@
 package turmaA.grupoB.LinkStage.ui.admin.students
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -45,12 +44,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import turmaA.grupoB.LinkStage.data.remote.model.enums.ApplicationStatus
 import turmaA.grupoB.LinkStage.data.remote.model.enums.InternshipStatus
 import turmaA.grupoB.LinkStage.R
 import turmaA.grupoB.LinkStage.ui.admin.sampleStudentsList
 import turmaA.grupoB.LinkStage.ui.common.ContentSection
-import turmaA.grupoB.LinkStage.viewmodel.admin.AdminApplicationSummary
 import turmaA.grupoB.LinkStage.viewmodel.admin.AdminStudentDetailUiState
 import turmaA.grupoB.LinkStage.viewmodel.admin.AdminStudentDetailViewModel
 import turmaA.grupoB.LinkStage.viewmodel.admin.AdminStudentDetailViewModelFactory
@@ -84,10 +81,6 @@ fun StudentDetailAdminScreen(
             ?.id
         else -> null
     }
-    val applicationSummaries = when (val state = studentDetailUiState) {
-        is AdminStudentDetailUiState.Success -> state.data.applicationSummaries
-        else -> null
-    }
 
     LaunchedEffect(studentId) {
         studentDetailViewModel.loadStudent(studentId)
@@ -100,7 +93,7 @@ fun StudentDetailAdminScreen(
             title = stringResource(R.string.admin_student_remove),
             onConfirm = {
                 showDeleteDialog = false
-                studentDetailViewModel.removeAccount(student.userId, onBack)
+                onBack()
             },
             onDismiss = { showDeleteDialog = false },
             confirmText = stringResource(R.string.common_remove),
@@ -272,40 +265,20 @@ fun StudentDetailAdminScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Recent Applications
+            // Recent Applications (placeholder)
             ContentSection(title = stringResource(R.string.admin_detail_recent_applications)) {
                 Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
-                    when {
-                        applicationSummaries == null -> {
-                            ApplicationPlaceholderItem(
-                                title = stringResource(R.string.mock_application_designer),
-                                company = stringResource(R.string.mock_company_viana),
-                                status = stringResource(R.string.application_status_pending),
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            ApplicationPlaceholderItem(
-                                title = stringResource(R.string.mock_application_frontend),
-                                company = stringResource(R.string.mock_company_pingodoce),
-                                status = stringResource(R.string.application_status_reviewing),
-                            )
-                        }
-                        applicationSummaries.isEmpty() -> {
-                            Text(
-                                text = stringResource(R.string.app_detail_no_applications),
-                                color = DarkGrey,
-                                fontSize = 13.sp,
-                            )
-                        }
-                        else -> {
-                            applicationSummaries.forEachIndexed { index, application ->
-                                if (index > 0) Spacer(modifier = Modifier.height(8.dp))
-                                ApplicationSummaryItem(
-                                    application = application,
-                                    onClick = { application.internshipId?.let(onViewInternship) },
-                                )
-                            }
-                        }
-                    }
+                    ApplicationPlaceholderItem(
+                        title = stringResource(R.string.mock_application_designer),
+                        company = stringResource(R.string.mock_company_viana),
+                        status = stringResource(R.string.application_status_pending),
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    ApplicationPlaceholderItem(
+                        title = stringResource(R.string.mock_application_frontend),
+                        company = stringResource(R.string.mock_company_pingodoce),
+                        status = stringResource(R.string.application_status_reviewing),
+                    )
                 }
             }
 
@@ -345,35 +318,6 @@ private fun ApplicationPlaceholderItem(title: String, company: String, status: S
                 Text(text = company, color = DarkGrey, fontSize = 12.sp)
             }
             Text(text = status, color = MediumBlue, fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
-        }
-    }
-}
-
-@Composable
-private fun ApplicationSummaryItem(application: AdminApplicationSummary, onClick: () -> Unit) {
-    val (statusLabel, statusColor) = when (application.status) {
-        ApplicationStatus.ACCEPTED -> stringResource(R.string.app_detail_status_accepted) to Color(0xFF4CAF50)
-        ApplicationStatus.REJECTED -> stringResource(R.string.app_detail_status_rejected) to Red
-        ApplicationStatus.PENDING -> stringResource(R.string.app_detail_status_pending) to MediumBlue
-    }
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(enabled = application.internshipId != null, onClick = onClick),
-        shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(containerColor = BackgroundLight),
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(text = application.offerTitle, color = DarkBlue, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
-                Text(text = application.companyName, color = DarkGrey, fontSize = 12.sp)
-            }
-            Text(text = statusLabel, color = statusColor, fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
         }
     }
 }

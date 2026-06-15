@@ -46,8 +46,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -64,7 +62,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import turmaA.grupoB.LinkStage.R
@@ -82,26 +79,16 @@ import turmaA.grupoB.LinkStage.ui.theme.DarkGrey
 import turmaA.grupoB.LinkStage.ui.theme.Fade1
 import turmaA.grupoB.LinkStage.ui.theme.Fade2
 import turmaA.grupoB.LinkStage.ui.theme.LightBlue
-import turmaA.grupoB.LinkStage.viewmodel.instituicao.activity.InstitutionActivityUiState
-import turmaA.grupoB.LinkStage.viewmodel.instituicao.activity.InstitutionActivityViewModel
-import turmaA.grupoB.LinkStage.viewmodel.instituicao.activity.InstitutionActivityViewModelFactory
 
 @Composable
 fun MentorDetailInstituicaoScreen(
     mentorId: String,
     navController: NavController,
     modifier: Modifier = Modifier,
-    activityViewModel: InstitutionActivityViewModel = viewModel(factory = InstitutionActivityViewModelFactory()),
 ) {
     val context = LocalContext.current
-    val activityUiState by activityViewModel.uiState.collectAsState()
-    val mentor = (activityUiState as? InstitutionActivityUiState.Success)?.data?.adminMentors?.find { it.id == mentorId }
-        ?: sampleMentors(context).find { it.id == mentorId } ?: sampleMentors(context).first()
+    val mentor = sampleMentors(context).find { it.id == mentorId } ?: sampleMentors(context).first()
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
-
-    LaunchedEffect(Unit) {
-        activityViewModel.loadActivityForCurrentInstitution()
-    }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),

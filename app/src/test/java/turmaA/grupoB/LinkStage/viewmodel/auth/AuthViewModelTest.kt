@@ -249,14 +249,4 @@ private class FakeAuthRepository : AuthRepositoryInterface {
     ): ProfileModel {
         return currentProfile ?: throw IllegalStateException("Profile não encontrado.")
     }
-
-    override suspend fun updatePassword(newPassword: String) {
-    }
-
-    override suspend fun createManagedAccount(input: SignUpInput): ProfileModel {
-        return currentProfile ?: throw IllegalStateException("Profile não encontrado.")
-    }
-
-    override suspend fun setProfileActive(userId: String, active: Boolean) {
-    }
 }
