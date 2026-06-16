@@ -75,7 +75,11 @@ import turmaA.grupoB.LinkStage.viewmodel.discover.DiscoverViewModel
 import turmaA.grupoB.LinkStage.viewmodel.offer.OfferUiState
 import turmaA.grupoB.LinkStage.viewmodel.offer.OfferViewModel
 import turmaA.grupoB.LinkStage.viewmodel.offer.OfferViewModelFactory
+import java.time.Instant
 import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.OffsetDateTime
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 // region Data models
@@ -642,9 +646,13 @@ private fun InternshipOfferModel.toOfferItem(institutionName: String?): OfferIte
 private fun String?.toDisplayDate(): String {
     if (this.isNullOrBlank()) return ""
 
-    return runCatching {
-        LocalDate.parse(this).format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
-    }.getOrDefault(this)
+    val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+
+    return runCatching { LocalDate.parse(this).format(formatter) }
+        .recoverCatching { LocalDateTime.parse(this).toLocalDate().format(formatter) }
+        .recoverCatching { OffsetDateTime.parse(this).toLocalDate().format(formatter) }
+        .recoverCatching { Instant.parse(this).atZone(ZoneId.systemDefault()).toLocalDate().format(formatter) }
+        .getOrDefault("")
 }
 
 // endregion

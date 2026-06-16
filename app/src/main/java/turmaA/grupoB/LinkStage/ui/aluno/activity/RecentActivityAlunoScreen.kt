@@ -198,13 +198,17 @@ private fun formatTimestamp(timestamp: String): String {
     val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
 
     return runCatching { LocalDateTime.parse(timestamp).format(formatter) }
-        .recoverCatching { OffsetDateTime.parse(timestamp).format(formatter) }
+        .recoverCatching {
+            OffsetDateTime.parse(timestamp)
+                .atZoneSameInstant(ZoneId.systemDefault())
+                .format(formatter)
+        }
         .recoverCatching {
             Instant.parse(timestamp)
                 .atZone(ZoneId.systemDefault())
                 .format(formatter)
         }
-        .getOrDefault(timestamp)
+        .getOrDefault("")
 }
 
 // endregion

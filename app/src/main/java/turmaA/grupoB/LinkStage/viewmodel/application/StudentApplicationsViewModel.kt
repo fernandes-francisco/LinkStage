@@ -50,7 +50,7 @@ class StudentApplicationsViewModel(
 
                     StudentApplicationDetails(
                         application = application,
-                        offerTitle = offer?.title ?: application.offerId,
+                        offerTitle = offer?.title.orEmpty(),
                         institutionName = institution?.name.orEmpty(),
                     )
                 }

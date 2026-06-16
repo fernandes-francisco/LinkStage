@@ -446,13 +446,17 @@ private fun String.toHomeTimestamp(): String {
     val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
 
     return runCatching { LocalDateTime.parse(this).format(formatter) }
-        .recoverCatching { OffsetDateTime.parse(this).format(formatter) }
+        .recoverCatching {
+            OffsetDateTime.parse(this)
+                .atZoneSameInstant(ZoneId.systemDefault())
+                .format(formatter)
+        }
         .recoverCatching {
             Instant.parse(this)
                 .atZone(ZoneId.systemDefault())
                 .format(formatter)
         }
-        .getOrDefault(this)
+        .getOrDefault("")
 }
 
 private fun InternshipModel.toActiveInternship(): ActiveInternship? {
