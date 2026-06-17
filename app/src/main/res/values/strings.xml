@@ -160,7 +160,7 @@
     <string name="common_close">Close</string>
     <string name="common_search">Search…</string>
     <string name="common_write_here">Write here.</string>
-    <string name="common_view_all">View all →</string>
+    <string name="common_view_all">View all</string>
     <string name="common_more">More</string>
     <string name="common_in_development">Under development</string>
     <string name="common_required_field">Required field</string>
@@ -306,7 +306,7 @@
     <string name="apply_skills_count">skills added</string>
     <string name="apply_motivation_letter">Motivation Letter</string>
     <string name="apply_select_file">Select File</string>
-    <string name="apply_file_format">PDF, DOCX up to 10 MB</string>
+    <string name="apply_file_format">PDF, DOCX up to 6 MB</string>
     <string name="apply_review_name">Name</string>
     <string name="apply_review_course">Course</string>
     <string name="apply_review_gpa">GPA</string>

@@ -26,6 +26,7 @@ class ApplyViewModel : ViewModel() {
     var userSkills by mutableStateOf(listOf("Python", "Kotlin", "Trabalho em grupo", "Gestão de Projetos", "IA", "Resolução de problemas"))
     var motivationFile by mutableStateOf<Uri?>(null)
     var motivationFileName by mutableStateOf("")
+    var motivationFileBytes by mutableStateOf<ByteArray?>(null)
 
     val isCvComplete: Boolean get() = userSkills.isNotEmpty()
     val isMotivationComplete: Boolean get() = motivationFile != null

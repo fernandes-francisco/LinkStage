@@ -27,11 +27,21 @@ class OfferViewModel(
 
             try {
                 val offers = offerRepository.getPublishedOffers()
+                val institutionsById = institutionRepository?.let { repository ->
+                    offers.map { it.institutionId }
+                        .distinct()
+                        .mapNotNull { institutionId ->
+                            runCatching { repository.getInstitutionById(institutionId) }
+                                .getOrNull()
+                                ?.let { institutionId to it }
+                        }
+                        .toMap()
+                }.orEmpty()
 
                 _uiState.value = if (offers.isEmpty()) {
                     OfferUiState.Empty
                 } else {
-                    OfferUiState.SuccessList(offers)
+                    OfferUiState.SuccessList(offers, institutionsById)
                 }
 
             } catch (e: Exception) {
@@ -82,7 +92,10 @@ class OfferViewModel(
                 _uiState.value = if (offers.isEmpty()) {
                     OfferUiState.Empty
                 } else {
-                    OfferUiState.SuccessList(offers, institution)
+                    OfferUiState.SuccessList(
+                        offers = offers,
+                        institutionsById = mapOf(institution.id to institution),
+                    )
                 }
             } catch (e: Exception) {
                 _uiState.value = OfferUiState.Error(

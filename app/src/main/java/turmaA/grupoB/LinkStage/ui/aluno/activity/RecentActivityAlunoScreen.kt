@@ -1,6 +1,5 @@
 package turmaA.grupoB.LinkStage.ui.aluno.activity
 
-import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.animateFloatAsState
@@ -89,10 +88,14 @@ import turmaA.grupoB.LinkStage.data.repository.internship.LocalActivityRepositor
 import turmaA.grupoB.LinkStage.data.room.AtDatabase
 import turmaA.grupoB.LinkStage.data.repository.offer.OfferRepository
 import turmaA.grupoB.LinkStage.data.repository.report.ReportRepository
+import turmaA.grupoB.LinkStage.data.repository.storage.StorageRepository
 import turmaA.grupoB.LinkStage.data.repository.student.StudentRepository
 import turmaA.grupoB.LinkStage.ui.common.CommonTopBar
 import turmaA.grupoB.LinkStage.ui.common.LinkStageDialog
 import turmaA.grupoB.LinkStage.ui.common.SectionLabel
+import turmaA.grupoB.LinkStage.ui.common.SelectedUploadFile
+import turmaA.grupoB.LinkStage.ui.common.readUploadFile
+import turmaA.grupoB.LinkStage.ui.common.safeUploadFileName
 import turmaA.grupoB.LinkStage.ui.theme.BackgroundLight
 import turmaA.grupoB.LinkStage.ui.theme.BorderGrey
 import turmaA.grupoB.LinkStage.ui.theme.DarkBlue
@@ -118,10 +121,13 @@ import turmaA.grupoB.LinkStage.viewmodel.student.StudentUiState
 import turmaA.grupoB.LinkStage.viewmodel.student.StudentViewModel
 import turmaA.grupoB.LinkStage.viewmodel.student.StudentViewModelFactory
 import turmaA.grupoB.LinkStage.data.remote.model.enums.ApplicationStatus as RemoteApplicationStatus
+import java.time.Instant
 import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.OffsetDateTime
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
-import java.util.Locale
 
 // region Data models
 
@@ -155,6 +161,7 @@ data class ActivityLog(
     val submittedFiles: List<CheckpointFile> = emptyList(),
     val createdBy: String = "STUDENT",
     val createdByName: String = "",
+    val attachmentUrl: String? = null,
     val viewers: List<turmaA.grupoB.LinkStage.ui.orientador.CheckpointViewer> = emptyList(),
 )
 
@@ -184,8 +191,24 @@ fun calculateInternshipProgress(startDate: LocalDate, endDate: LocalDate): Float
 }
 
 private fun formatDate(date: LocalDate): String {
-    val formatter = DateTimeFormatter.ofPattern("MMM d", Locale.getDefault())
-    return date.format(formatter)
+    return date.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+}
+
+private fun formatTimestamp(timestamp: String): String {
+    val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
+
+    return runCatching { LocalDateTime.parse(timestamp).format(formatter) }
+        .recoverCatching {
+            OffsetDateTime.parse(timestamp)
+                .atZoneSameInstant(ZoneId.systemDefault())
+                .format(formatter)
+        }
+        .recoverCatching {
+            Instant.parse(timestamp)
+                .atZone(ZoneId.systemDefault())
+                .format(formatter)
+        }
+        .getOrDefault("")
 }
 
 // endregion
@@ -214,10 +237,14 @@ fun RecentActivityAlunoScreen(
             LocalActivityRepository(
                 AtDatabase.getDatabase(LocalContext.current).atividadeDAO()
             ),
+            StorageRepository(),
         )
     ),
     reportViewModel: ReportViewModel = viewModel(
-        factory = ReportViewModelFactory(ReportRepository())
+        factory = ReportViewModelFactory(
+            ReportRepository(),
+            StorageRepository(),
+        )
     ),
     onBack: (() -> Unit)? = null,
     onSubmitReport: () -> Unit = {},
@@ -269,17 +296,27 @@ fun RecentActivityAlunoScreen(
         currentStudent != null
     ) {
         AddActivityModal(
-            onSave = { title, description, _ ->
-                showAddActivityModal = false
-                internshipViewModel.createActivityLog(
-                    CreateActivityLogInput(
-                        internshipId = activeInternshipModel.id,
-                        studentId = currentStudent.id,
-                        description = description.ifBlank { title },
-                        activityDate = LocalDate.now().toString(),
-                        type = title,
-                    )
+            onSave = { title, description, selectedFile ->
+                val input = CreateActivityLogInput(
+                    internshipId = activeInternshipModel.id,
+                    studentId = currentStudent.id,
+                    description = description.ifBlank { title },
+                    activityDate = LocalDate.now().toString(),
+                    type = title,
                 )
+                if (selectedFile == null) {
+                    internshipViewModel.createActivityLog(input)
+                    showAddActivityModal = false
+                } else {
+                    val path = "students/${currentStudent.id}/activities/" +
+                        "${System.currentTimeMillis()}_${safeUploadFileName(selectedFile.name)}"
+                    internshipViewModel.createActivityLog(
+                        input = input,
+                        attachmentPath = path,
+                        attachmentBytes = selectedFile.bytes,
+                    )
+                    showAddActivityModal = false
+                }
             },
             onDismiss = { showAddActivityModal = false },
         )
@@ -338,7 +375,7 @@ fun RecentActivityAlunoScreen(
         )
     }
 
-    if (activeInternship != null) {
+    if (activeInternship != null && currentStudent != null) {
         Scaffold(
             modifier = modifier,
             containerColor = BackgroundLight,
@@ -348,13 +385,18 @@ fun RecentActivityAlunoScreen(
                 
                 ActiveInternshipContent(
                     internship = activeInternship,
+                    studentId = currentStudent.id,
                     reportUiState = reportUiState,
                     activityCreationUiState = activityCreationUiState,
                     canAddActivity = activeInternshipModel?.status == InternshipStatus.IN_PROGRESS,
                     onAddActivity = { showAddActivityModal = true },
-                    onSubmitReport = { reportId ->
+                    onSubmitReport = { reportId, filePath, fileBytes ->
                         reportSubmissionRequested = true
-                        reportViewModel.submitReport(reportId)
+                        reportViewModel.uploadAndSubmitReport(
+                            reportId = reportId,
+                            filePath = filePath,
+                            fileBytes = fileBytes,
+                        )
                     },
                     onActivityClick = onActivityClick,
                     onViewResult = onViewResult,
@@ -633,25 +675,42 @@ fun StatusBadge(status: ApplicationStatus) {
 @Composable
 private fun ActiveInternshipContent(
     internship: ActiveInternship,
+    studentId: String,
     reportUiState: ReportUiState,
     activityCreationUiState: ActivityCreationUiState,
     canAddActivity: Boolean,
     onAddActivity: () -> Unit,
-    onSubmitReport: (String) -> Unit,
+    onSubmitReport: (reportId: String, filePath: String, fileBytes: ByteArray) -> Unit,
     onActivityClick: (String) -> Unit = {},
     onViewResult: (String) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
+    val context = LocalContext.current
     var showSubmitConfirmation by remember { mutableStateOf(false) }
+    var selectedReportFile by remember { mutableStateOf<SelectedUploadFile?>(null) }
     val report = (reportUiState as? ReportUiState.Success)?.report
     val canSubmitReport = report?.status == ReportStatus.DRAFT
+    val reportFileLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri ->
+        val selectedFile = uri?.let { context.contentResolver.readUploadFile(it) }
+        if (selectedFile != null) {
+            selectedReportFile = selectedFile
+            showSubmitConfirmation = true
+        }
+    }
 
     if (showSubmitConfirmation) {
         LinkStageDialog(
             title = stringResource(R.string.report_submit_title),
             onConfirm = {
                 showSubmitConfirmation = false
-                report?.let { onSubmitReport(it.id) }
+                val selectedFile = selectedReportFile
+                if (report != null && selectedFile != null) {
+                    val path = "students/$studentId/internships/${internship.id}/final-report/" +
+                        "${System.currentTimeMillis()}_${safeUploadFileName(selectedFile.name)}"
+                    onSubmitReport(report.id, path, selectedFile.bytes)
+                }
             },
             onDismiss = { showSubmitConfirmation = false },
             confirmText = stringResource(R.string.activity_submit),
@@ -747,7 +806,7 @@ private fun ActiveInternshipContent(
                     report = report,
                     isLoading = reportUiState is ReportUiState.Loading,
                     errorMessage = (reportUiState as? ReportUiState.Error)?.message,
-                    onSubmit = { showSubmitConfirmation = true },
+                    onSubmit = { reportFileLauncher.launch("application/*") },
                     enabled = canSubmitReport,
                 )
             }
@@ -900,7 +959,7 @@ fun ActivityLogCard(
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = "${formatDate(activityLog.date)}, ${activityLog.date.year}",
+                        text = formatDate(activityLog.date),
                         style = MaterialTheme.typography.labelSmall,
                         color = DarkGrey,
                     )
@@ -1005,18 +1064,20 @@ private fun ReportSubmissionCard(
 
 @Composable
 fun AddActivityModal(
-    onSave: (title: String, description: String, fileUri: Uri?) -> Unit,
+    onSave: (title: String, description: String, file: SelectedUploadFile?) -> Unit,
     onDismiss: () -> Unit,
 ) {
+    val context = LocalContext.current
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
-    var fileUri by remember { mutableStateOf<Uri?>(null) }
+    var selectedFile by remember { mutableStateOf<SelectedUploadFile?>(null) }
     var fileName by remember { mutableStateOf<String?>(null) }
     var titleError by remember { mutableStateOf(false) }
 
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-        fileUri = uri
-        fileName = uri?.lastPathSegment
+        val file = uri?.let { context.contentResolver.readUploadFile(it) }
+        selectedFile = file
+        fileName = file?.name
     }
 
     LinkStageDialog(
@@ -1025,7 +1086,7 @@ fun AddActivityModal(
             if (title.isBlank()) {
                 titleError = true
             } else {
-                onSave(title, description, fileUri)
+                onSave(title, description, selectedFile)
             }
         },
         onDismiss = onDismiss,
@@ -1087,7 +1148,7 @@ fun AddActivityModal(
                 // Anexos
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     SectionLabel(stringResource(R.string.activity_attachments))
-                    if (fileUri != null) {
+                    if (selectedFile != null) {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -1113,7 +1174,7 @@ fun AddActivityModal(
                                     overflow = TextOverflow.Ellipsis,
                                 )
                             }
-                            IconButton(onClick = { fileUri = null; fileName = null }) {
+                            IconButton(onClick = { selectedFile = null; fileName = null }) {
                                 Icon(Icons.Default.Close, contentDescription = stringResource(R.string.common_remove), tint = DarkGrey)
                             }
                         }
@@ -1248,7 +1309,7 @@ private fun StudentApplicationDetails.toApplicationItem(): ApplicationItem {
         id = application.id,
         offerTitle = offerTitle,
         company = institutionName,
-        appliedAgo = application.createdAt,
+        appliedAgo = formatTimestamp(application.createdAt),
         status = application.status.toUiApplicationStatus()
     )
 }
@@ -1280,6 +1341,7 @@ private fun ActivityLogModel.toActivityLog(): ActivityLog? {
         description = description,
         date = parsedDate,
         status = ActivityLogStatus.COMPLETED,
+        attachmentUrl = attachmentUrl,
     )
 }
 
