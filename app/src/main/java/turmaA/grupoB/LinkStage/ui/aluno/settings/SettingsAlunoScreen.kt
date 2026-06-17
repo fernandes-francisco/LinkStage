@@ -340,9 +340,12 @@ fun SettingsAlunoScreen(
 @Composable
 private fun UserAvatar(user: LoggedUser, size: Int = 48) {
     val initials = user.name
-        .split(" ")
+        .trim()
+        .split(Regex("\\s+"))
+        .filter { it.isNotBlank() }
         .take(2)
         .joinToString("") { it.first().uppercase() }
+        .ifBlank { "?" }
 
     Box(
         modifier = Modifier
