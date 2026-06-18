@@ -5,71 +5,142 @@
 ![Jetpack Compose](https://img.shields.io/badge/Jetpack%20Compose-Material%203-blue?logo=jetpackcompose)
 ![Supabase](https://img.shields.io/badge/Supabase-Backend-3ECF8E?logo=supabase)
 ![Gradle](https://img.shields.io/badge/Gradle-Build-02303A?logo=gradle)
+![Version](https://img.shields.io/badge/Version-1.0.0-blue)
 ![License](https://img.shields.io/badge/License-Academic-lightgrey)
-![Status](https://img.shields.io/badge/Status-v0.1.0%20technical%20base-orange)
 
-Aplicação Android para gestão de estágios académicos, desenvolvida em Kotlin com Jetpack Compose e Supabase.
+Android application for academic internship management.
 
-## Estado atual
+LinkStage supports the internship lifecycle between students, institutions, academic supervisors and administrators, including authentication, internship offers, applications, communication, activity tracking, final reports and evaluation workflows.
 
-Versão técnica inicial: `v0.1.0`
+## Version
 
-Implementado:
+Current release: `1.0.0`
 
-- Models remotos
-- Inputs para operações de escrita
-- Cliente Supabase
-- Repositories da camada de dados
-- Autenticação base com Supabase Auth
-- Testes instrumentados de integração
-
-Ainda por implementar:
-
-- ViewModels
-- Ecrãs finais
-- Navegação
-- Suporte PT/EN
-- Suporte portrait/landscape
-- Modo offline/sincronização
-- APK final
-
-## Stack
+## Tech Stack
 
 - Kotlin
-- Android Studio
+- Android SDK 36
 - Jetpack Compose
 - Material 3
 - Supabase
-    - Auth
-    - Database/PostgREST
-    - Edge Functions
+  - Auth
+  - PostgREST
+  - Storage
+  - Realtime
 - Room
+- Retrofit
+- Coil
 - Kotlin Serialization
 - Gradle
+- GitHub Actions
 
-## Estrutura principal
+## Architecture
+
+The project follows a layered architecture:
+
+```text
+UI -> ViewModel -> RepositoryInterface -> Repository -> Data source
+```
+
+Main data sources:
+
+- Supabase for authentication, database access, realtime features and file storage
+- Room for local persistence
+- Retrofit for external REST integrations
+
+## Project Structure
 
 ```text
 app/src/main/java/turmaA/grupoB/LinkStage
 ├── data
 │   ├── remote
+│   │   ├── api
 │   │   ├── model
 │   │   └── supabase
-│   └── repository
-└── ui
-    └── theme
+│   ├── repository
+│   │   ├── application
+│   │   ├── auth
+│   │   ├── communication
+│   │   ├── evaluation
+│   │   ├── flags
+│   │   ├── institution
+│   │   ├── internship
+│   │   ├── offer
+│   │   ├── profile
+│   │   ├── report
+│   │   ├── storage
+│   │   ├── student
+│   │   └── supervisor
+│   ├── room
+│   └── util
+├── ui
+│   ├── admin
+│   ├── aluno
+│   ├── auth
+│   ├── chat
+│   ├── common
+│   ├── instituicao
+│   ├── introSliders
+│   ├── navigation
+│   ├── orientador
+│   ├── splash
+│   └── theme
+└── viewmodel
+    ├── activity
+    ├── admin
+    ├── advisorhome
+    ├── application
+    ├── apply
+    ├── auth
+    ├── chat
+    ├── communication
+    ├── discover
+    ├── evaluation
+    ├── flags
+    ├── home
+    ├── instituicao
+    ├── Institution
+    ├── institutionhome
+    ├── internships
+    ├── offer
+    ├── offerform
+    ├── orientador
+    ├── profile
+    ├── report
+    ├── settings
+    ├── student
+    └── supervisor
 ```
 
-## Configuração
+## Functional Areas
 
-Criar/configurar o ficheiro `local.properties` na raiz do projeto:
+- Authentication and user profiles
+- Student internship offer discovery
+- Student applications
+- Institution offer and application management
+- Academic supervisor internship tracking
+- Administrator dashboards and management screens
+- Chat and communication flows
+- Activity logs
+- Final reports
+- Evaluation workflows
+- File uploads through Supabase Storage
+- Local activity persistence with Room
+- External country/flag data through Retrofit
+
+## Configuration
+
+Create a `local.properties` file in the project root:
 
 ```properties
 SUPABASE_URL=https://<project-ref>.supabase.co
 SUPABASE_ANON_KEY=<anon-key>
+RESTCOUNTRIES_API_KEY=<api-key>
 ```
 
-A `service_role key` não deve ser usada na aplicação Android.
+Only the Supabase anon key must be used by the Android application.
+
+Do not include Supabase service role keys or production secrets in the Android client.
 
 ## Build
 
@@ -77,92 +148,160 @@ Windows PowerShell:
 
 ```powershell
 .\gradlew clean build
+.\gradlew :app:assembleDebug
+.\gradlew :app:assembleRelease
+.\gradlew :app:bundleRelease
 ```
 
 Linux/macOS:
 
 ```bash
 ./gradlew clean build
+./gradlew :app:assembleDebug
+./gradlew :app:assembleRelease
+./gradlew :app:bundleRelease
 ```
 
-## Testes
+## Tests
 
-Os testes instrumentados estão em:
+Local unit tests:
 
-```text
-app/src/androidTest
+```bash
+./gradlew testDebugUnitTest
 ```
 
-Para executar, é necessário ter um emulador ou dispositivo Android ligado.
-
-Windows PowerShell:
-
-```powershell
-.\gradlew connectedAndroidTest
-```
-
-Linux/macOS:
+Instrumented Android tests:
 
 ```bash
 ./gradlew connectedAndroidTest
 ```
 
-## Supabase
+Instrumented tests require an emulator or physical Android device.
 
-O projeto usa Supabase para:
-
-- Autenticação
-- Persistência remota
-- Queries através do Supabase SDK
-- Testes de integração
-
-Durante testes de autenticação, podem ser criados utilizadores temporários com o padrão:
+Test locations:
 
 ```text
-test+<timestamp>@linkstage.test
+app/src/test
+app/src/androidTest
 ```
 
-A limpeza destes utilizadores é feita por configuração externa no Supabase.
+## CI/CD
 
-## Git workflow
+The repository includes GitHub Actions workflows for continuous integration, release generation and instrumented Android tests.
 
-Branches principais:
+### Android CI
+
+Workflow:
+
+```text
+.github/workflows/ci.yml
+```
+
+Runs on:
+
+```text
+pull_request -> develop, main
+push         -> develop, main
+```
+
+Main command:
+
+```bash
+./gradlew clean build
+```
+
+Required GitHub secrets:
+
+```text
+SUPABASE_URL
+SUPABASE_ANON_KEY
+```
+
+### Android Integration Tests
+
+Workflow:
+
+```text
+.github/workflows/android-integration-tests.yml
+```
+
+Runs manually with:
+
+```text
+workflow_dispatch
+```
+
+Main command:
+
+```bash
+./gradlew connectedAndroidTest
+```
+
+The workflow runs the tests on an Android emulator with API 36.
+
+### Release
+
+Workflow:
+
+```text
+.github/workflows/cd.yml
+```
+
+Runs on:
+
+```text
+push -> main
+```
+
+Builds:
+
+```text
+APK
+AAB
+```
+
+Generated artifacts are published to GitHub Releases.
+
+Release artifact naming:
+
+```text
+LinkStage-<version>.apk
+LinkStage-<version>.aab
+```
+
+## Release Notes
+
+Version `1.0.0` represents the first complete release candidate of the LinkStage Android application, including the main role-based flows for students, institutions, academic supervisors and administrators.
+
+## Git Workflow
+
+Main branches:
 
 ```text
 main
 develop
-feature/<nome-da-feature>
 ```
 
-Exemplos:
+Recommended branch naming:
 
 ```text
-feature/supabase-models
-feature/supabase-client
-feature/supabase-repositories
-feature/supabase-auth
+feature/<name>
+fix/<name>
+chore/<name>
+docs/<name>
+test/<name>
+refactor/<name>
 ```
 
 ## Conventional Commits
 
-Exemplos:
+Examples:
 
-```bash
-feat(data): add remote models
-feat(data): configure Supabase client
-feat(data): add repositories
-feat(auth): add auth repository
-test(auth): add sign up integration test
-fix(data): correct application status enum values
+```text
+feat(student): add final report upload
+fix(auth): handle missing session
+fix(student): prevent settings avatar crash
+chore(release): prepare 1.0.0
+docs: update README
+test(viewmodel): add communication tests
 ```
-
-## Versão
-
-`v0.1.0` representa a primeira base técnica do projeto:
-
-- camada de dados remota
-- integração Supabase
-- autenticação base
-- testes de integração
-
-Esta versão ainda não representa uma aplicação final utilizável.
