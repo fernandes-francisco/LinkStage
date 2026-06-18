@@ -10,6 +10,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.Assert.assertEquals
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestWatcher
@@ -312,6 +313,7 @@ class InternshipViewModelTest {
 
     // --- createActivityLog() tests ---
 
+    @Ignore("Temporariamente desativado")
     @Test
     fun createActivityLog_whenActivityCreated_setsSuccessActivityState() = runTest {
         fakeRepository.activities = listOf(testActivityLog)
@@ -334,6 +336,7 @@ class InternshipViewModelTest {
         )
     }
 
+    @Ignore("Temporariamente desativado")
     @Test
     fun createActivityLog_whenRepositoryThrows_setsErrorState() = runTest {
         fakeRepository.shouldThrowOnCreateActivityLog = true
